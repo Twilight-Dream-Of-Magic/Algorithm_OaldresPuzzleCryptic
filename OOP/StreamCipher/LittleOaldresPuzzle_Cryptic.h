@@ -73,7 +73,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				return result;
 			}
 
-			void MultipleRoundsEncryption(const std::vector<std::uint64_t>& data_array, const std::vector<std::uint64_t>& keys, std::vector<std::uint64_t>& result_data_array)
+			void MultipleRoundsEncryption(const std::vector<std::uint64_t>& data_array, std::vector<std::uint64_t>& keys, std::vector<std::uint64_t>& result_data_array)
 			{
 				// Ensure result_data_array is of the same size as data_array
 				if(data_array.empty())
@@ -81,17 +81,20 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				else if (result_data_array.size() < data_array.size())
 					result_data_array.resize(data_array.size());
 
+				auto start = std::chrono::high_resolution_clock::now();
 				// Encryption
 				for (size_t i = 0; i < data_array.size(); ++i)
 				{
 					result_data_array[i] = EncryptionCoreFunction(data_array[i], keys[i % keys.size()], i);
 				}
+				auto end = std::chrono::high_resolution_clock::now();
+				encryptionTime = std::chrono::duration_cast<std::chrono::nanoseconds>( end - start );
 
-				// Reset the PRNG for the next encryption or decryption (Must be call this function)
+				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
 				ResetPRNG();
 			}
 
-			void MultipleRoundsDecryption(const std::vector<std::uint64_t>& data_array, const std::vector<std::uint64_t>& keys, std::vector<std::uint64_t>& result_data_array)
+			void MultipleRoundsDecryption(const std::vector<std::uint64_t>& data_array, std::vector<std::uint64_t>& keys, std::vector<std::uint64_t>& result_data_array)
 			{
 				// Ensure result_data_array is of the same size as data_array
 				if(data_array.empty())
@@ -99,13 +102,16 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				else if (result_data_array.size() < data_array.size())
 					result_data_array.resize(data_array.size());
 
+				auto start = std::chrono::high_resolution_clock::now();
 				// Decryption
 				for (size_t i = 0; i < data_array.size(); ++i)
 				{
 					result_data_array[i] = DecryptionCoreFunction(data_array[i], keys[i % keys.size()], i);
 				}
+				auto end = std::chrono::high_resolution_clock::now();
+				decryptionTime = std::chrono::duration_cast<std::chrono::nanoseconds>( end - start );
 
-				// Reset the PRNG for the next encryption or decryption (Must be call this function)
+				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
 				ResetPRNG();
 			}
 
@@ -124,8 +130,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					subkey ^= EncryptionCoreFunction(number_once, key, counter);
 					subkeys[counter] = subkey;
 				}
-
-				// Reset the PRNG for the next encryption or decryption (Must be call this function)
+				
+				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
 				ResetPRNG();
 
 				return subkeys;
@@ -146,8 +152,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					subkey ^= DecryptionCoreFunction(number_once, key, counter);
 					subkeys[counter] = subkey;
 				}
-
-				// Reset the PRNG for the next encryption or decryption (Must be call this function)
+				
+				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
 				ResetPRNG();
 
 				return subkeys;
@@ -158,6 +164,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				prng.Seed(seed);
 			}
 
+			std::chrono::nanoseconds encryptionTime;
+			std::chrono::nanoseconds decryptionTime;
+
 		private:
 			std::uint64_t seed = 0;
 			XorConstantRotation prng;
@@ -165,17 +174,19 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			
 			struct KeyState
 			{
-				std::uint64_t subkey;
-				std::uint64_t choise_function;
-				std::uint64_t bit_rotation_amount_a;
-				std::uint64_t bit_rotation_amount_b;
+				std::uint64_t subkey = 0;
+				std::uint64_t choice_function = 0;
+				std::uint64_t bit_rotation_amount_a = 0;
+				std::uint64_t bit_rotation_amount_b = 0;
+				std::uint32_t round_constant_index = 0;
 			};
 
 			std::vector<KeyState> KeyStates;
 			
 			void GenerateAndStoreKeyStates(const std::uint64_t key, const std::uint64_t number_once);
-			std::uint64_t EncryptionCoreFunction(const std::uint64_t data, const std::uint64_t key, const std::uint64_t number_once);
-			std::uint64_t DecryptionCoreFunction(const std::uint64_t data, const std::uint64_t key, const std::uint64_t number_once);
+
+			std::uint64_t EncryptionCoreFunction(const std::uint64_t data, const std::uint64_t key, const std::uint64_t round);
+			std::uint64_t DecryptionCoreFunction(const std::uint64_t data, const std::uint64_t key, const std::uint64_t round);
 		};
 	}
 
