@@ -232,11 +232,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						BitsHashState[InputBytesIndex] ^= BitWords[OutputBytesIndex];
 
 						//状态排列和变换(信息熵池搅拌)
-						//State permutation and transformation (stirring of information entropy pool)
-						for(std::size_t BlockCounter = 0; BlockCounter < (ByteDatas.size() / sizeof(std::uint64_t)); BlockCounter++)
-						{
-							this->TransfromState(BlockCounter);
-						}
+						//State permutation and transformation (string of information entropy pool)
+						this->TransfromState(BitsHashState.size());
 					}
 
 					memory_set_no_optimize_function<0x00>(BitWords.data(), BitWords.size() * sizeof(std::uint64_t));
@@ -251,11 +248,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						BitsHashState[InputBitsIndex] ^= BitWordDatas[OutputBitsIndex];
 
 						//状态排列和变换(信息熵池搅拌)
-						//State permutation and transformation (stirring of information entropy pool)
-						for(std::size_t BlockCounter = 0; BlockCounter < BitWordDatas.size(); BlockCounter++)
-						{
-							this->TransfromState(BlockCounter);
-						}
+						//State permutation and transformation (string of information entropy pool)
+						this->TransfromState(BitsHashState.size());
 					}
 				}
 
@@ -264,10 +258,21 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					using CommonToolkit::IntegerExchangeBytes::MessageUnpacking;
 
 					std::vector<std::uint64_t> BitWords(HashBitSize / std::numeric_limits<std::uint64_t>::digits, 0);
-
+					
+					size_t BitsIndexOffest = 0;
+					
 					for(std::uint64_t BitsIndex = 0; BitsIndex < BitWords.size(); ++BitsIndex)
 					{
-						BitWords[BitsIndex] = BitsHashState[BitsIndex];
+						BitWords[BitsIndex] = BitsHashState[BitsIndexOffest];
+						
+						if(BitsIndexOffest >= BITWORDS_RATE)
+						{
+							//状态排列和变换(信息熵池搅拌)
+							//State permutation and transformation (string of information entropy pool)
+							this->TransfromState(BitsHashState.size());
+							
+							BitsIndexOffest = 0;
+						}
 					}
 
 					MessageUnpacking<std::uint64_t, std::uint8_t>(BitWords, ByteDatas.data());
@@ -275,9 +280,20 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				void SqueezeOutputData(std::span<std::uint64_t> WordDatas)
 				{
+					size_t BitsIndexOffest = 0;
+				
 					for(std::uint64_t BitsIndex = 0; BitsIndex < (HashBitSize / std::numeric_limits<std::uint64_t>::digits); ++BitsIndex)
 					{
-						WordDatas[BitsIndex] = BitsHashState[BitsIndex];
+						WordDatas[BitsIndex] = BitsHashState[BitsIndexOffest];
+						
+						if(BitsIndexOffest >= BITWORDS_RATE)
+						{
+							//状态排列和变换(信息熵池搅拌)
+							//State permutation and transformation (string of information entropy pool)
+							this->TransfromState(BitsHashState.size());
+							
+							BitsIndexOffest = 0;
+						}
 					}
 				}
 
