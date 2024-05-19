@@ -854,22 +854,21 @@ namespace Cryptograph
 
 				void AbsorbInputData(std::span<const std::uint8_t> ByteDatas)
 				{
+					using CommonToolkit::IntegerExchangeBytes::MessagePacking;
+
 					std::vector<std::uint64_t> BitWords(ByteDatas.size() / sizeof(std::uint64_t), 0);
-							
-					CommonToolkit::MessagePacking<std::uint64_t, std::uint8_t>(ByteDatas, BitWords.data());
-							
+
+					MessagePacking<std::uint64_t, std::uint8_t>(ByteDatas, BitWords.data());
+
 					for(std::uint64_t InputBytesIndex = 0, OutputBytesIndex = 0; OutputBytesIndex < BitWords.size(); ++InputBytesIndex, ++OutputBytesIndex)
 					{
 						if(InputBytesIndex >= BITWORDS_RATE)
 							InputBytesIndex = 0;
 						BitsHashState[InputBytesIndex] ^= BitWords[OutputBytesIndex];
-						
+
 						//状态排列和变换(信息熵池搅拌)
-						//State permutation and transformation (stirring of information entropy pool)
-						for(std::size_t BlockCounter = 0; BlockCounter < (ByteDatas.size() / sizeof(std::uint64_t)); BlockCounter++)
-						{
-							this->TransfromState(BlockCounter);
-						}
+						//State permutation and transformation (string of information entropy pool)
+						this->TransfromState(BitsHashState.size());
 					}
 
 					memory_set_no_optimize_function<0x00>(BitWords.data(), BitWords.size() * sizeof(std::uint64_t));
@@ -884,31 +883,52 @@ namespace Cryptograph
 						BitsHashState[InputBitsIndex] ^= BitWordDatas[OutputBitsIndex];
 
 						//状态排列和变换(信息熵池搅拌)
-						//State permutation and transformation (stirring of information entropy pool)
-						for(std::size_t BlockCounter = 0; BlockCounter < BitWordDatas.size(); BlockCounter++)
-						{
-							this->TransfromState(BlockCounter);
-						}
+						//State permutation and transformation (string of information entropy pool)
+						this->TransfromState(BitsHashState.size());
 					}
 				}
 
 				void SqueezeOutputData(std::span<std::uint8_t> ByteDatas)
 				{
-					std::vector<std::uint64_t> BitWords(HashBitSize / std::numeric_limits<std::uint64_t>::digits, 0);
+					using CommonToolkit::IntegerExchangeBytes::MessageUnpacking;
 
+					std::vector<std::uint64_t> BitWords(HashBitSize / std::numeric_limits<std::uint64_t>::digits, 0);
+					
+					size_t BitsIndexOffest = 0;
+					
 					for(std::uint64_t BitsIndex = 0; BitsIndex < BitWords.size(); ++BitsIndex)
 					{
-						BitWords[BitsIndex] = BitsHashState[BitsIndex];
+						BitWords[BitsIndex] = BitsHashState[BitsIndexOffest];
+						
+						if(BitsIndexOffest >= BITWORDS_RATE)
+						{
+							//状态排列和变换(信息熵池搅拌)
+							//State permutation and transformation (string of information entropy pool)
+							this->TransfromState(BitsHashState.size());
+							
+							BitsIndexOffest = 0;
+						}
 					}
 
-					CommonToolkit::MessageUnpacking<std::uint64_t, std::uint8_t>(BitWords, ByteDatas.data());
+					MessageUnpacking<std::uint64_t, std::uint8_t>(BitWords, ByteDatas.data());
 				}
 
 				void SqueezeOutputData(std::span<std::uint64_t> WordDatas)
 				{
+					size_t BitsIndexOffest = 0;
+				
 					for(std::uint64_t BitsIndex = 0; BitsIndex < (HashBitSize / std::numeric_limits<std::uint64_t>::digits); ++BitsIndex)
 					{
-						WordDatas[BitsIndex] = BitsHashState[BitsIndex];
+						WordDatas[BitsIndex] = BitsHashState[BitsIndexOffest];
+						
+						if(BitsIndexOffest >= BITWORDS_RATE)
+						{
+							//状态排列和变换(信息熵池搅拌)
+							//State permutation and transformation (string of information entropy pool)
+							this->TransfromState(BitsHashState.size());
+							
+							BitsIndexOffest = 0;
+						}
 					}
 				}
 
