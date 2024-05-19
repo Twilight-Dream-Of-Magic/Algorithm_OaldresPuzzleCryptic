@@ -186,7 +186,7 @@ namespace UnitTester
 				std::cout << "\rTesting ...... " << "(" << i + 1 << "/" << trials << ")";
 
 				// 随机选择一个比特位置，将明文中的该位反转，得到新的明文
-				std::size_t plain_pos = UniformDistributionNumber64Bit(RandomGenerater) % (plain.size() * std::numeric_limits<std::uint8_t>::digits);
+				std::size_t plain_pos = UniformNumberDistribution(RandomGeneraterByReallyTime) % (plain.size() * std::numeric_limits<std::uint8_t>::digits);
 				std::vector<std::uint8_t> new_plain = flip_bit(plain, plain_pos);
 
 				// 对新的明文和初始密钥进行加密，得到新的密文
@@ -230,7 +230,7 @@ namespace UnitTester
 				std::cout << "\rTesting ...... " << "(" << i + 1 << "/" << trials << ")";
 
 				// 随机选择一个比特位置，将密钥中的该位反转，得到新的密钥
-				std::size_t key_pos = UniformDistributionNumber64Bit(RandomGenerater) % (key.size() * std::numeric_limits<std::uint8_t>::digits);
+				std::size_t key_pos = UniformNumberDistribution(RandomGeneraterByReallyTime) % (key.size() * std::numeric_limits<std::uint8_t>::digits);
 				std::vector<std::uint8_t> new_key = flip_bit(key, key_pos);
 
 				// 对新的明文和初始密钥进行加密，得到新的密文
@@ -274,7 +274,7 @@ namespace UnitTester
 				std::cout << "\rTesting ...... " << "(" << i + 1 << "/" << trials << ")";
 
 				// 随机选择一个比特位置，将密文中的该位反转，得到新的密文
-				std::size_t cipher_pos = UniformDistributionNumber64Bit(RandomGenerater) % (cipher.size() * std::numeric_limits<std::uint8_t>::digits);
+				std::size_t cipher_pos = UniformNumberDistribution(RandomGeneraterByReallyTime) % (cipher.size() * std::numeric_limits<std::uint8_t>::digits);
 				std::vector<std::uint8_t> new_cipher = flip_bit(cipher, cipher_pos);
 
 				// 对新的密文和初始密钥进行解密，得到新的明文
@@ -318,7 +318,7 @@ namespace UnitTester
 				std::cout << "\rTesting ...... " << "(" << i + 1 << "/" << trials << ")";
 
 				// 随机选择一个比特位置，将密钥中的该位反转，得到新的密钥
-				std::size_t key_pos = UniformDistributionNumber64Bit(RandomGenerater) % (key.size() * std::numeric_limits<std::uint8_t>::digits);
+				std::size_t key_pos = UniformNumberDistribution(RandomGeneraterByReallyTime) % (key.size() * std::numeric_limits<std::uint8_t>::digits);
 				std::vector<std::uint8_t> new_key = flip_bit(key, key_pos);
 
 				// 对密文和新密钥进行解密，得到新的明文
