@@ -17,6 +17,59 @@ The encryption/decryption part of block ciphers adopts the Lai–Massey scheme s
 
 More technical details can be found in the `TechnicalDetailPapers` folder.
 
+## How to Modify `main.cpp` Before Compilation
+
+Before compiling the project, you may need to adjust the `main.cpp` file based on the specific tests or features you want to enable. Here's how you can do it:
+
+### Step 1: Open `main.cpp`
+Open the `main.cpp` file in your preferred text editor or IDE.
+
+### Step 2: Choose Your Compilation Mode
+
+The project supports multiple compilation modes, controlled by specific macro definitions. Depending on what you want to test or use, uncomment one of the following lines at the top of `main.cpp`:
+
+1. **Library Test Mode**:
+   - This mode compiles the program with C API wrappers, making it suitable for testing or exposing functions to other projects.
+   - Uncomment the following line:
+     ```cpp
+     #define IS_LIBRARY_TEST
+     ```
+
+2. **Binary Test Mode for `LittleOaldresPuzzle_Cryptic`**:
+   - Use this mode if you want to run unit tests specific to the `LittleOaldresPuzzle_Cryptic` implementation.
+   - Uncomment the following line:
+     ```cpp
+     #define IS_BINARY_TEST_LITTLEOPC
+     ```
+
+3. **Binary Test Mode for `OaldresPuzzle_Cryptic`**:
+   - This mode runs unit tests for the `OaldresPuzzle_Cryptic` implementation, focusing on cryptographic functions with random data.
+   - Uncomment the following line:
+     ```cpp
+     #define IS_BINARY_TEST_OPC
+     ```
+
+### Step 3: Save Your Changes
+
+After uncommenting the desired line, save the `main.cpp` file.
+
+### Step 4: Compile the Project
+
+Now you can proceed to compile the project. The compilation will be based on the mode you selected in `main.cpp`.
+
+### Example:
+
+If you want to run the binary tests for `LittleOaldresPuzzle_Cryptic`, your `main.cpp` should look something like this at the top:
+
+```cpp
+#include "SupportBaseFunctions.hpp" //C++ STL Wrapper and Custom Utils
+
+#define IS_BINARY_TEST_LITTLEOPC
+
+#if defined(IS_LIBRARY_TEST)
+// ... other code
+```
+
 ## Compilation Environment
 
 This project supports three compilers: Clang, G++, and MSVC. It uses CMake as a build tool and requires the C++ standard version to be at least C++20. These compilers can compile the project into a C++20 static library.
