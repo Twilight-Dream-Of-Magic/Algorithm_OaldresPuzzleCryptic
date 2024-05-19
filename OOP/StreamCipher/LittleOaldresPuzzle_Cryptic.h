@@ -27,6 +27,10 @@
 #include <random>
 #include "XorConstantRotation.h"
 
+#if _DEBUG
+#include <chrono>
+#endif
+
 namespace TwilightDreamOfMagical::CustomSecurity
 {
 	//SymmetricEncryptionDecryption
@@ -81,15 +85,25 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				else if (result_data_array.size() < data_array.size())
 					result_data_array.resize(data_array.size());
 
+				#if _DEBUG
+			
 				auto start = std::chrono::high_resolution_clock::now();
+				
+				#endif
+				
 				// Encryption
 				for (size_t i = 0; i < data_array.size(); ++i)
 				{
 					result_data_array[i] = EncryptionCoreFunction(data_array[i], keys[i % keys.size()], i);
 				}
+				
+				#if _DEBUG
+			
 				auto end = std::chrono::high_resolution_clock::now();
 				encryptionTime = std::chrono::duration_cast<std::chrono::nanoseconds>( end - start );
-
+				
+				#endif
+				
 				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
 				ResetPRNG();
 			}
@@ -101,15 +115,25 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					return;
 				else if (result_data_array.size() < data_array.size())
 					result_data_array.resize(data_array.size());
-
+				
+				#if _DEBUG
+			
 				auto start = std::chrono::high_resolution_clock::now();
+				
+				#endif
+				
 				// Decryption
 				for (size_t i = 0; i < data_array.size(); ++i)
 				{
 					result_data_array[i] = DecryptionCoreFunction(data_array[i], keys[i % keys.size()], i);
 				}
+				
+				#if _DEBUG
+			
 				auto end = std::chrono::high_resolution_clock::now();
-				decryptionTime = std::chrono::duration_cast<std::chrono::nanoseconds>( end - start );
+				encryptionTime = std::chrono::duration_cast<std::chrono::nanoseconds>( end - start );
+				
+				#endif
 
 				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
 				ResetPRNG();
@@ -163,9 +187,13 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			{
 				prng.Seed(seed);
 			}
-
+			
+			#if _DEBUG
+			
 			std::chrono::nanoseconds encryptionTime;
 			std::chrono::nanoseconds decryptionTime;
+			
+			#endif
 
 		private:
 			std::uint64_t seed = 0;

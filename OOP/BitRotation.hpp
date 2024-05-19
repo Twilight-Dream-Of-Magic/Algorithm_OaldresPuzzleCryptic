@@ -49,6 +49,25 @@ namespace TwilightDreamOfMagical::BaseOperation
 	}
 }
 
+#if !defined(CPP20)
+
+namespace std
+{
+	template<typename T>
+	T rotl(T x, unsigned int n)
+	{
+		return TwilightDreamOfMagical::BaseOperation::rotate_left(x, n);
+	}
+	
+	template<typename T>
+	T rotr(T x, unsigned int n)
+	{
+		return TwilightDreamOfMagical::BaseOperation::rotate_right(x, n);
+	}
+}
+
+#enif
+
 #endif //ALGORITHM_OALDRESPUZZLECRYPTIC_BITROTATION_HPP
 
 #if defined(CPP20)
