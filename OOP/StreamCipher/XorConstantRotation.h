@@ -27,7 +27,10 @@
 #include <cstdint>
 #include <bit>
 #include <array>
+
+#if __cplusplus < 202002L
 #include "../BitRotation.hpp"
+#endif
 
 namespace TwilightDreamOfMagical::CustomSecurity
 {
@@ -37,6 +40,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 		{
 
 		public:
+			using result_type = uint64_t;
+		
 			XorConstantRotation()
 					:
 					x(0), y(0), state(1), counter(0)
@@ -87,9 +92,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				this->StateInitialize();
 			}
 
-			result_type operator()(std::size_t round)
+			result_type operator()(std::size_t number_once)
 			{
-				return this->StateIteration(round);
+				return this->StateIteration(number_once);
 			}
 
 			//std::uniform_random_bit_generator
@@ -113,6 +118,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			std::uint64_t state = 0;
 			std::uint64_t counter = 0;
 
+			void StateInitialize();
 			result_type StateIteration(std::size_t round);
 		};
 	} // TwilightDreamOfMagical

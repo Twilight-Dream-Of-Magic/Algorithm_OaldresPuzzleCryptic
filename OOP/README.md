@@ -6,16 +6,69 @@ This is a symmetric encryption and decryption library based on C++. It provides 
 
 ## Features and Technical Details
 
-- ** Type 1**: Stream/cipher algorithms, offering exceptionally high speed and catering to modern needs. The algorithm has passed randomness tests like [NIST](%5BType%201%5D%20NIST/NIST%20Test%20Result%20Data%20And%20Experiment.md), China GM/T 0005-2021, and PractRand.
+- ** Type 1**: Stream/cipher algorithms XCR CSPRNG, offering exceptionally high speed and catering to modern needs. The algorithm has passed randomness tests like [NIST](%5BType%201%5D%20NIST/NIST%20Test%20Result%20Data%20And%20Experiment.md), China GM/T 0005-2021, and PractRand.
 
 
-It utilizes a structure similar to Addition-Rotation-Bitwise Exclusive-Or, and blends various mathematical irrational numbers, generating constants with a wide range of variations for each round. This makes for an extremely nonlinear boolean function, $f(x) = (e^x - \cos(\pi x)) \times (\phi x^2 - \phi x - 1) \times (\sqrt[2]{2x} - \lfloor \sqrt[2]{2x} \rfloor) \times (\sqrt[2]{3x} - \lfloor \sqrt[2]{3x} \rfloor) \times \ln(1 + x) \times (x\delta - \lfloor x\delta \rfloor) \times (x\rho - \lfloor x\rho \rfloor)$. LittleOaldresPuzzle_Cryptic(Type 1) relies on the Cryptographically Secure Pseudorandom Number Generator (CSPRNG) XCR - XorConstantRotation.
+It utilizes a structure similar to Addition-Rotation-Bitwise Exclusive-Or, and blends various mathematical irrational numbers, generating constants with a wide range of variations for each round. This makes for an extremely nonlinear boolean function, $f(x) = (e^x - \cos(\pi x)) \times (\phi x^2 - \phi x - 1) \times (\sqrt[2]{2x} - \lfloor \sqrt[2]{2x} \rfloor) \times (\sqrt[2]{3x} - \lfloor \sqrt[2]{3x} \rfloor) \times \ln(1 + x) \times (x\delta - \lfloor x\delta \rfloor) \times (x\rho - \lfloor x\rho \rfloor)$. LittleOaldresPuzzle_Cryptic(Type 1 lightweight cryptography block cipher) relies on the Cryptographically Secure Pseudorandom Number Generator (CSPRNG) XCR - XorConstantRotation.
 
 - ** Type 2**: Block/group cipher algorithms, slower in speed but incredibly secure, capable of withstanding future demands. They are impervious to any brute force attack methods, whether it's quantum computing, exhaustive search, or differential cryptanalysis.
 
 The encryption/decryption part of block ciphers adopts the Lai–Massey scheme structure, similar to the Byte Substitution Box of Rijndael algorithm (AES), but with a different polynomial ($x^8 + x^5 + x^4 + x^3 + x^2 + x + 1$) as modulus number. The key generation part is a massive module involving linear algebra's Kronecker product, multiplication, and addition; akin to Ajtai's one-way function. It uses a custom sponge structure hash function (internally uses CSPRNG ISAAC64+ algorithm at initialization, seed is 1946379852749613 --- 0110111010100011100011011111101110001001101100101101). The project features a self-designed Non-Linear Feedback Shift Register (NLFSR), a Linear Feedback Shift Register (LFSR) built using a polynomial of at least 128 bits ($x^{128} + x^{41} + x^{39} + x + 1$), and a secure pseudorandom number generator constructed using a simulated chaotic system of double pendulum oscillations (SDP). It also modifies the Chinese ZUC stream cipher algorithm (initialization function uses LFSR, NLFSR, SDP, then Byte Substitution Box becomes dynamically generated, will use LineSegmentTree); and a self-designed bit reorganization function. Overall, the block cipher's key generation algorithm can be divided into two abstract functions, one for generating subkeys, and the other for generating round subkeys. The former is a massive confusion layer, and the latter is a massive diffusion layer.
 
 More technical details can be found in the `TechnicalDetailPapers` folder.
+
+## How to Modify `main.cpp` Before Compilation
+
+Before compiling the project, you may need to adjust the `main.cpp` file based on the specific tests or features you want to enable. Here's how you can do it:
+
+### Step 1: Open `main.cpp`
+Open the `main.cpp` file in your preferred text editor or IDE.
+
+### Step 2: Choose Your Compilation Mode
+
+The project supports multiple compilation modes, controlled by specific macro definitions. Depending on what you want to test or use, uncomment one of the following lines at the top of `main.cpp`:
+
+1. **Library Test Mode**:
+   - This mode compiles the program with C API wrappers, making it suitable for testing or exposing functions to other projects.
+   - Uncomment the following line:
+     ```cpp
+     #define IS_LIBRARY_TEST
+     ```
+
+2. **Binary Test Mode for `LittleOaldresPuzzle_Cryptic`**:
+   - Use this mode if you want to run unit tests specific to the `LittleOaldresPuzzle_Cryptic` implementation.
+   - Uncomment the following line:
+     ```cpp
+     #define IS_BINARY_TEST_LITTLEOPC
+     ```
+
+3. **Binary Test Mode for `OaldresPuzzle_Cryptic`**:
+   - This mode runs unit tests for the `OaldresPuzzle_Cryptic` implementation, focusing on cryptographic functions with random data.
+   - Uncomment the following line:
+     ```cpp
+     #define IS_BINARY_TEST_OPC
+     ```
+
+### Step 3: Save Your Changes
+
+After uncommenting the desired line, save the `main.cpp` file.
+
+### Step 4: Compile the Project
+
+Now you can proceed to compile the project. The compilation will be based on the mode you selected in `main.cpp`.
+
+### Example:
+
+If you want to run the binary tests for `LittleOaldresPuzzle_Cryptic`, your `main.cpp` should look something like this at the top:
+
+```cpp
+#include "SupportBaseFunctions.hpp" //C++ STL Wrapper and Custom Utils
+
+#define IS_BINARY_TEST_LITTLEOPC
+
+#if defined(IS_LIBRARY_TEST)
+// ... other code
+```
 
 ## Compilation Environment
 
@@ -41,11 +94,11 @@ After each encryption or decryption operation using this C API, the internal sta
 
 ## 特性和技术细节
 
-- **Type 1**：流/序列的密码算法，具有极高速度，适应现代需求，通过了[NIST](%5BType%201%5D%20NIST/NIST%20Test%20Result%20Data%20And%20Experiment.md)，GM/T 0005-2021，PractRand的随机性测试。
+- **Type 1**：流/序列的密码算法 XCR CSPRNG，具有极高速度，适应现代需求，通过了[NIST](%5BType%201%5D%20NIST/NIST%20Test%20Result%20Data%20And%20Experiment.md)，GM/T 0005-2021，PractRand的随机性测试。
 
 采用了类似于Addition-Rotation-Bitwise Exclusive-Or的结构，并混合各种数学无理数，生成的大范围幅度变化的常数，每一轮获取不同的常数。使得构造了一个极高非线性的布尔函数。
 $f(x) = (e^x - \cos(\pi x)) \times (\phi x^2 - \phi x - 1) \times (\sqrt[2]{2x} - \lfloor \sqrt[2]{2x} \rfloor) \times (\sqrt[2]{3x} - \lfloor \sqrt[2]{3x} \rfloor) \times \ln(1 + x) \times (x\delta - \lfloor x\delta \rfloor) \times (x\rho - \lfloor x\rho \rfloor)$
-制作了XCR - XorConstantRotation 密码学安全伪随机数生成器(CSPRNG)，LittleOaldresPuzzle_Cryptic(Type 1)算法依赖了它。
+制作了XCR - XorConstantRotation 密码学安全伪随机数生成器(CSPRNG)，LittleOaldresPuzzle_Cryptic(Type 1 轻量级密码学块密码器)算法依赖了它。
 
 - **Type 2**：块/分组密码算法，速度较慢，但是安全性极高，适应未来需求，无论使用何种暴力破解方法，如量子计算机，穷举搜索或差分，都无法破解。
 
