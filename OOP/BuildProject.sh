@@ -2,7 +2,7 @@
 C_COMPILER_PATH="/usr/bin/gcc"
 CXX_COMPILER_PATH="/usr/bin/g++"
 
-[ ! -d "./project-build/debug" ] && mkdir "./project-build/debug"
+[ ! -d "./project-build/debug" ] && mkdir "./project-build/debug" -p
 [ ! -d "./project-build/release" ] && mkdir "./project-build/release"
 
 cmake --build cmake-build-debug-gcc --target clean -j 18
