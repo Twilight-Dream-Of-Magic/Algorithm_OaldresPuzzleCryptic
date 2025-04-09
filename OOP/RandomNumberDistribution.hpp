@@ -15,7 +15,7 @@ namespace TwilightDreamOfMagical::CommonSecurity
 		{
 			constexpr long double _TwoPower31_ = 2147483648.0L;
 			constexpr int _Nwords = 4;
-
+			
 			// write long double to stream
 			int			_Ex;
 			long double _Fraction_ = ::frexpl( _DataValue_, &_Ex );
@@ -36,7 +36,7 @@ namespace TwilightDreamOfMagical::CommonSecurity
 		{
 			constexpr long double _TwoPower31_ = 2147483648.0L;
 			constexpr int _Nwords = 4;
-
+			
 			// read long double from stream
 			long double _Fraction_ = 0.0;
 			long		_Digits_;
@@ -87,7 +87,7 @@ namespace TwilightDreamOfMagical::CommonSecurity
 			// write to stream
 			return DataType_ValueWrite( Os, _DataValue_ );
 		}
-
+		
 		[[nodiscard]] constexpr int
 		DoGenerateCanonicalIterations( const int Bits, const uint64_t RNG_NumberMin, const uint64_t RNG_NumberMax )
 		{
@@ -208,7 +208,7 @@ namespace TwilightDreamOfMagical::CommonSecurity
 			using UnsignedDifferenceType = std::conditional_t<sizeof( Type1 ) < sizeof( Type0 ), Type0, Type1>;
 
 			explicit WARP_URNG_AS_AN_RNG( URNG_Type& RNG_Function )
-					: URNG_TypeReference( RNG_Function ), RandomBits( CHAR_BIT * sizeof( UnsignedDifferenceType ) ), RandomBitMask( UnsignedDifferenceType( -1 ) )
+				: URNG_TypeReference( RNG_Function ), RandomBits( CHAR_BIT * sizeof( UnsignedDifferenceType ) ), RandomBitMask( UnsignedDifferenceType( -1 ) )
 			{
 				for ( ; ( URNG_Type::max )() - ( URNG_Type::min )() < RandomBitMask; RandomBitMask >>= 1 )
 				{
@@ -311,12 +311,12 @@ namespace TwilightDreamOfMagical::CommonSecurity
 					return Left.MinimumValue == Right.MinimumValue && Left.MaximumValue == Right.MaximumValue;
 				}
 
-	#if __cplusplus < 202002L
+			#if __cplusplus < 202002L
 				[[nodiscard]] friend bool operator!=( const param_type& Left, const param_type& Right )
 				{
 					return !( Left == Right );
 				}
-	#endif
+			#endif
 
 				[[nodiscard]] result_type a() const
 				{
@@ -504,12 +504,12 @@ namespace TwilightDreamOfMagical::CommonSecurity
 				return Left.param() == Right.param();
 			}
 
-	#if __cplusplus < 202002L
+		#if __cplusplus < 202002L
 			[[nodiscard]] friend bool operator!=(const UniformIntegerDistribution& Left, const UniformIntegerDistribution& Right)
 			{
 				return !(Left == Right);
 			}
-	#endif
+		#endif
 
 		};
 
@@ -540,12 +540,12 @@ namespace TwilightDreamOfMagical::CommonSecurity
 					return Left.MinimumValue == Right.MinimumValue && Left.MaximumValue == Right.MaximumValue;
 				}
 
-	#if __cplusplus < 202002L
+			#if __cplusplus < 202002L
 				[[nodiscard]] friend bool operator!=( const param_type& Left, const param_type& Right )
 				{
 					return !( Left == Right );
 				}
-	#endif
+			#endif
 
 				[[nodiscard]] result_type a() const
 				{
@@ -562,11 +562,11 @@ namespace TwilightDreamOfMagical::CommonSecurity
 					// set internal state
 
 					my_cpp2020_assert
-							(
-									MinimumValue0 <= MaximumValue0 && (0 <= MinimumValue0 || MaximumValue0 <= MinimumValue0 + (std::numeric_limits<RealFloatingType>::max)()),
-									"invalid min and max arguments for uniform_real",
-									std::source_location::current()
-							);
+					( 
+						MinimumValue0 <= MaximumValue0 && (0 <= MinimumValue0 || MaximumValue0 <= MinimumValue0 + (std::numeric_limits<RealFloatingType>::max)()),
+						"invalid min and max arguments for uniform_real", 
+						std::source_location::current() 
+					);
 
 					MinimumValue = MinimumValue0;
 					MaximumValue = MaximumValue0;
@@ -677,7 +677,7 @@ namespace TwilightDreamOfMagical::CommonSecurity
 		template<std::floating_point RealFloatingType>
 		class UniformRealNumberDistribution : public UniformRealNumber<RealFloatingType>
 		{
-
+		
 		public:
 
 			using _BaseType = UniformRealNumber<RealFloatingType>;
@@ -707,12 +707,12 @@ namespace TwilightDreamOfMagical::CommonSecurity
 				return Left.param() == Right.param();
 			}
 
-	#if __cplusplus < 202002L
+		#if __cplusplus < 202002L
 			[[nodiscard]] friend bool operator!=(const UniformRealNumberDistribution& Left, const UniformRealNumberDistribution& Right)
 			{
 				return !(Left == Right);
 			}
-	#endif
+		#endif
 		};
 
 		class BernoulliDistribution
@@ -740,12 +740,12 @@ namespace TwilightDreamOfMagical::CommonSecurity
 					return Left._RememberProbability_ == Right._RememberProbability_;
 				}
 
-	#if  __cplusplus < 202002L
+			#if  __cplusplus < 202002L
 				[[nodiscard]] friend bool operator!=( const param_type& Left, const param_type& Right )
 				{
 					return !( Left == Right );
 				}
-	#endif
+			#endif
 
 				[[nodiscard]] double p() const
 				{
@@ -816,12 +816,12 @@ namespace TwilightDreamOfMagical::CommonSecurity
 				return Left.param() == Right.param();
 			}
 
-	#if  __cplusplus < 202002L
+		#if  __cplusplus < 202002L 
 			[[nodiscard]] friend bool operator!=( const BernoulliDistribution& Left, const BernoulliDistribution& Right )
 			{
 				return !( Left == Right );
 			}
-	#endif
+		#endif
 
 			template <class _Elem, class _Traits>
 			friend std::basic_istream<_Elem, _Traits>& operator>>( std::basic_istream<_Elem, _Traits>& Istr, BernoulliDistribution& OperatedObject )
@@ -852,6 +852,174 @@ namespace TwilightDreamOfMagical::CommonSecurity
 		};
 	}
 
+	template<typename RNG_Type>
+	requires std::uniform_random_bit_generator<std::remove_reference_t<RNG_Type>>
+	struct PseudoRandomNumberEngine
+	{
+		//Whether the pseudo-random is initialized by seed
+		bool PseudoRandomIsInitialBySeed = false;
+		RNG_Type random_generator;
+		//Default seed value
+		static constexpr std::uint32_t DefaultSeed = 1;
+
+		PseudoRandomNumberEngine()
+		{
+			InitialBySeed(DefaultSeed, true);
+		}
+
+		template <std::integral IntegerType>
+		PseudoRandomNumberEngine(IntegerType seed)
+		{
+			InitialBySeed(seed, true);
+		}
+
+		~PseudoRandomNumberEngine() = default;
+
+		//C++ 初始化伪随机数的种子
+		//C++ Initialize the seed of the pseudo-random number
+		template <std::integral IntegerType>
+		void InitialBySeed( IntegerType SeedNumber, bool reset_flag = false )
+		{
+			if ( reset_flag == true )
+				PseudoRandomIsInitialBySeed = false;
+
+			if ( PseudoRandomIsInitialBySeed == false )
+			{
+				random_generator.seed( SeedNumber );
+				PseudoRandomIsInitialBySeed = true;
+			}
+		}
+
+		template<std::integral IntegerType, typename IteratorType>
+		void InitialBySeed( IteratorType begin, IteratorType end, bool reset_flag = false )
+		{
+			static_assert(std::convertible_to<std::iter_value_t<IteratorType>, IntegerType>, "");
+
+			if ( reset_flag == true )
+				PseudoRandomIsInitialBySeed = false;
+
+			if ( PseudoRandomIsInitialBySeed == false )
+			{
+				random_generator.seed( begin, end );
+				PseudoRandomIsInitialBySeed = true;
+			}
+		}
+
+		template<std::integral IntegerType>
+		void InitialBySeed( std::initializer_list<IntegerType> seed_Number_sequence, bool reset_flag = false )
+		{
+			if ( reset_flag == true )
+				PseudoRandomIsInitialBySeed = false;
+
+			if ( PseudoRandomIsInitialBySeed == false )
+			{
+				random_generator.seed( seed_Number_sequence );
+				PseudoRandomIsInitialBySeed = true;
+			}
+		}
+
+		// C++ 生成伪随机数
+		/**
+		 * @brief Generates a random number within the specified range [minimum, maximum].
+		 *
+		 * This function generates a random number using either a linear (uniform) distribution or a non-linear 
+		 * (triangular) distribution based on the value of the `is_nonlinear_mode` flag.
+		 * 
+		 * - **Linear (Uniform) Distribution**: If `is_nonlinear_mode` is false, the function generates a random 
+		 *   number using a uniform distribution over the range [minimum, maximum]. 
+		 *   - If the range is requested to be negative (minimum < 0 and maximum <= 0), special logic is applied 
+		 *     to handle signed integer ranges correctly, ensuring no overflow occurs when calculating the negative bounds.
+		 *   - If the user specifies a range where the minimum is greater than the maximum, the function automatically 
+		 *     swaps the bounds.
+		 * 
+		 * - **Non-Linear (Triangular) Distribution**: If `is_nonlinear_mode` is true, the function uses a 
+		 *   triangular distribution (U-shaped) to generate the random number.
+		 *   - The distribution is achieved by sampling two uniformly distributed values and combining them to produce 
+		 *     a value with higher probability near the center of the range.
+		 *   - The result is folded to ensure it stays within the specified bounds.
+		 * 
+		 * @param minimum The lower bound of the random number range (inclusive).
+		 * @param maximum The upper bound of the random number range (inclusive).
+		 * @param is_nonlinear_mode A flag indicating whether to use a non-linear (triangular) distribution or a 
+		 *                          uniform distribution.
+		 * 
+		 * @return A randomly generated number of type `IntegerType` within the range [minimum, maximum] based 
+		 *         on the specified distribution type.
+		 */
+		template <typename IntegerType>
+		requires std::integral<IntegerType>
+		IntegerType GenerateNumber(IntegerType minimum, IntegerType maximum, bool is_nonlinear_mode)
+		{
+			if (PseudoRandomIsInitialBySeed == true)
+			{
+				if (minimum > 0)
+					minimum = std::numeric_limits<IntegerType>::min();
+				if (maximum < 0)
+					maximum = std::numeric_limits<IntegerType>::max();
+
+				if (!is_nonlinear_mode)
+				{
+					using UnsignedInteger = std::make_unsigned_t<IntegerType>;
+
+					if constexpr(std::signed_integral<IntegerType>)
+					{
+						// -- If the lower bound passed in by the user is greater than the upper bound, exchange them -- 
+						if (minimum > maximum)
+							std::swap(minimum, maximum);
+
+						//  -- Special logic only when requesting “full negative intervals” (minimum < 0 && maximum <= 0) --  
+						if (minimum < 0 && maximum <= 0)
+						{
+							UnsignedInteger range_count = static_cast<UnsignedInteger>(maximum) + static_cast<UnsignedInteger>(-(minimum+1)) + 1;
+
+							RND::UniformIntegerDistribution<UnsignedInteger> negitive_distribution(0, range_count);
+							return minimum + static_cast<IntegerType>(negitive_distribution(random_generator));
+						}
+						else
+						{
+							// Other cases: positive or mixed intervals, direct uniform
+							RND::UniformIntegerDistribution<IntegerType> number_distribution(minimum, maximum);
+							return number_distribution(random_generator);
+						}
+					}
+					else
+					{
+						RND::UniformIntegerDistribution<UnsignedInteger> number_distribution(minimum, maximum);
+						return number_distribution(random_generator);
+					}
+				}
+				else
+				{
+					// Triangular or U-shaped distribution
+
+					RND::UniformIntegerDistribution<IntegerType> number_distribution(minimum, maximum);
+
+					using UnsignedInteger = std::make_unsigned_t<IntegerType>;
+
+					UnsignedInteger lower_bound = static_cast<UnsignedInteger>(minimum);
+					UnsignedInteger upper_bound = static_cast<UnsignedInteger>(maximum);
+					UnsignedInteger range_count = upper_bound - lower_bound + 1;
+
+					// If range_count == 0, indicating the entire integer domain; directly return a random number
+					if (range_count == 0)
+						return number_distribution(random_generator);
+
+					// Sample twice uniformly, then "fold" them into a Triangular distribution
+					UnsignedInteger first_offset  = static_cast<UnsignedInteger>(number_distribution(random_generator)) - lower_bound;
+					UnsignedInteger second_offset = static_cast<UnsignedInteger>(number_distribution(random_generator)) - lower_bound;
+					UnsignedInteger sum_offset    = first_offset + second_offset;
+
+					// If sumOffset is within [0, range_count − 1], directly return it; otherwise, map to the symmetric position
+					UnsignedInteger folded_offset = (sum_offset < range_count)
+						? sum_offset
+						: (2 * (range_count - 1) - sum_offset);
+
+					return static_cast<IntegerType>(folded_offset + lower_bound);
+				}
+			}
+		}
+	};
+
 	//针对容器内容进行洗牌
 	//Shuffling against container content
 	struct UniformShuffleRangeImplement
@@ -859,7 +1027,8 @@ namespace TwilightDreamOfMagical::CommonSecurity
 		//RNG is random number generator
 		template<std::random_access_iterator RandomAccessIteratorType, std::sentinel_for<RandomAccessIteratorType> SentinelIteratorType, typename RNG_Type>
 		requires std::permutable<RandomAccessIteratorType> && std::uniform_random_bit_generator<std::remove_reference_t<RNG_Type>>
-				RandomAccessIteratorType operator()(RandomAccessIteratorType first, SentinelIteratorType last, RNG_Type&& functionRNG)
+		RandomAccessIteratorType
+		operator()(RandomAccessIteratorType first, SentinelIteratorType last, RNG_Type&& functionRNG)
 		{
 			using iterator_difference_t = std::iter_difference_t<RandomAccessIteratorType>;
 			using number_distribution_t = RND::UniformIntegerDistribution<iterator_difference_t>;
@@ -877,7 +1046,8 @@ namespace TwilightDreamOfMagical::CommonSecurity
 
 		template <std::ranges::random_access_range RandomAccessRangeType, typename RNG_Type>
 		requires std::permutable<std::ranges::iterator_t<RandomAccessRangeType>> && std::uniform_random_bit_generator<std::remove_reference_t<RNG_Type>>
-				std::ranges::borrowed_iterator_t<RandomAccessRangeType> operator()( RandomAccessRangeType&& range, RNG_Type&& functionRNG )
+		std::ranges::borrowed_iterator_t<RandomAccessRangeType>
+		operator()( RandomAccessRangeType&& range, RNG_Type&& functionRNG )
 		{
 			return this->operator()( std::ranges::begin( range ), std::ranges::end( range ), std::forward<RNG_Type>( functionRNG ) );
 		}

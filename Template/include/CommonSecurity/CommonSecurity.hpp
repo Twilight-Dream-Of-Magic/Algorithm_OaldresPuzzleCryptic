@@ -26,14 +26,57 @@
 //Common Security Tools
 namespace CommonSecurity
 {
-	template<std::integral DataType>
-	struct UniformRandomBitGenerator
-	{
-		using result_type = DataType;
+	//using namespace UtilTools::DataFormating;
 
-		static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
-		static constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
-	};
+	//Function to left shift (number) by (count) bits
+	template <typename IntegerType>
+	requires std::is_integral_v<IntegerType>
+	inline IntegerType Binary_SafeLeftShift( IntegerType NumberValue, int MoveShiftCount, bool AllowOverBitwise = false )
+	{
+		constexpr auto BitDigits = std::numeric_limits<IntegerType>::digits;
+
+		if ( MoveShiftCount > 0 )
+		{
+			if ( MoveShiftCount >= BitDigits && AllowOverBitwise == false )
+			{
+				MoveShiftCount = BitDigits - 1;
+			}
+			return static_cast<IntegerType>( NumberValue << MoveShiftCount );
+		}
+		else if ( MoveShiftCount == 0 )
+		{
+			return NumberValue;
+		}
+		else if ( MoveShiftCount < 0 )
+		{
+			return Binary_RightShift<IntegerType>( NumberValue, ~(MoveShiftCount) + 1 );
+		}
+	}
+
+	//Function to right shift (number) by (count) bits
+	template <typename IntegerType>
+	requires std::is_integral_v<IntegerType>
+	inline IntegerType Binary_SafeRightShift( IntegerType NumberValue, int MoveShiftCount, bool AllowOverBitwise = false )
+	{
+		constexpr auto BitDigits = std::numeric_limits<IntegerType>::digits;
+
+		if ( MoveShiftCount > 0 )
+		{
+			if ( MoveShiftCount >= BitDigits && AllowOverBitwise == false )
+			{
+				MoveShiftCount = BitDigits - 1;
+			}
+			return static_cast<IntegerType>( NumberValue >> MoveShiftCount );
+		}
+		else if ( MoveShiftCount == 0 )
+		{
+			return NumberValue;
+		}
+		else if ( MoveShiftCount < 0 )
+		{
+			return Binary_LeftShift<IntegerType>( NumberValue, ~(MoveShiftCount) + 1 );
+		}
+	}
 
 	//Function to left rotate (number) by (count) bits
 	template <typename IntegerType>
@@ -73,13 +116,81 @@ namespace CommonSecurity
 		}
 	}
 
+	#if 0
+
+	template <size_t BitDigits>
+	inline void BinarySet_LeftRotateMove( std::bitset<BitDigits>& binaryData, size_t RotationCount )
+	{
+		const size_t MoveFromRemainder = RotationCount % BitDigits;
+		( ( binaryData << RotationCount ) | ( binaryData >> ( BitDigits - MoveFromRemainder ) ) );
+	}
+
+	template <size_t BitDigits>
+	inline void BinarySet_RightRotateMove( std::bitset<BitDigits>& binaryData, size_t RotationCount )
+	{
+		const size_t MoveFromRemainder = RotationCount % BitDigits;
+		( ( binaryData >> RotationCount ) | ( binaryData << ( BitDigits - MoveFromRemainder ) ) );
+	}
+
+	#endif
+
+	// A function that performs a folded multiply of two 64-bit numbers
+	inline std::uint64_t FoldedMultiply(std::uint64_t x, std::uint64_t y)
+	{
+		std::uint64_t x_high = x >> 32;
+		std::uint64_t x_low = x & std::numeric_limits<std::uint32_t>::max();
+		std::uint64_t y_high = y >> 32;
+		std::uint64_t y_low = y & std::numeric_limits<std::uint32_t>::max();
+
+		std::uint64_t product_low = x_low * y_low;
+		std::uint64_t product_high = x_high * y_high;
+		std::uint64_t product_mid1 = x_low * y_high;
+		std::uint64_t product_mid2 = x_high * y_low;
+
+		std::uint64_t carry = ((product_low >> 32) + (product_mid1 & std::numeric_limits<std::uint32_t>::max()) + (product_mid2 & std::numeric_limits<std::uint32_t>::max())) >> 32;
+		std::uint64_t folded = product_high + (product_mid1 >> 32) + (product_mid2 >> 32) + carry;
+		std::uint64_t result = (folded & std::numeric_limits<std::uint64_t>::max()) ^ (folded >> 32);
+
+		return result;
+	}
+
+	// A function that regenerates two 64-bit seeds using a folded multiply with a given 128-bit key
+	inline void RegenerateSeeds(std::span<const uint8_t> key, std::uint64_t& seed1, std::uint64_t& seed2)
+	{
+		// Convert key from an array of bytes to a single uint64_t value
+		uint64_t key_value = CommonToolkit::value_from_bytes<std::uint64_t, std::uint8_t>(key.subspan(0, 8));
+		uint64_t key_value2 = CommonToolkit::value_from_bytes<std::uint64_t, std::uint8_t>(key.subspan(8, 8));
+
+		// Define two constants for multiplication: c1 and c2
+		// A safe prime: https://en.wikipedia.org/wiki/Safe_prime
+		constexpr uint64_t c1 = static_cast<std::uint64_t>(0x87c37b91114253d5);
+		constexpr uint64_t c2 = static_cast<std::uint64_t>(0x4cf5ad432745937f);
+
+		// Perform folded multiply of key_value with c1 and c2 to get seed1 and seed2
+		seed1 = FoldedMultiply(key_value, c1);
+		seed2 = FoldedMultiply(key_value2, c2);
+	}
+
+	// A function that regenerates two 64-bit seeds using a folded multiply with a given keystream
+	inline void RegenerateSeeds2(std::span<const uint8_t> key, std::uint64_t& seed1, std::uint64_t& seed2)
+	{
+		for(std::size_t i = 0; i < key.size(); i += 8)
+		{
+			std::uint64_t BitsChunk = CommonToolkit::value_from_bytes<std::uint64_t, std::uint8_t>(key.subspan(i, 8));
+
+			seed1 ^= BitsChunk;
+			seed2 += BitsChunk * 2;
+			seed2 = ( (seed2 << (i % 64)) | (seed1 >> (64 - (i % 64))) );
+		}
+	}
+
 	template<typename ByteType>
 	requires std::is_same_v<ByteType, std::uint8_t> || std::is_same_v<ByteType, std::byte>
 	class GaloisFiniteField256
 	{
 
 	private:
-		static constexpr std::array<unsigned char, 256> LogarithmicTable
+		static constexpr std::array<std::uint8_t, 256> LogarithmicTable
 		{
 			0x00, 0x00, 0x01, 0x19, 0x02, 0x32, 0x1a, 0xc6,
 			0x03, 0xdf, 0x33, 0xee, 0x1b, 0x68, 0xc7, 0x4b,
@@ -115,7 +226,7 @@ namespace CommonSecurity
 			0x74, 0xd6, 0xf4, 0xea, 0xa8, 0x50, 0x58, 0xaf
 		};
 
-		static constexpr std::array<unsigned char, 256> ExponentialTable
+		static constexpr std::array<std::uint8_t, 256> ExponentialTable
 		{
 			0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
 			0x1d, 0x3a, 0x74, 0xe8, 0xcd, 0x87, 0x13, 0x26,
@@ -261,6 +372,57 @@ namespace CommonSecurity
 		}
 
 		~GaloisFiniteField256() = default;
+	};
+
+	struct UtilGaloisFiniteFieldByTwo
+	{
+		std::string polynomial_formated_data;
+
+		void polynomial_format_recurse_implementation(std::uint64_t polynomial, std::uint64_t split_point, std::uint64_t macro_slot)
+		{
+			auto lowbit = polynomial % (static_cast<std::uint64_t>(1) << split_point);
+			auto highbit = polynomial >> split_point;
+
+			if(split_point <= 1)
+			{
+				std::cout << highbit << ' ' << lowbit;
+				polynomial_formated_data += (highbit == 1 ? " + x^" + std::to_string(macro_slot) : "" );
+				polynomial_formated_data += (lowbit == 1 ? " + x^" + std::to_string(macro_slot - 1) : "" );
+			}
+			else
+			{
+				auto new_split_point = split_point - split_point / 2;
+
+				//除以2并向上取整
+				polynomial_format_recurse_implementation(highbit, new_split_point, macro_slot + new_split_point);
+				polynomial_format_recurse_implementation(lowbit, new_split_point, macro_slot - split_point / 2);
+			}
+		}
+
+		//Binary polynomial data source (二进制多项式数据源)：https://users.ece.cmu.edu/~koopman/lfsr/index.html
+		//More References (更多参考资料):
+		//https://codyplanteen.com/notes/rs
+		//https://codyplanteen.com/assets/rs/gf256_log_antilog.pdf
+		//https://codyplanteen.com/assets/rs/gf256_prim.pdf
+		//https://www.samiam.org/logtables.txt
+		//https://johnkerl.org/doc/ffcomp.pdf
+		//https://en.wikiversity.org/wiki/Reed%E2%80%93Solomon_codes_for_coders
+		//https://public.ccsds.org/Pubs/101x0b5s.pdf
+		//https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19830008870.pdf
+		void polynomial_format(std::uint64_t polynomial)
+		{
+			//取对数2并向下取整
+			std::uint64_t rank = static_cast<std::uint64_t>( std::log2(polynomial) ) + 1;
+			std::uint64_t split_point = rank - rank / 2;
+			std::uint64_t macro_slot = 0;
+
+			std::cout << "polynomial coefficient: ";
+			polynomial_format_recurse_implementation(polynomial, split_point, split_point);
+			std::cout << std::endl;
+			polynomial_formated_data = std::string(polynomial_formated_data.begin() + 2, polynomial_formated_data.end() - 3);
+			polynomial_formated_data.push_back('1');
+			std::cout << "polynomial coefficient formatted: " << polynomial_formated_data << std::endl;
+		}
 	};
 
 	//随机数分布的功能库
@@ -1110,6 +1272,174 @@ namespace CommonSecurity
 		};
 	}
 
+	template<typename RNG_Type>
+	requires std::uniform_random_bit_generator<std::remove_reference_t<RNG_Type>>
+	struct PseudoRandomNumberEngine
+	{
+		//Whether the pseudo-random is initialized by seed
+		bool PseudoRandomIsInitialBySeed = false;
+		RNG_Type random_generator;
+		//Default seed value
+		static constexpr std::uint32_t DefaultSeed = 1;
+
+		PseudoRandomNumberEngine()
+		{
+			InitialBySeed(DefaultSeed, true);
+		}
+
+		template <std::integral IntegerType>
+		PseudoRandomNumberEngine(IntegerType seed)
+		{
+			InitialBySeed(seed, true);
+		}
+
+		~PseudoRandomNumberEngine() = default;
+
+		//C++ 初始化伪随机数的种子
+		//C++ Initialize the seed of the pseudo-random number
+		template <std::integral IntegerType>
+		void InitialBySeed( IntegerType SeedNumber, bool reset_flag = false )
+		{
+			if ( reset_flag == true )
+				PseudoRandomIsInitialBySeed = false;
+
+			if ( PseudoRandomIsInitialBySeed == false )
+			{
+				random_generator.seed( SeedNumber );
+				PseudoRandomIsInitialBySeed = true;
+			}
+		}
+
+		template<std::integral IntegerType, typename IteratorType>
+		void InitialBySeed( IteratorType begin, IteratorType end, bool reset_flag = false )
+		{
+			static_assert(std::convertible_to<std::iter_value_t<IteratorType>, IntegerType>, "");
+
+			if ( reset_flag == true )
+				PseudoRandomIsInitialBySeed = false;
+
+			if ( PseudoRandomIsInitialBySeed == false )
+			{
+				random_generator.seed( begin, end );
+				PseudoRandomIsInitialBySeed = true;
+			}
+		}
+
+		template<std::integral IntegerType>
+		void InitialBySeed( std::initializer_list<IntegerType> seed_Number_sequence, bool reset_flag = false )
+		{
+			if ( reset_flag == true )
+				PseudoRandomIsInitialBySeed = false;
+
+			if ( PseudoRandomIsInitialBySeed == false )
+			{
+				random_generator.seed( seed_Number_sequence );
+				PseudoRandomIsInitialBySeed = true;
+			}
+		}
+
+		// C++ 生成伪随机数
+		/**
+		 * @brief Generates a random number within the specified range [minimum, maximum].
+		 *
+		 * This function generates a random number using either a linear (uniform) distribution or a non-linear 
+		 * (triangular) distribution based on the value of the `is_nonlinear_mode` flag.
+		 * 
+		 * - **Linear (Uniform) Distribution**: If `is_nonlinear_mode` is false, the function generates a random 
+		 *   number using a uniform distribution over the range [minimum, maximum]. 
+		 *   - If the range is requested to be negative (minimum < 0 and maximum <= 0), special logic is applied 
+		 *     to handle signed integer ranges correctly, ensuring no overflow occurs when calculating the negative bounds.
+		 *   - If the user specifies a range where the minimum is greater than the maximum, the function automatically 
+		 *     swaps the bounds.
+		 * 
+		 * - **Non-Linear (Triangular) Distribution**: If `is_nonlinear_mode` is true, the function uses a 
+		 *   triangular distribution (U-shaped) to generate the random number.
+		 *   - The distribution is achieved by sampling two uniformly distributed values and combining them to produce 
+		 *     a value with higher probability near the center of the range.
+		 *   - The result is folded to ensure it stays within the specified bounds.
+		 * 
+		 * @param minimum The lower bound of the random number range (inclusive).
+		 * @param maximum The upper bound of the random number range (inclusive).
+		 * @param is_nonlinear_mode A flag indicating whether to use a non-linear (triangular) distribution or a 
+		 *                          uniform distribution.
+		 * 
+		 * @return A randomly generated number of type `IntegerType` within the range [minimum, maximum] based 
+		 *         on the specified distribution type.
+		 */
+		template <typename IntegerType>
+		requires std::integral<IntegerType>
+		IntegerType GenerateNumber(IntegerType minimum, IntegerType maximum, bool is_nonlinear_mode)
+		{
+			if (PseudoRandomIsInitialBySeed == true)
+			{
+				if (minimum > 0)
+					minimum = std::numeric_limits<IntegerType>::min();
+				if (maximum < 0)
+					maximum = std::numeric_limits<IntegerType>::max();
+
+				if (!is_nonlinear_mode)
+				{
+					using UnsignedInteger = std::make_unsigned_t<IntegerType>;
+
+					if constexpr(std::signed_integral<IntegerType>)
+					{
+						// -- If the lower bound passed in by the user is greater than the upper bound, exchange them -- 
+						if (minimum > maximum)
+							std::swap(minimum, maximum);
+
+						//  -- Special logic only when requesting “full negative intervals” (minimum < 0 && maximum <= 0) --  
+						if (minimum < 0 && maximum <= 0)
+						{
+							UnsignedInteger range_count = static_cast<UnsignedInteger>(maximum) + static_cast<UnsignedInteger>(-(minimum+1)) + 1;
+
+							RND::UniformIntegerDistribution<UnsignedInteger> negitive_distribution(0, range_count);
+							return minimum + static_cast<IntegerType>(negitive_distribution(random_generator));
+						}
+						else
+						{
+							// Other cases: positive or mixed intervals, direct uniform
+							RND::UniformIntegerDistribution<IntegerType> number_distribution(minimum, maximum);
+							return number_distribution(random_generator);
+						}
+					}
+					else
+					{
+						RND::UniformIntegerDistribution<UnsignedInteger> number_distribution(minimum, maximum);
+						return number_distribution(random_generator);
+					}
+				}
+				else
+				{
+					// Triangular or U-shaped distribution
+
+					RND::UniformIntegerDistribution<IntegerType> number_distribution(minimum, maximum);
+
+					using UnsignedInteger = std::make_unsigned_t<IntegerType>;
+
+					UnsignedInteger lower_bound = static_cast<UnsignedInteger>(minimum);
+					UnsignedInteger upper_bound = static_cast<UnsignedInteger>(maximum);
+					UnsignedInteger range_count = upper_bound - lower_bound + 1;
+
+					// If range_count == 0, indicating the entire integer domain; directly return a random number
+					if (range_count == 0)
+						return number_distribution(random_generator);
+
+					// Sample twice uniformly, then "fold" them into a Triangular distribution
+					UnsignedInteger first_offset  = static_cast<UnsignedInteger>(number_distribution(random_generator)) - lower_bound;
+					UnsignedInteger second_offset = static_cast<UnsignedInteger>(number_distribution(random_generator)) - lower_bound;
+					UnsignedInteger sum_offset    = first_offset + second_offset;
+
+					// If sumOffset is within [0, range_count − 1], directly return it; otherwise, map to the symmetric position
+					UnsignedInteger folded_offset = (sum_offset < range_count)
+						? sum_offset
+						: (2 * (range_count - 1) - sum_offset);
+
+					return static_cast<IntegerType>(folded_offset + lower_bound);
+				}
+			}
+		}
+	};
+
 	//针对容器内容进行洗牌
 	//Shuffling against container content
 	struct UniformShuffleRangeImplement
@@ -1117,7 +1447,8 @@ namespace CommonSecurity
 		//RNG is random number generator
 		template<std::random_access_iterator RandomAccessIteratorType, std::sentinel_for<RandomAccessIteratorType> SentinelIteratorType, typename RNG_Type>
 		requires std::permutable<RandomAccessIteratorType> && std::uniform_random_bit_generator<std::remove_reference_t<RNG_Type>>
-		RandomAccessIteratorType operator()(RandomAccessIteratorType first, SentinelIteratorType last, RNG_Type&& functionRNG)
+		RandomAccessIteratorType
+		operator()(RandomAccessIteratorType first, SentinelIteratorType last, RNG_Type&& functionRNG)
 		{
 			using iterator_difference_t = std::iter_difference_t<RandomAccessIteratorType>;
 			using number_distribution_t = RND::UniformIntegerDistribution<iterator_difference_t>;
@@ -1135,7 +1466,8 @@ namespace CommonSecurity
 
 		template <std::ranges::random_access_range RandomAccessRangeType, typename RNG_Type>
 		requires std::permutable<std::ranges::iterator_t<RandomAccessRangeType>> && std::uniform_random_bit_generator<std::remove_reference_t<RNG_Type>>
-		std::ranges::borrowed_iterator_t<RandomAccessRangeType> operator()( RandomAccessRangeType&& range, RNG_Type&& functionRNG )
+		std::ranges::borrowed_iterator_t<RandomAccessRangeType>
+		operator()( RandomAccessRangeType&& range, RNG_Type&& functionRNG )
 		{
 			return this->operator()( std::ranges::begin( range ), std::ranges::end( range ), std::forward<RNG_Type>( functionRNG ) );
 		}
@@ -1164,21 +1496,87 @@ namespace CommonSecurity
 
 	inline UniformShuffleRangeImplement ShuffleRangeData{};
 
+	//针对容器内容进行采样
+	//Sampling against container contents
+	struct UniformSampleRangeImplement
+	{
+		template<std::input_iterator InputIteratorType, std::sentinel_for<InputIteratorType> SentinalIteratorType, std::weakly_incrementable OutputIteratorType, typename RNG_Type>
+		requires (std::forward_iterator<InputIteratorType> || std::random_access_iterator<OutputIteratorType>)
+		&& std::indirectly_copyable<InputIteratorType, OutputIteratorType>
+		&& std::uniform_random_bit_generator<std::remove_reference_t<RNG_Type>>
+		OutputIteratorType operator()( InputIteratorType read_first, SentinalIteratorType read_last, OutputIteratorType write_first, std::iter_difference_t<InputIteratorType> size, RNG_Type&& functionRNG ) const
+		{
+			using iterator_difference_t = std::iter_difference_t<InputIteratorType>;
+			using number_distribution_t = RND::UniformIntegerDistribution<iterator_difference_t>;
+			using number_distribution_param_t = typename number_distribution_t::param_type;
+			number_distribution_t number_distribution{};
+
+			if constexpr (std::forward_iterator<InputIteratorType>)
+			{
+				// this branch preserves "stability" of the sample elements
+				auto remaining_size {std::ranges::distance(read_first, read_last)};
+				for ( size = std::ranges::min( size, remaining_size ); size != 0; ++read_first )
+				{
+					if ( number_distribution( functionRNG, number_distribution_param_t( 0, --remaining_size ) ) < size )
+					{
+						*write_first++ = *read_first;
+						--size;
+					}
+				}
+
+				return write_first;
+			}
+			else
+			{
+				// OutputIteratorType is a random_access_iterator
+				iterator_difference_t sample_size{0};
+
+				// copy [read_first, read_first + M) elements to "random access" output
+				while (read_first != read_last && sample_size != size)
+				{
+					write_first[sample_size++] = *read_first;
+					++read_first;
+				}
+
+				// overwrite some of the copied elements with randomly selected ones
+				for ( auto pop_size { sample_size }; read_first != read_last; ++read_first, ++pop_size )
+				{
+					const auto random_index = number_distribution( functionRNG, number_distribution_param_t{ 0, pop_size } );
+					if ( random_index < size )
+						write_first[ random_index ] = *read_first;
+				}
+
+				return write_first + sample_size;
+			}
+		}
+
+		template <std::ranges::input_range InputRangeType, std::weakly_incrementable OutputIteratorType, typename RNG_Type>
+		requires( std::ranges::forward_range<InputRangeType> || std::random_access_iterator<OutputIteratorType> )
+		&& std::indirectly_copyable<std::ranges::iterator_t<InputRangeType>, OutputIteratorType> 
+		&& std::uniform_random_bit_generator<std::remove_reference_t<RNG_Type>>
+		OutputIteratorType operator()( InputRangeType&& read_range, OutputIteratorType write_iterator, std::ranges::range_difference_t<InputRangeType> size, RNG_Type&& functionRNG ) const
+		{
+			return this->operator()( std::ranges::begin( read_range ), std::ranges::end( read_range ), std::move( write_iterator ), size, std::forward<RNG_Type>( functionRNG ) );
+		}
+	};
+
+	inline UniformSampleRangeImplement SampleRangeData{};
+	
+	/*
+		Deterministic Random Bit Generators
+		https://csrc.nist.gov/glossary/term/deterministic_random_bit_generator
+	*/
+	namespace DRBG
+	{
+
+	}
+
 }  // namespace CommonSecurity
 
 namespace Cryptograph::CommonModule
 {
 	/**
 	* MCA - Multiple Cryptography Algorithm
-	*/
-
-	/*
-		//ENUM: Check Or Verify File Data IS Valid Or Invalid For Worker
-		enum class CVFD_IsValidOrInvalid4Worker
-		{
-			MCA_CHECK_FILE_STRUCT,
-			MCA_VERIFY_FILE_HASH
-		};
 	*/
 
 	//ENUM: Cryption Mode To Multiple Cryptography Algorithm Core For File Data Worker
@@ -1196,85 +1594,141 @@ namespace Cryptograph::CommonModule
 	{
 		#if defined(__cpp_lib_byte) && !defined(__cpp_lib_span)
 
-		inline void characterToByte(const std::vector<char>& input , std::vector<std::byte>& output )
+		inline void characterToByte(const std::vector<char>& input, std::vector<std::byte>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& characterData : input)
+			if(output.size() == input.size())
 			{
-				output.push_back( static_cast<std::byte>(static_cast<unsigned char>(characterData)) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& characterData : input)
+				{
+					output.push_back( static_cast<std::byte>(static_cast<std::uint8_t>(characterData)) );
+				}
 			}
 		}
 
 		inline void characterFromByte(const std::vector<std::byte>& input, std::vector<char>& output)
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& byteData : input)
+			if(output.size() == input.size())
 			{
-				output.push_back( static_cast<char>(static_cast<unsigned char>(byteData)) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& byteData : input)
+				{
+					output.push_back( static_cast<char>(static_cast<std::uint8_t>(byteData)) );
+				}
 			}
 		}
 
-		inline void classicByteToByte(const std::vector<unsigned char>& input , std::vector<std::byte>& output )
+		inline void classicByteToByte(const std::vector<std::uint8_t>& input, std::vector<std::byte>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& characterData : input)
+			if(output.size() < input.size())
 			{
-				output.push_back( static_cast<std::byte>(characterData) );
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& characterData : input)
+				{
+					output.push_back( static_cast<std::byte>(characterData) );
+				}
+			}
+			else if(output.size() == input.size())
+			{
+				::memcpy(output.data(), input.data(), input.size());
 			}
 		}
 
-		inline void classicByteFromByte(const std::vector<std::byte>& input, std::vector<unsigned char>& output)
+		inline void classicByteFromByte(const std::vector<std::byte>& input, std::vector<std::uint8_t>& output)
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& byteData : input)
+			if(output.size() == input.size())
 			{
-				output.push_back( static_cast<unsigned char>(byteData) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& byteData : input)
+				{
+					output.push_back( static_cast<std::uint8_t>(byteData) );
+				}
 			}
 		}
 
 		#elif defined(__cpp_lib_byte) && defined(__cpp_lib_span)
 
-		inline void characterToByte( std::span<const char> input , std::vector<std::byte>& output )
+		inline void characterToByte( std::span<const char> input, std::vector<std::byte>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& characterData : input)
+			if(output.size() == input.size())
 			{
-				output.push_back( static_cast<std::byte>(static_cast<unsigned char>(characterData)) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& characterData : input)
+				{
+					output.push_back( static_cast<std::byte>(static_cast<std::uint8_t>(characterData)) );
+				}
 			}
 		}
 
 		inline void characterFromByte( std::span<const std::byte> input, std::vector<char>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& byteData : input)
+			if(output.size() == input.size())
 			{
-				output.push_back( static_cast<char>(static_cast<unsigned char>(byteData)) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& byteData : input)
+				{
+					output.push_back( static_cast<char>(static_cast<std::uint8_t>(byteData)) );
+				}
 			}
 		}
 
-		inline void classicByteToByte( std::span<const unsigned char> input , std::vector<std::byte>& output )
+		inline void classicByteToByte( std::span<const std::uint8_t> input, std::vector<std::byte>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& characterData : input)
+			if(output.size() == input.size())
 			{
-				output.push_back( static_cast<std::byte>(characterData) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& characterData : input)
+				{
+					output.push_back( static_cast<std::byte>(characterData) );
+				}
 			}
 		}
 
-		inline void classicByteFromByte( std::span<const std::byte> input, std::vector<unsigned char>& output)
+		inline void classicByteFromByte( std::span<const std::byte> input, std::vector<std::uint8_t>& output)
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& byteData : input)
+			if(output.size() == input.size())
 			{
-				output.push_back( static_cast<unsigned char>(byteData) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& byteData : input)
+				{
+					output.push_back( static_cast<std::uint8_t>(byteData) );
+				}
 			}
 		}
 
@@ -1282,45 +1736,73 @@ namespace Cryptograph::CommonModule
 
 		#if !defined(__cpp_lib_span)
 
-		inline void characterToClassicByte( const std::vector<char>& input , std::vector<unsigned char>& output )
+		inline void characterToClassicByte( const std::vector<char>& input , std::vector<std::uint8_t>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& characterData : input)
+			if ( output.size() == input.size() )
 			{
-				output.push_back( static_cast<unsigned char>(characterData) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& characterData : input)
+				{
+					output.push_back( static_cast<std::uint8_t>(characterData) );
+				}
 			}
 		}
 
-		inline void characterFromClassicByte( const std::vector<unsigned char>& input, std::vector<char>& output )
+		inline void characterFromClassicByte( const std::vector<std::uint8_t>& input, std::vector<char>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& byteData : input)
+			if ( output.size() == input.size() )
 			{
-				output.push_back( static_cast<char>(byteData) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& byteData : input)
+				{
+					output.push_back( static_cast<char>(byteData) );
+				}
 			}
 		}
 
 		#else
 
-		inline void characterToClassicByte( std::span<const char> input , std::vector<unsigned char>& output )
+		inline void characterToClassicByte( std::span<const char> input , std::vector<std::uint8_t>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& characterData : input)
+			if ( output.size() == input.size() )
 			{
-				output.push_back( static_cast<unsigned char>(characterData) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& characterData : input)
+				{
+					output.push_back( static_cast<std::uint8_t>(characterData) );
+				}
 			}
 		}
 
-		inline void characterFromClassicByte( std::span<const unsigned char> input, std::vector<char>& output )
+		inline void characterFromClassicByte( std::span<const std::uint8_t> input, std::vector<char>& output )
 		{
-			output.clear();
-			output.reserve(input.size());
-			for (const auto& byteData : input)
+			if ( output.size() < input.size() )
 			{
-				output.push_back( static_cast<char>(byteData) );
+				::memcpy(output.data(), input.data(), input.size());
+			}
+			else
+			{
+				output.clear();
+				output.reserve(input.size());
+				for (const auto& byteData : input)
+				{
+					output.push_back( static_cast<char>(byteData) );
+				}
 			}
 		}
 
@@ -1328,3 +1810,406 @@ namespace Cryptograph::CommonModule
 	}
 
 }  // namespace Cryptograph::CommonModule
+
+namespace Cryptograph::Bitset
+{
+	template<std::size_t BitsetSize>
+	inline void Exclusive_OR(std::bitset<BitsetSize>& bits, const std::bitset<BitsetSize>& other_bits)
+	{
+		bits ^= other_bits;
+	}
+
+	template<std::size_t BitsetSize>
+	inline void Equivalence_OR(std::bitset<BitsetSize>& bits, const std::bitset<BitsetSize>& other_bits)
+	{
+		bits ^= other_bits;
+		bits = ~bits;
+	}
+
+	template<size_t BitsetSize>
+	inline void BitLeftCircularShift(const std::bitset<BitsetSize>& bits, std::size_t shift_count, std::bitset<BitsetSize>& result_bits)
+	{
+					auto rotate_move_remainder = shift_count % BitsetSize;  // Limit count to range [0,N)
+					auto part_bits = bits << shift_count;
+					auto part2_bits = bits >> (BitsetSize - rotate_move_remainder);
+					result_bits = part_bits | part2_bits;
+		/*
+			  result_bits = (bits << count | bits >> (BitsetSize - count));
+			The shifted bits ^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^ The wrapped bits
+		*/
+	}
+
+	template<size_t BitsetSize>
+	inline void BitRightCircularShift(const std::bitset<BitsetSize>& bits, std::size_t shift_count, std::bitset<BitsetSize>& result_bits )
+	{
+					auto rotate_move_remainder = shift_count % BitsetSize;  // Limit count to range [0,N)
+					auto part_bits = bits >> shift_count;
+					auto part2_bits = bits << (BitsetSize - rotate_move_remainder);
+					result_bits = part_bits | part2_bits;
+		/*
+			  result_bits = (bits >> count | bits << (BitsetSize - count));
+			The shifted bits ^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^ The wrapped bits
+		*/
+	}
+
+	template<size_t BitsetSize>
+	inline void BitToggle( std::bitset<BitsetSize>& bits, std::size_t index )
+	{
+		constexpr std::bitset<BitsetSize> Mask{ 1 };
+
+		index %= BitsetSize;  // Limit count to range [0,N)
+		bits ^= ( Mask << index );
+	}
+
+	template<std::size_t SIZE>
+	struct bitset_size
+	{
+		bitset_size(const std::bitset<SIZE>&)
+		{
+		}
+		static constexpr std::size_t BITSET_SIZE = SIZE;
+	};
+
+	template<std::size_t BinaryDataCopySize, std::size_t SplitPosition_OnePartSize, std::size_t SplitPosition_TwoPartSize = BinaryDataCopySize - SplitPosition_OnePartSize>
+	inline std::pair<std::bitset<SplitPosition_OnePartSize>, std::bitset<SplitPosition_TwoPartSize>> SplitBitset(const std::bitset<BinaryDataCopySize>& BinaryData)
+	{
+		constexpr std::size_t BinaryDataSize = decltype(bitset_size{ BinaryData })::BITSET_SIZE;
+
+		//invalied_split_binary
+		static_assert(BinaryDataCopySize != 0 && BinaryDataSize != 0, "Unexpected logic error: Binary data size BinaryData.size() must not be 0!\n源二进制数据大小BinaryData.size()不得为0");
+
+		//invalied_split_binary
+		static_assert(BinaryDataSize == BinaryDataCopySize,"Unexpected logic error: The source data size BinaryData.size() does not match the template parameter BitsetCopySize \n源数据大小BinaryData.size()与模板参数BinaryDataCopySize不一致");
+
+		if constexpr(SplitPosition_OnePartSize + SplitPosition_TwoPartSize != BinaryDataSize)
+		{
+			//invalied_split_binary
+			static_assert(CommonToolkit::Dependent_Always_Failed<decltype(BinaryDataCopySize)>,"Unexpected logic error: The size of the two target binary data comes from the total size of the source binary data after the split is completed, where one or both of the subsizes are not and range complementary. \n两个目标二进制数据的大小，来自于分割完成之后源二进制数据的总大小，其中有一个或者两个的子大小是不和范围互补的");
+		}
+		else if constexpr(SplitPosition_OnePartSize >= BinaryDataSize || SplitPosition_TwoPartSize >= BinaryDataSize)
+		{
+			//invalied_split_binary
+			static_assert(CommonToolkit::Dependent_Always_Failed<decltype(SplitPosition_OnePartSize)>, "Unexpected logic error: Binary data split point position out of range!\n二进制数据分割点位置超出范围");
+		}
+		else
+		{
+			using WordType = std::conditional_t<BinaryDataSize <= std::numeric_limits<std::uint32_t>::digits, std::uint32_t, std::uint64_t>;
+
+			if constexpr(SplitPosition_OnePartSize <= std::numeric_limits<std::uint64_t>::digits && SplitPosition_TwoPartSize <= std::numeric_limits<std::uint64_t>::digits)
+			{
+				//Example binary data:
+				//A is: 0001'1010'0110'0111'0011'0010'0100(Digits size is 26 bit)
+				//B is: 13
+				//A with B split to C and D:
+				//C is: 0001'101'0011'0011
+				//D is: 0010'011'0010'0100
+			
+				/*
+					The process of implementation:
+						High Digit Binary data calculation:
+							Step 1: 0000'0000'0000'0000'1101'0011'0011 = 0001'1010'0110'0111'0011'0010'0100 >> 13 (Bit Right Shift)
+							Step 2: 0000'1101'0011'0011 and 0000'0000'0000'0000'1101'0011'0011 It's actually the same!
+						Low Digit Binary data calculation:
+							Step 1: SelectedBinaryDigit = ~(1 << index)
+							If index is 14, Then 0000'0000'0000'0010'0000'0000'0000 = 0000'0000'0000'0000'0000'0000'0001 << 14 (Bit Left Shift)
+							Step 2: SelectedBinaryDigit = 1111'1111'1111'1101'1111'1111'1111 = ~0000'0000'0000'0010'0000'0000'0000 (Bit Not)
+							Step 3: 0001'1010'0110'0101'0011'0010'0100 = 0001'1010'0110'0111'0011'0010'0100 & 1111'1111'1111'1101'1111'1111'1111 (Bit And)
+							Step 4: Repeat the above steps until all binary data high bit 1s are changed to data bit 0
+				*/
+
+				/*
+				//Reset binary HighDigitPart bit
+				//复位二进制高位部分位
+				for(std::uint64_t index = BitsetCopySize; index != 0 && index != SplitPosition_TwoPartSize; --index )
+				{
+					std::uint64_t BitsetDataPosition = 1 << index;
+					std::uint64_t BitsetDataPositionMask = ~BitsetDataPosition;
+					LowDigitPartDataWithInteger = LowDigitPartDataWithInteger & BitsetDataPositionMask;
+				}
+
+				//Reset binary LowDigitPart bit
+				//复位二进制低位部分位
+				for(std::uint64_t index = SplitPosition_OnePartSize; index != 0 && index != BitsetCopySize + 1; ++index )
+				{
+					std::uint64_t BitsetDataPosition = 1 << index;
+					std::uint64_t BitsetDataPositionMask = ~BitsetDataPosition;
+					HighDigitPartDataWithInteger = HighDigitPartDataWithInteger & BitsetDataPositionMask;
+				}
+				*/
+
+				std::bitset<BinaryDataCopySize> BitsetDataCopy { BinaryData };
+
+				if constexpr(SplitPosition_OnePartSize == SplitPosition_TwoPartSize)
+				{
+					WordType BitsetDataWithInteger;
+
+
+					if constexpr(BinaryDataCopySize <= sizeof(WordType) * std::numeric_limits<std::uint8_t>::digits)
+					{
+						if constexpr(std::same_as<WordType, std::uint64_t>)
+							BitsetDataWithInteger = BitsetDataCopy.to_ullong();
+						else
+							BitsetDataWithInteger = BitsetDataCopy.to_ulong();
+
+						//Discard binary LowDigitPart bits
+						//丢弃二进制低位部分位数
+						WordType HighDigitPartDataWithInteger = BitsetDataWithInteger >> SplitPosition_OnePartSize;
+
+						//Discard binary HighDigitPart bits
+						//丢弃二进制高位部分位数
+						WordType LowDigitPartDataWithInteger = BitsetDataWithInteger << SplitPosition_TwoPartSize;
+						LowDigitPartDataWithInteger = LowDigitPartDataWithInteger >> SplitPosition_TwoPartSize;
+
+						std::bitset<SplitPosition_OnePartSize> HighDigitPartBitsetData{ HighDigitPartDataWithInteger };
+						std::bitset<SplitPosition_TwoPartSize> LowDigitPartBitsetData{ LowDigitPartDataWithInteger };
+						return std::pair<std::bitset<SplitPosition_OnePartSize>, std::bitset<SplitPosition_TwoPartSize>> { HighDigitPartBitsetData, LowDigitPartBitsetData };
+					}
+					else
+					{
+						std::string BinaryDataString = BinaryData.to_string();
+
+						std::bitset<SplitPosition_OnePartSize> HighDigitPartBitsetData{ BinaryDataString.substr(0, SplitPosition_OnePartSize) };
+						std::bitset<SplitPosition_TwoPartSize> LowDigitPartBitsetData{ BinaryDataString.substr(SplitPosition_OnePartSize, SplitPosition_TwoPartSize) };
+						return std::pair<std::bitset<SplitPosition_OnePartSize>, std::bitset<SplitPosition_TwoPartSize>> { HighDigitPartBitsetData, LowDigitPartBitsetData };
+					}
+
+				}
+				else
+				{
+					/*
+					
+						10 <-> 1010
+						11 <-> 1011
+
+						Source Binary Data:
+						0000 0000 0001 0100 1110 0011 1001 1100
+
+						1010011100
+						01110011100
+
+						Bit Right Shift (Logic):
+						0000 0000 0000 0000 0000 0010 1001 1100 = 0000 0000 0001 0100 1110 0011 1001 1100 >> 11
+
+						Bits Right Rotate:
+						0111 0011 1000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0010 1001 1100 = (0000 0000 0001 0100 1110 0011 1001 1100  >> 11) | (0000 0000 0001 0100 1110 0011 1001 1100 << 32 - 11)
+
+						Bit Right Shift (Logic):
+						0001 1100 1110 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 = 0111 0011 1000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0010 1001 1100 >> 10
+
+						Bits Left Rotate:
+						0000 0000 0000 0000 0000 0011 1001 1100 = (0001 1100 1110 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000  << (10 + 11)) | (0001 1100 1110 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 >> 32 - (10 + 11))
+
+						0000000000000-01010011100
+
+						Target Binary Pair:
+						1010011100
+						01110011100
+					
+					*/
+
+					if constexpr(SplitPosition_OnePartSize < SplitPosition_TwoPartSize)
+					{
+						if constexpr( BinaryDataCopySize <= (sizeof(WordType) * std::numeric_limits<std::uint8_t>::digits) )
+						{
+							WordType BitsetDataWithInteger = 0;
+							WordType HighDigitPartDataWithInteger = 0;
+							WordType LowDigitPartDataWithInteger = 0;
+
+							if constexpr(std::same_as<WordType, std::uint64_t>)
+								BitsetDataWithInteger = BitsetDataCopy.to_ullong();
+							else
+								BitsetDataWithInteger = BitsetDataCopy.to_ulong();
+
+							//Discard binary LowDigitPart bits
+							//丢弃二进制低位部分位数
+							HighDigitPartDataWithInteger = BitsetDataWithInteger >> SplitPosition_TwoPartSize;
+
+							//By right (circular shift) rotation, the low bits of binary data are moved to the high bits (and reversed)
+							//Facilitates discarding the original high bits of data
+							//通过右(循环移位)旋转，将二进制的低位比特的数据，移动至高位(并且反向)
+							//便于丢弃原高位比特的数据
+							LowDigitPartDataWithInteger = std::rotr(BitsetDataWithInteger, SplitPosition_TwoPartSize);
+
+							//Discard the original high bits of data
+							//丢弃原高位比特的数据
+							LowDigitPartDataWithInteger = LowDigitPartDataWithInteger >> SplitPosition_OnePartSize;
+						
+							//By left (circular shift) rotation, the high bits of the binary data are moved to the low bits (and reversed)
+							//Used to recover the original low bits of data
+							//通过左(循环移位)旋转，将二进制的高位比特的数据，移动至低位(并且反向)
+							//用于恢复原低位比特的数据
+							LowDigitPartDataWithInteger = std::rotl(LowDigitPartDataWithInteger, SplitPosition_OnePartSize + SplitPosition_TwoPartSize);
+
+							std::bitset<SplitPosition_OnePartSize> HighDigitPartBitsetData{ HighDigitPartDataWithInteger };
+							std::bitset<SplitPosition_TwoPartSize> LowDigitPartBitsetData{ LowDigitPartDataWithInteger };
+							return std::pair<std::bitset<SplitPosition_OnePartSize>, std::bitset<SplitPosition_TwoPartSize>> { HighDigitPartBitsetData, LowDigitPartBitsetData };
+						}
+						else
+						{
+							std::string BinaryDataString = BinaryData.to_string();
+
+							std::bitset<SplitPosition_OnePartSize> HighDigitPartBitsetData{ BinaryDataString.substr(0, SplitPosition_OnePartSize) };
+							std::bitset<SplitPosition_TwoPartSize> LowDigitPartBitsetData{ BinaryDataString.substr(SplitPosition_OnePartSize, SplitPosition_TwoPartSize) };
+							return std::pair<std::bitset<SplitPosition_OnePartSize>, std::bitset<SplitPosition_TwoPartSize>> { HighDigitPartBitsetData, LowDigitPartBitsetData };
+						}
+					}
+					if constexpr(SplitPosition_OnePartSize > SplitPosition_TwoPartSize)
+					{
+						if constexpr( BinaryDataCopySize <= (sizeof(WordType) * std::numeric_limits<std::uint8_t>::digits) )
+						{
+							WordType BitsetDataWithInteger = 0;
+							WordType HighDigitPartDataWithInteger = 0;
+							WordType LowDigitPartDataWithInteger = 0;
+
+							if constexpr(std::same_as<WordType, std::uint64_t>)
+								BitsetDataWithInteger = BitsetDataCopy.to_ullong();
+							else
+								BitsetDataWithInteger = BitsetDataCopy.to_ulong();
+
+							//Discard binary LowDigitPart bits
+							//丢弃二进制低位部分位数
+							HighDigitPartDataWithInteger = BitsetDataWithInteger >> SplitPosition_TwoPartSize;
+
+							//By right (circular shift) rotation, the low bits of binary data are moved to the high bits (and reversed)
+							//Facilitates discarding the original high bits of data
+							//通过右(循环移位)旋转，将二进制的低位比特的数据，移动至高位(并且反向)
+							//便于丢弃原高位比特的数据
+							LowDigitPartDataWithInteger = std::rotr(BitsetDataWithInteger, SplitPosition_TwoPartSize);
+
+							//Discard the original high bits of data
+							//丢弃原高位比特的数据
+							LowDigitPartDataWithInteger = LowDigitPartDataWithInteger >> SplitPosition_OnePartSize;
+						
+							//By left (circular shift) rotation, the high bits of the binary data are moved to the low bits (and reversed)
+							//Used to recover the original low bits of data
+							//通过左(循环移位)旋转，将二进制的高位比特的数据，移动至低位(并且反向)
+							//用于恢复原低位比特的数据
+							LowDigitPartDataWithInteger = std::rotl(LowDigitPartDataWithInteger, SplitPosition_OnePartSize + SplitPosition_TwoPartSize);
+
+							std::bitset<SplitPosition_OnePartSize> HighDigitPartBitsetData{ HighDigitPartDataWithInteger };
+							std::bitset<SplitPosition_TwoPartSize> LowDigitPartBitsetData{ LowDigitPartDataWithInteger };
+							return std::pair<std::bitset<SplitPosition_OnePartSize>, std::bitset<SplitPosition_TwoPartSize>> { HighDigitPartBitsetData, LowDigitPartBitsetData };
+						}
+						else
+						{
+							std::string BinaryDataString = BinaryData.to_string();
+
+							std::bitset<SplitPosition_OnePartSize> HighDigitPartBitsetData{ BinaryDataString.substr(0, SplitPosition_OnePartSize) };
+							std::bitset<SplitPosition_TwoPartSize> LowDigitPartBitsetData{ BinaryDataString.substr(SplitPosition_OnePartSize, SplitPosition_TwoPartSize) };
+							return std::pair<std::bitset<SplitPosition_OnePartSize>, std::bitset<SplitPosition_TwoPartSize>> { HighDigitPartBitsetData, LowDigitPartBitsetData };
+						}
+					}
+				}
+			}
+			else
+			{
+				std::bitset<SplitPosition_OnePartSize> HighDigitPartBitsetData;
+				std::bitset<SplitPosition_TwoPartSize> LowDigitPartBitsetData;
+
+				for(std::size_t index = 0; index != BinaryData.size(); ++index)
+				{
+					if(index < SplitPosition_OnePartSize)
+					{
+						if(BinaryData.operator[](index))
+						{
+							LowDigitPartBitsetData.operator[](index) = BinaryData.operator[](index);
+						}
+					}
+					else
+					{
+						if(BinaryData.operator[](index))
+						{
+							HighDigitPartBitsetData.operator[](index - SplitPosition_OnePartSize) = BinaryData.operator[](index);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	template <std::size_t BitsetSize, std::size_t BitsetSize2 >
+	inline std::bitset <BitsetSize + BitsetSize2> ConcatenateBitset( const std::bitset<BitsetSize>& leftBinaryData, const std::bitset<BitsetSize2>& rightBinaryData, bool isNeedSwapTwoPart )
+	{
+		constexpr std::uint64_t ConcatenateBinarySize = BitsetSize + BitsetSize2;
+
+		//invalied_concat_binary
+		static_assert(decltype(bitset_size{ leftBinaryData })::BITSET_SIZE != 0 && decltype(bitset_size{ rightBinaryData })::BITSET_SIZE != 0, "Unexpected logic error: The size of the two parts of the binary data that need to be concatenated, the size of their bits, cannot have either one of them be 0 or both of them be 0!\n需要的串接的两个部分的二进制数据，它们的位数的大小，不能有任意一个是0或者两个都是0");
+
+		constexpr std::uint64_t ConcatenateBinarySize2 = decltype(bitset_size{ leftBinaryData })::BITSET_SIZE + decltype(bitset_size{ rightBinaryData })::BITSET_SIZE;
+
+		//invalied_concat_binary
+		static_assert(ConcatenateBinarySize == ConcatenateBinarySize2, "Unexpected logic error: The source data size leftBinaryData.size() + rightBinaryData.size() does not match the result of the template parameter BitsetSize + BitsetSize2!\n源数据大小 leftBinaryData.size() + rightBinaryData.size() 与模板参数 BitsetSize + BitsetSize2 的结果不一致");
+
+		using WordType = std::conditional_t<ConcatenateBinarySize <= std::numeric_limits<std::uint32_t>::digits, std::uint32_t, std::uint64_t>;
+
+		if constexpr(ConcatenateBinarySize <= std::numeric_limits<std::uint64_t>::digits)
+		{
+			//Example binary data:
+			//A is: 0000'1101'0011'0011(Digits size is 13 bit)
+			//B is: 0001'0011'0010'0100(Digits size is 13 bit)
+
+			//C from A concate B: 0001'1010'0110'0111'0011'0010'0100
+
+			/*
+			The process of implementation:
+				Binary data calculation:
+					Step 1: 0001'1010'0110'0110'0000'0000'0000 = 0000'1101'0011'0011 << 13 (Bit Left Shift)
+					Step 2: 0001'0011'0010'0100 and 0000'0000'0000'0001'0011'0010'0100, It's actually the same!
+					Step 3: 0001'1010'0110'0111'0011'0010'0100 = 0001'1010'0110'0110'0000'0000'0000 | 0000'0000'0000'0001'0011'0010'0100 (Bit Or)
+			*/
+
+			//Discard binary HighDigitPart bit and Reset binary LowDigitPart bit, then Set binary LowDigitPart bit.
+			//丢弃二进制高位部分的位数并重置二进制低位部分的位数，然后设置二进制低位部分的位数。
+
+			if(!isNeedSwapTwoPart)
+			{
+				WordType ConcatenatedBinaryDataWithInteger = leftBinaryData.to_ullong() << leftBinaryData.size() | rightBinaryData.to_ullong();
+
+				std::bitset<ConcatenateBinarySize> ConcatenatedBitset( ConcatenatedBinaryDataWithInteger );
+				return ConcatenatedBitset;
+			}
+			else
+			{
+				WordType ConcatenatedBinaryDataWithInteger = rightBinaryData.to_ullong() << rightBinaryData.size() | leftBinaryData.to_ullong();
+
+				std::bitset<ConcatenateBinarySize> ConcatenatedBitset( ConcatenatedBinaryDataWithInteger );
+				return ConcatenatedBitset;
+			}
+		}
+		else
+		{
+			if(!isNeedSwapTwoPart)
+			{
+				//Binary string concat
+				std::string binaryDataString = leftBinaryData.to_string() + rightBinaryData.to_string();
+				return std::bitset<ConcatenateBinarySize>( binaryDataString );
+			}
+			else
+			{
+				//Binary string concat
+				std::string binaryDataString = rightBinaryData.to_string() + leftBinaryData.to_string();
+				return std::bitset<ConcatenateBinarySize>( binaryDataString );
+			}
+		}
+	}
+
+	inline std::bitset<64> ClassicByteArrayToBitset64Bit(const std::vector<std::uint8_t>& ByteArray)
+	{
+		std::uint64_t TemporaryInteger = 0;
+		if(ByteArray.size() != sizeof(TemporaryInteger))
+		{
+			std::length_error conversion_type_data_is_undefined_behaviour("This object CharacterArray size is not equal 8 !");
+			throw conversion_type_data_is_undefined_behaviour;
+		}
+		::memcpy(&TemporaryInteger, ByteArray.data(), sizeof(TemporaryInteger));
+		std::bitset<64> Bitset64Object(TemporaryInteger);
+		return Bitset64Object;
+	}
+
+	inline std::vector<std::uint8_t> ClassicByteArrayFromBitset64Bit(const std::bitset<64>& Bitset64Object)
+	{
+		std::uint64_t TemporaryInteger { Bitset64Object.to_ullong() };
+		std::vector<std::uint8_t> ByteArray { reinterpret_cast<std::uint8_t *>( &TemporaryInteger ), reinterpret_cast<std::uint8_t *>( &TemporaryInteger + 1 ) };
+		return ByteArray;
+	}
+}

@@ -91,10 +91,10 @@
 namespace CommonToolkit
 {
 	// false value attached to a dependent name (for static_assert)
-	template<class>
+	template<auto>
 	inline constexpr bool Dependent_Always_Failed = false;
 	// true value attached to a dependent name (for static_assert)
-	template<class>
+	template<auto>
 	inline constexpr bool Dependent_Always_Succeed = true;
 
 	template<class T>
@@ -175,14 +175,26 @@ inline void my_cpp2020_assert(const bool JudgmentCondition, const char* ErrorMes
 {
 	if(!JudgmentCondition)
 	{
-		std::cout << "The error message is(错误信息是):\n" << ErrorMessage << std::endl;
+		std::system("chcp 65001");
 
+		std::cout << "The error message is(错误信息是):\n" << ErrorMessage << std::endl;
 		std::cout << "Oh, crap, some of the code already doesn't match the conditions at runtime.(哦，糟糕，有些代码在运行时已经不匹配条件。)\n\n\n" << std::endl;
 		std::cout << "Here is the trace before the assertion occurred(下面是发生断言之前的追踪信息):\n\n" << std::endl;
 		std::cout << "The condition determines the code file that appears to be a mismatch(条件判断出现不匹配的代码文件):\n" << AssertExceptionDetailTrackingObject.file_name() << std::endl;
 		std::cout << "Name of the function where this assertion is located(该断言所在的函数的名字):\n" << AssertExceptionDetailTrackingObject.function_name() << std::endl;
 		std::cout << "Number of lines of code where the assertion is located(该断言所在的代码行数):\n" << AssertExceptionDetailTrackingObject.line() << std::endl;
 		std::cout << "Number of columns of code where the assertion is located(该断言所在的代码列数):\n" << AssertExceptionDetailTrackingObject.column() << std::endl;
+
+		// Print stack trace for C++23 and above
+		#if __cplusplus >= 202300L
+		std::cout << "Stack trace before assertion:\n";
+		
+
+		for (const auto& frame : std::stacktrace::current())
+		{
+			std::cout << frame << std::endl;
+		}
+		#endif
 
 		throw std::runtime_error(ErrorMessage);
 	}
@@ -193,6 +205,7 @@ inline void my_cpp2020_assert(const bool JudgmentCondition, const char* ErrorMes
 }
 
 #endif
+
 
 #define __STDC_WANT_LIB_EXT1__ 1
 
@@ -212,7 +225,7 @@ struct MemorySetUitl
 	 * @note The intention is that the memory store is always performed (i.e., never elided),
 	 *		 regardless of optimizations. This is in contrast to calls to the memset function.
 	 */
-	inline volatile void* fill_memory_byte_no_optimize_implementation(void* buffer_pointer, const int byte_value, size_t size)
+	inline volatile void* fill_memory_byte_no_optimize_implementation(volatile void* buffer_pointer, const int byte_value, size_t size)
 	{
 		if(buffer_pointer == nullptr)
 			return nullptr;
@@ -318,7 +331,7 @@ struct MemorySetUitl
 #endif
 	}
 
-	inline volatile void fill_memory(void* buffer_pointer, const int byte_value, size_t size)
+	inline volatile void fill_memory(volatile void* buffer_pointer, const int byte_value, size_t size)
 	{
 		volatile void* check_pointer = nullptr;
 		check_pointer = this->fill_memory_byte_no_optimize_implementation(buffer_pointer, byte_value, size);
@@ -351,26 +364,80 @@ void memory_set_explicit_call(TriviallyCopyableType& that_object, int value) noe
 }
 
 template<int byte_value>
-static inline void* memory_set_no_optimize_function(void* buffer_pointer, size_t size)
+static inline volatile void* memory_set_no_optimize_function(void* buffer_pointer, size_t size)
 {
-	static_assert(byte_value >= -128 && byte_value <= 255, "Byte value is out of range!");
-
-	if(buffer_pointer == nullptr || size == 0)
+	if(buffer_pointer == nullptr)
 		return nullptr;
+	
+	if(size > 0)
+	{
+		if constexpr(byte_value > -1 && byte_value < 256)
+		{
+			const std::vector<unsigned char> fill_memory_datas(size, byte_value);
+			
+			#if __cplusplus >= 202002L
 
-	// Create a std::vector to hold the overwrite value
-	std::vector<char> fill_memory_datas(size, static_cast<char>(byte_value));
+			std::span<unsigned char> memory_data_span_view{ (unsigned char *)buffer_pointer, (unsigned char *)buffer_pointer + size };
+			volatile void* check_pointer = ::memmove(memory_data_span_view.data(), fill_memory_datas.data(), size);
+			
+			if(memory_data_span_view[0] != (unsigned char)byte_value || memory_data_span_view[memory_data_span_view.size() - 1] != (unsigned char)byte_value || check_pointer == nullptr)
+				return nullptr;
+			else
+			{
+				check_pointer = nullptr;
+				return buffer_pointer;
+			}
 
-	// Use std::memmove to overwrite buffer
-	volatile char* volatile_buffer = static_cast<volatile char*>(buffer_pointer);
-	::memmove((void*)volatile_buffer, fill_memory_datas.data(), size);
+			#else
 
-	// Check if the overwrite was successful
-	if (volatile_buffer[0] != static_cast<char>(byte_value) || volatile_buffer[size - 1] != static_cast<char>(byte_value))
+			volatile void* check_pointer = ::memmove((unsigned char *)buffer_pointer, fill_memory_datas.data(), size);
+			if(buffer_pointer == check_pointer)
+				return buffer_pointer;
+			else
+				return nullptr;
+
+			#endif
+		}
+		else if constexpr(byte_value > -129 && byte_value < 128)
+		{
+			const std::vector<char> fill_memory_datas(size, byte_value);
+			
+			#if __cplusplus >= 202002L
+
+			std::span<char> memory_data_span_view{ (char *)buffer_pointer, (char *)buffer_pointer + size };
+			volatile void* check_pointer = ::memmove(memory_data_span_view.data(), fill_memory_datas.data(), size);
+			
+			if(memory_data_span_view[0] != (char)byte_value || memory_data_span_view[memory_data_span_view.size() - 1] != (char)byte_value || check_pointer == nullptr)
+				return nullptr;
+			else
+			{
+				check_pointer = nullptr;
+				return buffer_pointer;
+			}
+
+			#else
+
+			volatile void* check_pointer = ::memmove((char *)buffer_pointer, fill_memory_datas.data(), size);
+			if(buffer_pointer == check_pointer)
+				return buffer_pointer;
+			else
+				return nullptr;
+
+			#endif
+		}
+		else
+		{
+			static_assert(CommonToolkit::Dependent_Always_Failed<byte_value>, "Byte number is out of range!");
+		}
+		
 		return nullptr;
-
-	return buffer_pointer;
+	}
+	else
+	{
+		return nullptr;
+	}
 }
+
 
 
 #if defined(__STDC_WANT_LIB_EXT1__)
