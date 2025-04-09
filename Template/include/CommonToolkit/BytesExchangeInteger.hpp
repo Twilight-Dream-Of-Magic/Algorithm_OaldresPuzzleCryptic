@@ -98,7 +98,6 @@ namespace CommonToolkit
 
 		}; // end class Bits
 
-
 		struct BitConverters
 		{
 
@@ -270,7 +269,7 @@ namespace CommonToolkit
 					if(data_size == 0)
 						return;
 
-					std::memmove
+					::memmove
 					(
 						reinterpret_cast<std::uint8_t*>(destination_pointer) + destination_pointer_index,
 						reinterpret_cast<const std::uint8_t*>(source_pointer) + source_pointer_index,
@@ -309,7 +308,7 @@ namespace CommonToolkit
 					if(data_size == 0)
 						return;
 
-					std::memmove
+					::memmove
 					(
 						reinterpret_cast<std::uint8_t*>(destination_pointer) + destination_pointer_index,
 						reinterpret_cast<const std::uint8_t*>(source_pointer) + source_pointer_index,
@@ -347,7 +346,7 @@ namespace CommonToolkit
 					if(data_size == 0)
 						return;
 
-					std::memmove
+					::memmove
 					(
 						reinterpret_cast<std::uint8_t*>(destination_pointer) + destination_pointer_index,
 						reinterpret_cast<const std::uint8_t*>(source_pointer) + source_pointer_index,
@@ -385,7 +384,7 @@ namespace CommonToolkit
 					if(data_size == 0)
 						return;
 
-					std::memmove
+					::memmove
 					(
 						reinterpret_cast<std::uint8_t*>(destination_pointer) + destination_pointer_index,
 						reinterpret_cast<const std::uint8_t*>(source_pointer) + source_pointer_index,
@@ -405,55 +404,26 @@ namespace CommonToolkit
 		requires std::is_integral_v<IntegerType>
 		constexpr auto unpackInteger( IntegerType data )
 		{
-			constexpr auto	byteCount = std::numeric_limits<IntegerType>::digits / 8;
-			std::array<std::byte, byteCount> answer {};
-
-			if constexpr(std::endian::native == std::endian::big)
-			{
-				::memcpy(&answer.data(), &data, sizeof(data));
-				return answer;
-			}
-
+			constexpr auto					 byteCount = std::numeric_limits<IntegerType>::digits / 8;
+			std::array<std::byte, byteCount> answer;
 			for ( int index = byteCount - 1; index >= 0; --index )
 			{
 				answer[ index ] = static_cast<std::byte>( data & 0xFF );
 				data >>= 8;
 			}
-			
 			return answer;
 		}
 		inline constexpr TwoByte packInteger( SpanTwoByte data )
 		{
-			if constexpr(std::endian::native == std::endian::big)
-			{
-				std::uint16_t result = 0;
-				::memcpy(&result, data.data(), data.size_bytes());
-				return result;
-			}
-
-			return ( static_cast<std::uint16_t>( data[ 0 ] ) << 8 ) | ( static_cast<std::uint16_t>( data[ 1 ] ) );
+			return ( static_cast<TwoByte>( data[ 0 ] ) << 8 ) | ( static_cast<TwoByte>( data[ 1 ] ) );
 		}
 		inline constexpr FourByte packInteger( SpanFourByte data )
 		{
-			if constexpr(std::endian::native == std::endian::big)
-			{
-				std::uint32_t result = 0;
-				::memcpy(&result, data.data(), data.size_bytes());
-				return result;
-			}
-
-			return ( static_cast<std::uint32_t>( data[ 0 ] ) << 24 ) | ( static_cast<std::uint32_t>( data[ 1 ] ) << 16 ) | ( static_cast<std::uint32_t>( data[ 2 ] ) << 8 ) | ( static_cast<std::uint32_t>( data[ 3 ] ) );
+			return ( static_cast<FourByte>( data[ 0 ] ) << 24 ) | ( static_cast<FourByte>( data[ 1 ] ) << 16 ) | ( static_cast<FourByte>( data[ 2 ] ) << 8 ) | ( static_cast<FourByte>( data[ 3 ] ) );
 		}
 		inline constexpr EightByte packInteger( SpanEightByte data )
 		{
-			if constexpr(std::endian::native == std::endian::big)
-			{
-				std::uint64_t result = 0;
-				::memcpy(&result, data.data(), data.size_bytes());
-				return result;
-			}
-
-			return ( static_cast<std::uint64_t>( packInteger( SpanFourByte{ data.begin(), 4u } ) ) << 32 ) | static_cast<std::uint64_t>( packInteger( SpanFourByte{ data.begin() + 4, 4u } ) );
+			return ( static_cast<EightByte>( packInteger( SpanFourByte{ data.begin(), 4u } ) ) << 32 ) | static_cast<EightByte>( packInteger( SpanFourByte{ data.begin() + 4, 4u } ) );
 		}
 
 		#if defined( BYTE_SWAP_FUNCTON )
@@ -585,9 +555,9 @@ namespace CommonToolkit
 						 */
 						// memcpy approach is guaranteed to work in C & C++ and fn calls should be optimized out:
 						uint32_t asInt;
-						std::memcpy(&asInt, reinterpret_cast<const void *>(&ByteValue), sizeof(uint32_t));
+						::memcpy(&asInt, reinterpret_cast<const void *>(&ByteValue), sizeof(uint32_t));
 						asInt = Byteswap(asInt);
-						std::memcpy(&ByteValue, reinterpret_cast<void *>(&asInt), sizeof(float));
+						::memcpy(&ByteValue, reinterpret_cast<void *>(&asInt), sizeof(float));
 						return ByteValue;
 					#else
 						_Static_assert(sizeof(float) == sizeof(uint32_t), "Unexpected float format");
@@ -605,9 +575,9 @@ namespace CommonToolkit
 					#ifdef __cplusplus
 						static_assert(sizeof(double) == sizeof(uint64_t), "Unexpected double format");
 						uint64_t asInt;
-						std::memcpy(&asInt, reinterpret_cast<const void *>(&ByteValue), sizeof(uint64_t));
+						::memcpy(&asInt, reinterpret_cast<const void *>(&ByteValue), sizeof(uint64_t));
 						asInt = Byteswap(asInt);
-						std::memcpy(&ByteValue, reinterpret_cast<void *>(&asInt), sizeof(double));
+						::memcpy(&ByteValue, reinterpret_cast<void *>(&asInt), sizeof(double));
 						return ByteValue;
 					#else
 						_Static_assert(sizeof(double) == sizeof(uint64_t), "Unexpected double format");
@@ -683,7 +653,7 @@ namespace CommonToolkit
 				#else
 
 				std::uint16_t integer = 0;
-				std::memcpy(&integer, bytes.data(), bytes.size_bytes());
+				::memcpy(&integer, bytes.data(), bytes.size_bytes());
 
 				#endif
 
@@ -728,7 +698,7 @@ namespace CommonToolkit
 				#else
 
 				std::span<std::uint8_t> bytes { twobyte_array };
-				std::memcpy(bytes.data(), &integer, bytes.size_bytes());
+				::memcpy(bytes.data(), &integer, bytes.size_bytes());
 
 				#endif
 
@@ -754,7 +724,7 @@ namespace CommonToolkit
 				#else
 
 				std::uint32_t integer = 0;
-				std::memcpy(&integer, bytes.data(), bytes.size_bytes());
+				::memcpy(&integer, bytes.data(), bytes.size_bytes());
 
 				#endif
 
@@ -801,7 +771,7 @@ namespace CommonToolkit
 				#else
 
 				std::span<std::uint8_t> bytes { fourbyte_array };
-				std::memcpy(bytes.data(), &integer, bytes.size_bytes());
+				::memcpy(bytes.data(), &integer, bytes.size_bytes());
 
 				#endif
 
@@ -835,7 +805,7 @@ namespace CommonToolkit
 				#else
 
 				std::uint64_t integer = 0;
-				std::memcpy(&integer, bytes.data(), bytes.size_bytes());
+				::memcpy(&integer, bytes.data(), bytes.size_bytes());
 
 				#endif
 
@@ -886,7 +856,7 @@ namespace CommonToolkit
 				#else
 
 				std::span<std::uint8_t> bytes { eightbyte_array };
-				std::memcpy(bytes.data(), &integer, bytes.size_bytes());
+				::memcpy(bytes.data(), &integer, bytes.size_bytes());
 
 				#endif
 
@@ -962,7 +932,7 @@ namespace CommonToolkit
 
 			if constexpr (whether_not_need_byteswap)
 			{
-				std::memcpy(output, input.data(), input.size());
+				::memcpy(output, input.data(), input.size());
 			}
 			else
 			{
@@ -971,7 +941,7 @@ namespace CommonToolkit
 				for (auto iterator = begin; iterator != end; iterator += sizeof(IntegerType))
 				{
 					IntegerType value;
-					std::memcpy(&value, iterator, sizeof(IntegerType));
+					::memcpy(&value, iterator, sizeof(IntegerType));
 
 					#if __cpp_lib_byteswap
 
@@ -1007,7 +977,7 @@ namespace CommonToolkit
 			{
 				std::vector<IntegerType> output_vector(input_size / sizeof(IntegerType), 0);
 
-				std::memcpy(output_vector.data(), input_pointer, input_size);
+				::memcpy(output_vector.data(), input_pointer, input_size);
 
 				constexpr bool whether_need_byteswap = (std::endian::native == std::endian::big);
 
@@ -1090,7 +1060,7 @@ namespace CommonToolkit
 
 			if constexpr (whether_not_need_byteswap)
 			{
-				std::memcpy(output, input.data(), input.size() * sizeof(IntegerType));
+				::memcpy(output, input.data(), input.size() * sizeof(IntegerType));
 			}
 			else
 			{
@@ -1107,7 +1077,7 @@ namespace CommonToolkit
 
 					#endif
 
-					std::memcpy(output, &value, sizeof(IntegerType));
+					::memcpy(output, &value, sizeof(IntegerType));
 					output += sizeof(IntegerType);
 				}
 			}
@@ -1153,7 +1123,7 @@ namespace CommonToolkit
 
 					std::vector<ByteType> output_vector(input_size * sizeof(IntegerType), 0);
 
-					std::memcpy(output_vector.data(), temporary_vector.data(), output_vector.size());
+					::memcpy(output_vector.data(), temporary_vector.data(), output_vector.size());
 
 					return output_vector;
 				}
@@ -1161,7 +1131,7 @@ namespace CommonToolkit
 				{
 					std::vector<ByteType> output_vector(input_size * sizeof(IntegerType), 0);
 
-					std::memcpy(output_vector.data(), input_pointer, output_vector.size());
+					::memcpy(output_vector.data(), input_pointer, output_vector.size());
 
 					return output_vector;
 				}
@@ -1185,7 +1155,7 @@ namespace CommonToolkit
 		auto value_to_bytes(const IntegerType& value)
 		{
 			auto bytes = std::array<ByteType, sizeof(IntegerType)>{};
-			std::memcpy(bytes.data(), &value, sizeof(IntegerType));
+			::memcpy(bytes.data(), &value, sizeof(IntegerType));
 			return bytes_order_fixup<ByteType, sizeof(IntegerType)>(bytes);
 		}
 
@@ -1196,7 +1166,7 @@ namespace CommonToolkit
 			my_cpp2020_assert(bytes.size() == sizeof(IntegerType), "", std::source_location::current());
 			auto buffer_bytes = bytes_order_fixup<ByteType, sizeof(IntegerType)>(bytes);
 			auto value = IntegerType{};
-			std::memcpy(&value, buffer_bytes.data(), sizeof(IntegerType));
+			::memcpy(&value, buffer_bytes.data(), sizeof(IntegerType));
 			return value;
 		}
 
@@ -1250,7 +1220,7 @@ namespace CommonToolkit
 			{
 				std::size_t iteratorMoveOffset = 0;
 				std::size_t dataBlockDistanceDiffercnce = static_cast<std::size_t>( std::ranges::distance( begin, end ) );
-				iteratorMoveOffset = std::min( static_cast<std::size_t>(4), dataBlockDistanceDiffercnce );
+				iteratorMoveOffset = ::std::min<std::size_t>( static_cast<std::size_t>(4), dataBlockDistanceDiffercnce );
 
 				temporaryBytes.insert(temporaryBytes.begin(), begin, begin + iteratorMoveOffset);
 				int32_t value = ByteArrayToInteger32Bit(temporaryBytes);
@@ -1272,7 +1242,7 @@ namespace CommonToolkit
 			{
 				std::size_t iteratorMoveOffset = 0;
 				std::size_t dataBlockDistanceDiffercnce = static_cast<std::size_t>( std::ranges::distance( begin, end ) );
-				iteratorMoveOffset = std::min( static_cast<std::size_t>(8), dataBlockDistanceDiffercnce );
+				iteratorMoveOffset = ::std::min<std::size_t>( static_cast<std::size_t>(8), dataBlockDistanceDiffercnce );
 
 				temporaryBytes.insert(temporaryBytes.begin(), begin, begin + iteratorMoveOffset);
 				int64_t value = ByteArrayToInteger64Bit(temporaryBytes);

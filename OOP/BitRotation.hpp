@@ -82,3 +82,5 @@ namespace std
 #if defined(CPP11)
 #undef CPP11
 #endif
+
+#endif

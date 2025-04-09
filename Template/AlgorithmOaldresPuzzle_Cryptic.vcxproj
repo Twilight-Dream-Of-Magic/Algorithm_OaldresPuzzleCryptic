@@ -683,6 +683,7 @@
     <ClInclude Include="extra\eigen\unsupported\Eigen\src\Splines\SplineFwd.h" />
     <ClInclude Include="include\CommonSecurity\CommonSecurity.hpp" />
     <ClInclude Include="include\CommonSecurity\KeyDerivationFunction\AlgorithmScrypt.hpp" />
+    <ClInclude Include="include\CommonSecurity\OPC_PRNGs.hpp" />
     <ClInclude Include="include\CommonSecurity\SecureHashProvider\AlgorithmBlake2.hpp" />
     <ClInclude Include="include\CommonSecurity\SecureHashProvider\AlgorithmBlake3.hpp" />
     <ClInclude Include="include\CommonSecurity\SecureHashProvider\AlgorithmChinaShangYongMiMa3.hpp" />
