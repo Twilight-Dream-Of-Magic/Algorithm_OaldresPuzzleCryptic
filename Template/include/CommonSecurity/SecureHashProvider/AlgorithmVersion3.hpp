@@ -30,7 +30,6 @@ namespace CommonSecurity::SHA
 	namespace Version3
 	{
 		using namespace CommonSecurity::HashProviderBaseTools;
-
 		/*
 			state_constant[16] = {random_bit()...} // random number or random bit mask
 
@@ -258,7 +257,7 @@ namespace CommonSecurity::SHA
 
 				this->hash_transform<24>( _BufferMessageMemory.data(), 1, _HashStateArrayData.data(), _rate );
 
-				//std::memcpy( hash_value_vector.data(), _HashStateArrayData.data(), _hash_size / 8 );
+				//::memcpy( hash_value_vector.data(), _HashStateArrayData.data(), _hash_size / 8 );
 
 				if constexpr(CURRENT_SYSTEM_BITS == 32)
 					CommonToolkit::BitConverters::le32_copy(_HashStateArrayData.data(), 0, hash_value_vector.data(), 0, _hash_size / 8);

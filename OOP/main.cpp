@@ -1,6 +1,6 @@
 #include "SupportBaseFunctions.hpp" //C++ STL Wrapper and Custom Utils
 
-//#define IS_LIBRARY_TEST
+#define IS_LIBRARY_TEST
 //#define IS_BINARY_TEST_LITTLEOPC
 //#define IS_BINARY_TEST_OPC
 

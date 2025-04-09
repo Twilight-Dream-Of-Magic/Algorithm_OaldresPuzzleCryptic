@@ -63,49 +63,51 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				static constexpr std::uint32_t num_state_words = 2;
 				using state_type = std::array<std::uint64_t, num_state_words>;
 
+				using result_type =  UniformRandomBitGenerator<std::uint64_t>::result_type;
+
 				// cannot initialize with an all-zero state
 				constexpr xorshiro128() noexcept
-					: state{ 12, 34 }
+					: state { 12, 34 }
 				{
 				}
 
 				// using SplitMix64 generator to initialize the state;
 				// using a different generator helps prevent seed correlation
-				explicit constexpr xorshiro128(result_type seed) noexcept
+				explicit constexpr xorshiro128( result_type seed ) noexcept
 				{
-					auto splitmix64 = [seed_value = seed]() mutable {
-						auto z = (seed_value += 0x9e3779b97f4a7c15);
-						z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-						z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-						return z ^ (z >> 31);
+					auto splitmix64 = [ seed_value = seed ]() mutable {
+						auto z = ( seed_value += 0x9e3779b97f4a7c15 );
+						z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
+						z = ( z ^ ( z >> 27 ) ) * 0x94d049bb133111eb;
+						return z ^ ( z >> 31 );
 					};
-					std::ranges::generate(state, splitmix64);
+					std::ranges::generate( state, splitmix64 );
 				}
 
-				explicit xorshiro128(std::initializer_list<result_type> initializer_list_args)
+				explicit xorshiro128( std::initializer_list<result_type> initializer_list_args )
 				{
 					*this = xorshiro128(initializer_list_args.begin(), initializer_list_args.end());
 				}
 
 				template <std::input_or_output_iterator SeedDataIteratorType>
-					requires
-				(
+				requires
+				( 
 					not std::convertible_to<SeedDataIteratorType, result_type>
-					)
-					explicit xorshiro128(SeedDataIteratorType&& begin, SeedDataIteratorType&& end)
+				)
+				explicit xorshiro128( SeedDataIteratorType&& begin, SeedDataIteratorType&& end )
 				{
-					std::vector<result_type> seed_vector{ begin, end };
-					this->generate_number_state_seeds(seed_vector);
+					std::vector<result_type> seed_vector { begin, end };
+					this->generate_number_state_seeds( seed_vector );
 					seed_vector.clear();
 					seed_vector.shrink_to_fit();
 				}
 
-				explicit xorshiro128(std::span<const result_type> seed_span)
+				explicit xorshiro128( std::span<const result_type> seed_span )
 				{
-					this->generate_number_state_seeds(seed_span);
+					this->generate_number_state_seeds( seed_span );
 				}
 
-				explicit xorshiro128(std::seed_seq& s_q)
+				explicit xorshiro128( std::seed_seq& s_q )
 				{
 					this->generate_number_state_seeds(s_q);
 				}
@@ -114,15 +116,15 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				{
 					*this = xorshiro128();
 				}
-				constexpr void seed(result_type s) noexcept
+				constexpr void seed( result_type s ) noexcept
 				{
-					*this = xorshiro128(s);
+					*this = xorshiro128( s );
 				}
 				template <typename SeedSeq>
-					requires(not std::convertible_to<SeedSeq, result_type>)
-				constexpr void seed(SeedSeq& q)
+				requires( not std::convertible_to<SeedSeq, result_type> )
+				constexpr void seed( SeedSeq& q )
 				{
-					*this = xorshiro128(q);
+					*this = xorshiro128( q );
 				}
 
 				constexpr result_type operator()() noexcept
@@ -137,7 +139,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						state[0] = rotl(a, 24) ^ b ^ (b << 16); // a, b
 						state[1] = rotl(b, 37); // c
 					*/
-
+			
 					// xorshiro128++:
 					/*
 						const auto a = state[0];
@@ -161,99 +163,99 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					return result;
 				}
 
-				constexpr void discard(std::uint64_t round) noexcept
+				constexpr void discard( std::uint64_t round ) noexcept
 				{
-					if (round == 0)
+					if(round == 0)
 						return;
 
-					while (round--)
+					while ( round-- )
 						operator()();
 				}
 
 				/*
-					This is the jump function for the generator.
+					This is the jump function for the generator. 
 					It is equivalent to 2^64 calls to operator()();
 					It can be used to generate 2^64 non-overlapping subsequences for parallel computations.
 				*/
 				constexpr void jump() noexcept
 				{
 					constexpr std::uint64_t jump_table[] = {
-							0xdf900294d8f554a5, 0x170865df4b3201fc
+						0xdf900294d8f554a5, 0x170865df4b3201fc
 					};
 
-					state_type temporary_state{};
-					for (std::uint32_t jump_table_index = 0; jump_table_index < std::ssize(jump_table); jump_table_index++)
+					state_type temporary_state {};
+					for ( std::uint32_t jump_table_index = 0; jump_table_index < std::ssize( jump_table ); jump_table_index++ )
 					{
-						for (std::uint32_t b = 0; b < 64; b++)
+						for ( std::uint32_t b = 0; b < 64; b++ )
 						{
-							if (jump_table[jump_table_index] & (static_cast<std::uint64_t>(1) << b))
+							if ( jump_table[ jump_table_index ] & ( static_cast<std::uint64_t>( 1 ) << b ) )
 							{
-								temporary_state[0] ^= state[0];
-								temporary_state[1] ^= state[1];
+								temporary_state[ 0 ] ^= state[ 0 ];
+								temporary_state[ 1 ] ^= state[ 1 ];
 							}
 							operator()();
 						}
 					}
 
-					temporary_state[0] = state[0];
-					temporary_state[1] = state[1];
+					temporary_state[ 0 ] = state[ 0 ];
+					temporary_state[ 1 ] = state[ 1 ];
 				}
 
 				/*
 					This is the long-jump function for the generator.
 					It is equivalent to 2^96 calls to operator()();
 					It can be used to generate 2^32 starting points,
-					From each of which jump() will generate 2^32 non-overlapping subsequences for parallel distributed computations.
+					From each of which jump() will generate 2^32 non-overlapping subsequences for parallel distributed computations. 
 				*/
 				constexpr void long_jump() noexcept
 				{
 					constexpr std::uint64_t long_jump_table[] = {
-							0xd2a98b26625eee7b, 0xdddf9b1090aa7ac1
+						0xd2a98b26625eee7b, 0xdddf9b1090aa7ac1
 					};
 
-					state_type temporary_state{};
-					for (std::uint32_t long_jump_table_index = 0; long_jump_table_index < std::ssize(long_jump_table); long_jump_table_index++)
+					state_type temporary_state {};
+					for ( std::uint32_t long_jump_table_index = 0; long_jump_table_index < std::ssize( long_jump_table ); long_jump_table_index++ )
 					{
-						for (std::uint32_t b = 0; b < 64; b++)
+						for ( std::uint32_t b = 0; b < 64; b++ )
 						{
-							if (long_jump_table[long_jump_table_index] & (static_cast<std::uint64_t>(1) << b))
+							if ( long_jump_table[ long_jump_table_index ] & ( static_cast<std::uint64_t>( 1 ) << b ) )
 							{
-								temporary_state[0] ^= state[0];
-								temporary_state[1] ^= state[1];
+								temporary_state[ 0 ] ^= state[ 0 ];
+								temporary_state[ 1 ] ^= state[ 1 ];
 
 							}
 							operator()();
 						}
 					}
 
-					temporary_state[0] = state[0];
-					temporary_state[1] = state[1];
+					temporary_state[ 0 ] = state[ 0 ];
+					temporary_state[ 1 ] = state[ 1 ];
 
 				}
 
-				constexpr bool operator==(const xorshiro128&) const noexcept = default;
+				constexpr bool operator==( const xorshiro128& ) const noexcept = default;
 
 				template <typename CharT, typename Traits>
-				friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const xorshiro128& e)
+				friend std::basic_ostream<CharT, Traits>& operator<<( std::basic_ostream<CharT, Traits>& os, const xorshiro128& e )
 				{
-					os << e.state[0];
-					for (int i = 1; i < num_state_words; ++i)
+					os << e.state[ 0 ];
+					for ( int i = 1; i < num_state_words; ++i )
 					{
-						os.put(os.widen(' '));
-						os << e.state[i];
+						os.put( os.widen( ' ' ) );
+						os << e.state[ i ];
 					}
 					return os;
 				}
 
 				template <typename CharT, typename Traits>
-				friend std::basic_istream<CharT, Traits&> operator>>(std::basic_istream<CharT, Traits>& is, xorshiro128& e)
+				friend std::basic_istream<CharT, Traits&> operator>>( std::basic_istream<CharT, Traits>& is, xorshiro128& e )
 				{
 					xorshiro128 r;
 					// TODO: what if ' ' is not considered whitespace?
 					// Maybe more appropriate is to `.get` each space
-					for (auto& s : r.state)
+					for ( auto& s : r.state )
 						is >> s;
-					if (is)
+					if ( is )
 						e = r;
 					return is;
 				}
@@ -263,44 +265,44 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				void generate_number_state_seeds(std::seed_seq& s_q)
 				{
-					std::uint32_t this_temparory_state[num_state_words * 2];
-					s_q.generate(std::begin(this_temparory_state), std::end(this_temparory_state));
-					for (std::uint32_t index = 0; index < num_state_words; ++index)
+					std::uint32_t this_temparory_state[ num_state_words * 2 ];
+					s_q.generate( std::begin( this_temparory_state ), std::end( this_temparory_state ) );
+					for ( std::uint32_t index = 0; index < num_state_words; ++index )
 					{
-						state[index] = this_temparory_state[index * 2];
-						state[index] <<= 32;
-						state[index] |= this_temparory_state[index * 2 + 1];
+						state[ index ] = this_temparory_state[ index * 2 ];
+						state[ index ] <<= 32;
+						state[ index ] |= this_temparory_state[ index * 2 + 1 ];
 					}
 				}
 
 				void generate_number_state_seeds(std::span<const result_type> seed_span)
 				{
-					std::uint32_t this_temparory_state[num_state_words * 2];
+					std::uint32_t this_temparory_state[ num_state_words * 2 ];
 
 					auto seed_span_begin = seed_span.begin();
 					auto seed_span_end = seed_span.end();
 					result_type seed = 0;
 					auto splitmix64 = [&seed_span_begin, &seed_span_end, &seed]() mutable {
+					
+						auto z = (seed += 0x9e3779b97f4a7c15 );
+						z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
+						z = ( z ^ ( z >> 27 ) ) * 0x94d049bb133111eb;
 
-						auto z = (seed += 0x9e3779b97f4a7c15);
-						z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-						z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-
-						if (seed_span_begin != seed_span_end)
+						if(seed_span_begin != seed_span_end)
 						{
 							++seed_span_begin;
 						}
 
-						return z ^ (z >> 31);
+						return z ^ ( z >> 31 );
 					};
-					std::ranges::generate(this_temparory_state, splitmix64);
+					std::ranges::generate( this_temparory_state, splitmix64 );
 					seed = 0;
 
-					for (std::uint32_t index = 0; index < num_state_words; ++index)
+					for ( std::uint32_t index = 0; index < num_state_words; ++index )
 					{
-						state[index] = this_temparory_state[index * 2];
-						state[index] <<= 32;
-						state[index] |= this_temparory_state[index * 2 + 1];
+						state[ index ] = this_temparory_state[ index * 2 ];
+						state[ index ] <<= 32;
+						state[ index ] |= this_temparory_state[ index * 2 + 1 ];
 					}
 				}
 			};
@@ -310,49 +312,57 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				static constexpr std::uint32_t num_state_words = 4;
 				using state_type = std::array<std::uint64_t, num_state_words>;
 
+				using result_type =  UniformRandomBitGenerator<std::uint64_t>::result_type;
+
 				// cannot initialize with an all-zero state
 				constexpr xorshiro256() noexcept
-					: state{ 12, 34 }
+					: state { 12, 34 }
 				{
+				}
+
+				explicit xorshiro256(std::random_device& random_device_object)
+				{
+					std::seed_seq seed_sequence{ random_device_object(), random_device_object(), random_device_object(), random_device_object() };
+					this->generate_number_state_seeds(seed_sequence);
 				}
 
 				// using SplitMix64 generator to initialize the state;
 				// using a different generator helps prevent seed correlation
-				explicit constexpr xorshiro256(result_type seed) noexcept
+				explicit constexpr xorshiro256( result_type seed ) noexcept
 				{
-					auto splitmix64 = [seed_value = seed]() mutable {
-						auto z = (seed_value += 0x9e3779b97f4a7c15);
-						z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-						z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-						return z ^ (z >> 31);
+					auto splitmix64 = [ seed_value = seed ]() mutable {
+						auto z = ( seed_value += 0x9e3779b97f4a7c15 );
+						z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
+						z = ( z ^ ( z >> 27 ) ) * 0x94d049bb133111eb;
+						return z ^ ( z >> 31 );
 					};
-					std::ranges::generate(state, splitmix64);
+					std::ranges::generate( state, splitmix64 );
 				}
 
-				explicit xorshiro256(std::initializer_list<result_type> initializer_list_args)
+				explicit xorshiro256( std::initializer_list<result_type> initializer_list_args )
 				{
 					*this = xorshiro256(initializer_list_args.begin(), initializer_list_args.end());
 				}
 
 				template <std::input_or_output_iterator SeedDataIteratorType>
-					requires
-				(
+				requires
+				( 
 					not std::convertible_to<SeedDataIteratorType, result_type>
-					)
-					explicit xorshiro256(SeedDataIteratorType&& begin, SeedDataIteratorType&& end)
+				)
+				explicit xorshiro256( SeedDataIteratorType&& begin, SeedDataIteratorType&& end )
 				{
-					std::vector<result_type> seed_vector{ begin, end };
-					this->generate_number_state_seeds(seed_vector);
+					std::vector<result_type> seed_vector { begin, end };
+					this->generate_number_state_seeds( seed_vector );
 					seed_vector.clear();
 					seed_vector.shrink_to_fit();
 				}
 
-				explicit xorshiro256(std::span<const result_type> seed_span)
+				explicit xorshiro256( std::span<const result_type> seed_span )
 				{
-					this->generate_number_state_seeds(seed_span);
+					this->generate_number_state_seeds( seed_span );
 				}
 
-				explicit xorshiro256(std::seed_seq& s_q)
+				explicit xorshiro256( std::seed_seq& s_q )
 				{
 					this->generate_number_state_seeds(s_q);
 				}
@@ -361,15 +371,15 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				{
 					*this = xorshiro256();
 				}
-				constexpr void seed(result_type s) noexcept
+				constexpr void seed( result_type s ) noexcept
 				{
-					*this = xorshiro256(s);
+					*this = xorshiro256( s );
 				}
 				template <typename SeedSeq>
-					requires(not std::convertible_to<SeedSeq, result_type>)
-				constexpr void seed(SeedSeq& q)
+				requires( not std::convertible_to<SeedSeq, result_type> )
+				constexpr void seed( SeedSeq& q )
 				{
-					*this = xorshiro256(q);
+					*this = xorshiro256( q );
 				}
 
 				constexpr result_type operator()() noexcept
@@ -380,26 +390,26 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					// const auto result = std::rotl(state[0] + state[3], 23) + state[0];
 
 					// xorshiro256**:
-					const auto result = std::rotl(state[1] * 5, 7) * 9;
-					const auto t = state[1] << 17;
+					const auto result = std::rotl( state[ 1 ] * 5, 7 ) * 9;
+					const auto t = state[ 1 ] << 17;
 
-					state[2] ^= state[0];
-					state[3] ^= state[1];
-					state[1] ^= state[2];
-					state[0] ^= state[3];
+					state[ 2 ] ^= state[ 0 ];
+					state[ 3 ] ^= state[ 1 ];
+					state[ 1 ] ^= state[ 2 ];
+					state[ 0 ] ^= state[ 3 ];
 
-					state[2] ^= t;
-					state[3] = std::rotl(state[3], 45);
+					state[ 2 ] ^= t;
+					state[ 3 ] = std::rotl( state[ 3 ], 45 );
 
 					return result;
 				}
 
-				constexpr void discard(std::uint64_t round) noexcept
+				constexpr void discard( std::uint64_t round ) noexcept
 				{
-					if (round == 0)
+					if(round == 0)
 						return;
 
-					while (round--)
+					while ( round-- )
 						operator()();
 				}
 
@@ -411,32 +421,32 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				constexpr void jump() noexcept
 				{
 					constexpr std::uint64_t jump_table[] = {
-							0x180ec6d33cfd0aba,
-							0xd5a61266f0c9392c,
-							0xa9582618e03fc9aa,
-							0x39abdc4529b1661c,
+						0x180ec6d33cfd0aba,
+						0xd5a61266f0c9392c,
+						0xa9582618e03fc9aa,
+						0x39abdc4529b1661c,
 					};
 
-					state_type temporary_state{};
-					for (std::uint32_t jump_table_index = 0; jump_table_index < std::ssize(jump_table); jump_table_index++)
+					state_type temporary_state {};
+					for ( std::uint32_t jump_table_index = 0; jump_table_index < std::ssize( jump_table ); jump_table_index++ )
 					{
-						for (std::uint32_t b = 0; b < 64; b++)
+						for ( std::uint32_t b = 0; b < 64; b++ )
 						{
-							if (jump_table[jump_table_index] & (static_cast<std::uint64_t>(1) << b))
+							if ( jump_table[ jump_table_index ] & ( static_cast<std::uint64_t>( 1 ) << b ) )
 							{
-								temporary_state[0] ^= state[0];
-								temporary_state[1] ^= state[1];
-								temporary_state[2] ^= state[2];
-								temporary_state[3] ^= state[3];
+								temporary_state[ 0 ] ^= state[ 0 ];
+								temporary_state[ 1 ] ^= state[ 1 ];
+								temporary_state[ 2 ] ^= state[ 2 ];
+								temporary_state[ 3 ] ^= state[ 3 ];
 							}
 							operator()();
 						}
 					}
 
-					state[0] = temporary_state[0];
-					state[1] = temporary_state[1];
-					state[2] = temporary_state[2];
-					state[3] = temporary_state[3];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
 				}
 
 				/*
@@ -448,57 +458,57 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				constexpr void long_jump() noexcept
 				{
 					constexpr std::uint64_t long_jump_table[] = {
-							0x76e15d3efefdcbbf,
-							0xc5004e441c522fb3,
-							0x77710069854ee241,
-							0x39109bb02acbe635,
+						0x76e15d3efefdcbbf,
+						0xc5004e441c522fb3,
+						0x77710069854ee241,
+						0x39109bb02acbe635,
 					};
 
-					state_type temporary_state{};
-					for (std::uint32_t long_jump_table_index = 0; long_jump_table_index < std::ssize(long_jump_table); long_jump_table_index++)
+					state_type temporary_state {};
+					for ( std::uint32_t long_jump_table_index = 0; long_jump_table_index < std::ssize( long_jump_table ); long_jump_table_index++ )
 					{
-						for (std::uint32_t b = 0; b < 64; b++)
+						for ( std::uint32_t b = 0; b < 64; b++ )
 						{
-							if (long_jump_table[long_jump_table_index] & (static_cast<std::uint64_t>(1) << b))
+							if ( long_jump_table[ long_jump_table_index ] & ( static_cast<std::uint64_t>( 1 ) << b ) )
 							{
-								temporary_state[0] ^= state[0];
-								temporary_state[1] ^= state[1];
-								temporary_state[2] ^= state[2];
-								temporary_state[3] ^= state[3];
+								temporary_state[ 0 ] ^= state[ 0 ];
+								temporary_state[ 1 ] ^= state[ 1 ];
+								temporary_state[ 2 ] ^= state[ 2 ];
+								temporary_state[ 3 ] ^= state[ 3 ];
 							}
 							operator()();
 						}
 					}
 
-					state[0] = temporary_state[0];
-					state[1] = temporary_state[1];
-					state[2] = temporary_state[2];
-					state[3] = temporary_state[3];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
 				}
 
-				constexpr bool operator==(const xorshiro256&) const noexcept = default;
+				constexpr bool operator==( const xorshiro256& ) const noexcept = default;
 
 				template <typename CharT, typename Traits>
-				friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const xorshiro256& e)
+				friend std::basic_ostream<CharT, Traits>& operator<<( std::basic_ostream<CharT, Traits>& os, const xorshiro256& e )
 				{
-					os << e.state[0];
-					for (int i = 1; i < num_state_words; ++i)
+					os << e.state[ 0 ];
+					for ( int i = 1; i < num_state_words; ++i )
 					{
-						os.put(os.widen(' '));
-						os << e.state[i];
+						os.put( os.widen( ' ' ) );
+						os << e.state[ i ];
 					}
 					return os;
 				}
 
 				template <typename CharT, typename Traits>
-				friend std::basic_istream<CharT, Traits&> operator>>(std::basic_istream<CharT, Traits>& is, xorshiro256& e)
+				friend std::basic_istream<CharT, Traits&> operator>>( std::basic_istream<CharT, Traits>& is, xorshiro256& e )
 				{
 					xorshiro256 r;
 					// TODO: what if ' ' is not considered whitespace?
 					// Maybe more appropriate is to `.get` each space
-					for (auto& s : r.state)
+					for ( auto& s : r.state )
 						is >> s;
-					if (is)
+					if ( is )
 						e = r;
 					return is;
 				}
@@ -508,44 +518,44 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				void generate_number_state_seeds(std::seed_seq& s_q)
 				{
-					std::uint32_t this_temparory_state[num_state_words * 2];
-					s_q.generate(std::begin(this_temparory_state), std::end(this_temparory_state));
-					for (std::uint32_t index = 0; index < num_state_words; ++index)
+					std::uint32_t this_temparory_state[ num_state_words * 2 ];
+					s_q.generate( std::begin( this_temparory_state ), std::end( this_temparory_state ) );
+					for ( std::uint32_t index = 0; index < num_state_words; ++index )
 					{
-						state[index] = this_temparory_state[index * 2];
-						state[index] <<= 32;
-						state[index] |= this_temparory_state[index * 2 + 1];
+						state[ index ] = this_temparory_state[ index * 2 ];
+						state[ index ] <<= 32;
+						state[ index ] |= this_temparory_state[ index * 2 + 1 ];
 					}
 				}
 
 				void generate_number_state_seeds(std::span<const result_type> seed_span)
 				{
-					std::uint32_t this_temparory_state[num_state_words * 2];
+					std::uint32_t this_temparory_state[ num_state_words * 2 ];
 
 					auto seed_span_begin = seed_span.begin();
 					auto seed_span_end = seed_span.end();
 					result_type seed = 0;
 					auto splitmix64 = [&seed_span_begin, &seed_span_end, &seed]() mutable {
+					
+						auto z = (seed += 0x9e3779b97f4a7c15 );
+						z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
+						z = ( z ^ ( z >> 27 ) ) * 0x94d049bb133111eb;
 
-						auto z = (seed += 0x9e3779b97f4a7c15);
-						z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-						z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-
-						if (seed_span_begin != seed_span_end)
+						if(seed_span_begin != seed_span_end)
 						{
 							++seed_span_begin;
 						}
 
-						return z ^ (z >> 31);
+						return z ^ ( z >> 31 );
 					};
-					std::ranges::generate(this_temparory_state, splitmix64);
+					std::ranges::generate( this_temparory_state, splitmix64 );
 					seed = 0;
 
-					for (std::uint32_t index = 0; index < num_state_words; ++index)
+					for ( std::uint32_t index = 0; index < num_state_words; ++index )
 					{
-						state[index] = this_temparory_state[index * 2];
-						state[index] <<= 32;
-						state[index] |= this_temparory_state[index * 2 + 1];
+						state[ index ] = this_temparory_state[ index * 2 ];
+						state[ index ] <<= 32;
+						state[ index ] |= this_temparory_state[ index * 2 + 1 ];
 					}
 				}
 			};
@@ -555,51 +565,53 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				static constexpr std::uint32_t num_state_words = 8;
 				using state_type = std::array<std::uint64_t, num_state_words>;
 
+				using result_type =  UniformRandomBitGenerator<std::uint64_t>::result_type;
+
 				std::size_t state_position = 0;
 
 				// cannot initialize with an all-zero state
 				constexpr xorshiro512() noexcept
-					: state{ 12, 34 }
+					: state { 12, 34 }
 				{
 				}
 
 				// using SplitMix64 generator to initialize the state;
 				// using a different generator helps prevent seed correlation
-				explicit constexpr xorshiro512(result_type seed) noexcept
+				explicit constexpr xorshiro512( result_type seed ) noexcept
 				{
-					auto splitmix64 = [seed_value = seed]() mutable {
-						auto z = (seed_value += 0x9e3779b97f4a7c15);
-						z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-						z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-						return z ^ (z >> 31);
+					auto splitmix64 = [ seed_value = seed ]() mutable {
+						auto z = ( seed_value += 0x9e3779b97f4a7c15 );
+						z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
+						z = ( z ^ ( z >> 27 ) ) * 0x94d049bb133111eb;
+						return z ^ ( z >> 31 );
 					};
-					std::ranges::generate(state, splitmix64);
+					std::ranges::generate( state, splitmix64 );
 				}
 
-				explicit xorshiro512(std::initializer_list<result_type> initializer_list_args)
+				explicit xorshiro512( std::initializer_list<result_type> initializer_list_args )
 				{
 					*this = xorshiro512(initializer_list_args.begin(), initializer_list_args.end());
 				}
 
 				template <std::input_or_output_iterator SeedDataIteratorType>
-					requires
-				(
+				requires
+				( 
 					not std::convertible_to<SeedDataIteratorType, result_type>
-					)
-					explicit xorshiro512(SeedDataIteratorType&& begin, SeedDataIteratorType&& end)
+				)
+				explicit xorshiro512( SeedDataIteratorType&& begin, SeedDataIteratorType&& end )
 				{
-					std::vector<result_type> seed_vector{ begin, end };
-					this->generate_number_state_seeds(seed_vector);
+					std::vector<result_type> seed_vector { begin, end };
+					this->generate_number_state_seeds( seed_vector );
 					seed_vector.clear();
 					seed_vector.shrink_to_fit();
 				}
 
-				explicit xorshiro512(std::span<const result_type> seed_span)
+				explicit xorshiro512( std::span<const result_type> seed_span )
 				{
-					this->generate_number_state_seeds(seed_span);
+					this->generate_number_state_seeds( seed_span );
 				}
 
-				explicit xorshiro512(std::seed_seq& s_q)
+				explicit xorshiro512( std::seed_seq& s_q )
 				{
 					this->generate_number_state_seeds(s_q);
 				}
@@ -608,22 +620,22 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				{
 					*this = xorshiro512();
 				}
-				constexpr void seed(result_type s) noexcept
+				constexpr void seed( result_type s ) noexcept
 				{
-					*this = xorshiro512(s);
+					*this = xorshiro512( s );
 				}
 				template <typename SeedSeq>
-					requires(not std::convertible_to<SeedSeq, result_type>)
-				constexpr void seed(SeedSeq& q)
+				requires( not std::convertible_to<SeedSeq, result_type> )
+				constexpr void seed( SeedSeq& q )
 				{
-					*this = xorshiro512(q);
+					*this = xorshiro512( q );
 				}
 
 				constexpr result_type operator()() noexcept
 				{
 					const std::size_t this_state_position = this->state_position;
 					this->state_position = (this->state_position + 1) & 15;
-
+				
 					// xorshiro512+:
 					// const auto result = s[0] + s[2];
 					// xorshiro512++:
@@ -650,12 +662,12 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					return result;
 				}
 
-				constexpr void discard(std::uint64_t round) noexcept
+				constexpr void discard( std::uint64_t round ) noexcept
 				{
-					if (round == 0)
+					if(round == 0)
 						return;
 
-					while (round--)
+					while ( round-- )
 						operator()();
 				}
 
@@ -667,40 +679,40 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				constexpr void jump() noexcept
 				{
 					constexpr std::uint64_t jump_table[] = {
-							0x33ed89b6e7a353f9, 0x760083d7955323be,
-							0x2837f2fbb5f22fae, 0x4b8c5674d309511c,
-							0xb11ac47a7ba28c25, 0xf1be7667092bcc1c,
-							0x53851efdb6df0aaf, 0x1ebbc8b23eaf25db
+						0x33ed89b6e7a353f9, 0x760083d7955323be,
+						0x2837f2fbb5f22fae, 0x4b8c5674d309511c,
+						0xb11ac47a7ba28c25, 0xf1be7667092bcc1c,
+						0x53851efdb6df0aaf, 0x1ebbc8b23eaf25db
 					};
 
-					state_type temporary_state{};
-					for (std::uint32_t jump_table_index = 0; jump_table_index < std::ssize(jump_table); jump_table_index++)
+					state_type temporary_state {};
+					for ( std::uint32_t jump_table_index = 0; jump_table_index < std::ssize( jump_table ); jump_table_index++ )
 					{
-						for (std::uint32_t b = 0; b < 64; b++)
+						for ( std::uint32_t b = 0; b < 64; b++ )
 						{
-							if (jump_table[jump_table_index] & (static_cast<std::uint64_t>(1) << b))
+							if ( jump_table[ jump_table_index ] & ( static_cast<std::uint64_t>( 1 ) << b ) )
 							{
-								temporary_state[0] ^= state[0];
-								temporary_state[1] ^= state[1];
-								temporary_state[2] ^= state[2];
-								temporary_state[3] ^= state[3];
-								temporary_state[4] ^= state[4];
-								temporary_state[5] ^= state[5];
-								temporary_state[6] ^= state[6];
-								temporary_state[7] ^= state[7];
+								temporary_state[ 0 ] ^= state[ 0 ];
+								temporary_state[ 1 ] ^= state[ 1 ];
+								temporary_state[ 2 ] ^= state[ 2 ];
+								temporary_state[ 3 ] ^= state[ 3 ];
+								temporary_state[ 4 ] ^= state[ 4 ];
+								temporary_state[ 5 ] ^= state[ 5 ];
+								temporary_state[ 6 ] ^= state[ 6 ];
+								temporary_state[ 7 ] ^= state[ 7 ];
 							}
 							operator()();
 						}
 					}
 
-					temporary_state[0] = state[0];
-					temporary_state[1] = state[1];
-					temporary_state[2] = state[2];
-					temporary_state[3] = state[3];
-					temporary_state[4] = state[4];
-					temporary_state[5] = state[5];
-					temporary_state[6] = state[6];
-					temporary_state[7] = state[7];
+					temporary_state[ 0 ] = state[ 0 ];
+					temporary_state[ 1 ] = state[ 1 ];
+					temporary_state[ 2 ] = state[ 2 ];
+					temporary_state[ 3 ] = state[ 3 ];
+					temporary_state[ 4 ] = state[ 4 ];
+					temporary_state[ 5 ] = state[ 5 ];
+					temporary_state[ 6 ] = state[ 6 ];
+					temporary_state[ 7 ] = state[ 7 ];
 				}
 
 				/*
@@ -712,41 +724,41 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				constexpr void long_jump() noexcept
 				{
 					constexpr std::uint64_t long_jump_table[] = {
-							0x11467fef8f921d28, 0xa2a819f2e79c8ea8,
-							0xa8299fc284b3959a, 0xb4d347340ca63ee1,
-							0x1cb0940bedbff6ce, 0xd956c5c4fa1f8e17,
-							0x915e38fd4eda93bc, 0x5b3ccdfa5d7daca5
+						0x11467fef8f921d28, 0xa2a819f2e79c8ea8,
+						0xa8299fc284b3959a, 0xb4d347340ca63ee1,
+						0x1cb0940bedbff6ce, 0xd956c5c4fa1f8e17,
+						0x915e38fd4eda93bc, 0x5b3ccdfa5d7daca5
 					};
 
-					state_type temporary_state{};
-					for (std::uint32_t long_jump_table_index = 0; long_jump_table_index < std::ssize(long_jump_table); long_jump_table_index++)
+					state_type temporary_state {};
+					for ( std::uint32_t long_jump_table_index = 0; long_jump_table_index < std::ssize( long_jump_table ); long_jump_table_index++ )
 					{
-						for (std::uint32_t b = 0; b < 64; b++)
+						for ( std::uint32_t b = 0; b < 64; b++ )
 						{
-							if (long_jump_table[long_jump_table_index] & (static_cast<std::uint64_t>(1) << b))
+							if ( long_jump_table[ long_jump_table_index ] & ( static_cast<std::uint64_t>( 1 ) << b ) )
 							{
-								temporary_state[0] ^= state[0];
-								temporary_state[1] ^= state[1];
-								temporary_state[2] ^= state[2];
-								temporary_state[3] ^= state[3];
-								temporary_state[4] ^= state[4];
-								temporary_state[5] ^= state[5];
-								temporary_state[6] ^= state[6];
-								temporary_state[7] ^= state[7];
+								temporary_state[ 0 ] ^= state[ 0 ];
+								temporary_state[ 1 ] ^= state[ 1 ];
+								temporary_state[ 2 ] ^= state[ 2 ];
+								temporary_state[ 3 ] ^= state[ 3 ];
+								temporary_state[ 4 ] ^= state[ 4 ];
+								temporary_state[ 5 ] ^= state[ 5 ];
+								temporary_state[ 6 ] ^= state[ 6 ];
+								temporary_state[ 7 ] ^= state[ 7 ];
 
 							}
 							operator()();
 						}
 					}
 
-					temporary_state[0] = state[0];
-					temporary_state[1] = state[1];
-					temporary_state[2] = state[2];
-					temporary_state[3] = state[3];
-					temporary_state[4] = state[4];
-					temporary_state[5] = state[5];
-					temporary_state[6] = state[6];
-					temporary_state[7] = state[7];
+					temporary_state[ 0 ] = state[ 0 ];
+					temporary_state[ 1 ] = state[ 1 ];
+					temporary_state[ 2 ] = state[ 2 ];
+					temporary_state[ 3 ] = state[ 3 ];
+					temporary_state[ 4 ] = state[ 4 ];
+					temporary_state[ 5 ] = state[ 5 ];
+					temporary_state[ 6 ] = state[ 6 ];
+					temporary_state[ 7 ] = state[ 7 ];
 				}
 
 			private:
@@ -754,44 +766,44 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				void generate_number_state_seeds(std::seed_seq& s_q)
 				{
-					std::uint32_t this_temparory_state[num_state_words * 2];
-					s_q.generate(std::begin(this_temparory_state), std::end(this_temparory_state));
-					for (std::uint32_t index = 0; index < num_state_words; ++index)
+					std::uint32_t this_temparory_state[ num_state_words * 2 ];
+					s_q.generate( std::begin( this_temparory_state ), std::end( this_temparory_state ) );
+					for ( std::uint32_t index = 0; index < num_state_words; ++index )
 					{
-						state[index] = this_temparory_state[index * 2];
-						state[index] <<= 32;
-						state[index] |= this_temparory_state[index * 2 + 1];
+						state[ index ] = this_temparory_state[ index * 2 ];
+						state[ index ] <<= 32;
+						state[ index ] |= this_temparory_state[ index * 2 + 1 ];
 					}
 				}
 
 				void generate_number_state_seeds(std::span<const result_type> seed_span)
 				{
-					std::uint32_t this_temparory_state[num_state_words * 2];
+					std::uint32_t this_temparory_state[ num_state_words * 2 ];
 
 					auto seed_span_begin = seed_span.begin();
 					auto seed_span_end = seed_span.end();
 					result_type seed = 0;
 					auto splitmix64 = [&seed_span_begin, &seed_span_end, &seed]() mutable {
+					
+						auto z = (seed += 0x9e3779b97f4a7c15 );
+						z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
+						z = ( z ^ ( z >> 27 ) ) * 0x94d049bb133111eb;
 
-						auto z = (seed += 0x9e3779b97f4a7c15);
-						z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-						z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-
-						if (seed_span_begin != seed_span_end)
+						if(seed_span_begin != seed_span_end)
 						{
 							++seed_span_begin;
 						}
 
-						return z ^ (z >> 31);
+						return z ^ ( z >> 31 );
 					};
-					std::ranges::generate(this_temparory_state, splitmix64);
+					std::ranges::generate( this_temparory_state, splitmix64 );
 					seed = 0;
 
-					for (std::uint32_t index = 0; index < num_state_words; ++index)
+					for ( std::uint32_t index = 0; index < num_state_words; ++index )
 					{
-						state[index] = this_temparory_state[index * 2];
-						state[index] <<= 32;
-						state[index] |= this_temparory_state[index * 2 + 1];
+						state[ index ] = this_temparory_state[ index * 2 ];
+						state[ index ] <<= 32;
+						state[ index ] |= this_temparory_state[ index * 2 + 1 ];
 					}
 				}
 			};
@@ -801,51 +813,53 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				static constexpr std::uint32_t num_state_words = 16;
 				using state_type = std::array<std::uint64_t, num_state_words>;
 
+				using result_type =  UniformRandomBitGenerator<std::uint64_t>::result_type;
+
 				std::size_t state_position = 0;
 
 				// cannot initialize with an all-zero state
 				constexpr xorshiro1024() noexcept
-					: state{ 12, 34 }
+					: state { 12, 34 }
 				{
 				}
 
 				// using SplitMix64 generator to initialize the state;
 				// using a different generator helps prevent seed correlation
-				explicit constexpr xorshiro1024(result_type seed) noexcept
+				explicit constexpr xorshiro1024( result_type seed ) noexcept
 				{
-					auto splitmix64 = [seed_value = seed]() mutable {
-						auto z = (seed_value += 0x9e3779b97f4a7c15);
-						z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-						z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-						return z ^ (z >> 31);
+					auto splitmix64 = [ seed_value = seed ]() mutable {
+						auto z = ( seed_value += 0x9e3779b97f4a7c15 );
+						z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
+						z = ( z ^ ( z >> 27 ) ) * 0x94d049bb133111eb;
+						return z ^ ( z >> 31 );
 					};
-					std::ranges::generate(state, splitmix64);
+					std::ranges::generate( state, splitmix64 );
 				}
 
-				explicit xorshiro1024(std::initializer_list<result_type> initializer_list_args)
+				explicit xorshiro1024( std::initializer_list<result_type> initializer_list_args )
 				{
 					*this = xorshiro1024(initializer_list_args.begin(), initializer_list_args.end());
 				}
 
 				template <std::input_or_output_iterator SeedDataIteratorType>
-					requires
-				(
+				requires
+				( 
 					not std::convertible_to<SeedDataIteratorType, result_type>
-					)
-					explicit xorshiro1024(SeedDataIteratorType&& begin, SeedDataIteratorType&& end)
+				)
+				explicit xorshiro1024( SeedDataIteratorType&& begin, SeedDataIteratorType&& end )
 				{
-					std::vector<result_type> seed_vector{ begin, end };
-					this->generate_number_state_seeds(seed_vector);
+					std::vector<result_type> seed_vector { begin, end };
+					this->generate_number_state_seeds( seed_vector );
 					seed_vector.clear();
 					seed_vector.shrink_to_fit();
 				}
 
-				explicit xorshiro1024(std::span<const result_type> seed_span)
+				explicit xorshiro1024( std::span<const result_type> seed_span )
 				{
-					this->generate_number_state_seeds(seed_span);
+					this->generate_number_state_seeds( seed_span );
 				}
 
-				explicit xorshiro1024(std::seed_seq& s_q)
+				explicit xorshiro1024( std::seed_seq& s_q )
 				{
 					this->generate_number_state_seeds(s_q);
 				}
@@ -854,45 +868,45 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				{
 					*this = xorshiro1024();
 				}
-				constexpr void seed(result_type s) noexcept
+				constexpr void seed( result_type s ) noexcept
 				{
-					*this = xorshiro1024(s);
+					*this = xorshiro1024( s );
 				}
 				template <typename SeedSeq>
-					requires(not std::convertible_to<SeedSeq, result_type>)
-				constexpr void seed(SeedSeq& q)
+				requires( not std::convertible_to<SeedSeq, result_type> )
+				constexpr void seed( SeedSeq& q )
 				{
-					*this = xorshiro1024(q);
+					*this = xorshiro1024( q );
 				}
 
 				constexpr result_type operator()() noexcept
 				{
 					const std::size_t this_state_position = this->state_position;
 					this->state_position = (this->state_position + 1) & 15;
-
+				
 					// xorshiro1024++:
 					// const auto result = std::rotl(a + b, 23) + a;
 					// xorshiro1024*:
 					// const auto result = a * 0x9e3779b97f4a7c13;
 
 					// xorshiro1024**:
-					const auto a = state[this->state_position];
-					const auto result = std::rotl(a * 5, 7) * 9;
-					auto b = state[this_state_position];
+					const auto a = state[ this->state_position ];
+					const auto result = std::rotl( a * 5, 7 ) * 9;
+					auto b = state[ this_state_position ];
 
 					b ^= a;
-					state[this_state_position] = std::rotl(a, 25) ^ b ^ (b << 27);
-					state[this->state_position] = std::rotl(b, 36);
+					state[this_state_position] = std::rotl( a, 25 ) ^ b ^ (b << 27);
+					state[this->state_position] = std::rotl( b, 36 );
 
 					return result;
 				}
 
-				constexpr void discard(std::uint64_t round) noexcept
+				constexpr void discard( std::uint64_t round ) noexcept
 				{
-					if (round == 0)
+					if(round == 0)
 						return;
 
-					while (round--)
+					while ( round-- )
 						operator()();
 				}
 
@@ -904,60 +918,60 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				constexpr void jump() noexcept
 				{
 					constexpr std::uint64_t jump_table[] = {
-							0x931197d8e3177f17, 0xb59422e0b9138c5f,
-							0xf06a6afb49d668bb, 0xacb8a6412c8a1401,
-							0x12304ec85f0b3468, 0xb7dfe7079209891e,
-							0x405b7eec77d9eb14, 0x34ead68280c44e4a,
-							0xe0e4ba3e0ac9e366, 0x8f46eda8348905b7,
-							0x328bf4dbad90d6ff, 0xc8fd6fb31c9effc3,
-							0xe899d452d4b67652, 0x45f387286ade3205,
-							0x03864f454a8920bd, 0xa68fa28725b1b384
+						0x931197d8e3177f17, 0xb59422e0b9138c5f,
+						0xf06a6afb49d668bb, 0xacb8a6412c8a1401,
+						0x12304ec85f0b3468, 0xb7dfe7079209891e,
+						0x405b7eec77d9eb14, 0x34ead68280c44e4a,
+						0xe0e4ba3e0ac9e366, 0x8f46eda8348905b7,
+						0x328bf4dbad90d6ff, 0xc8fd6fb31c9effc3,
+						0xe899d452d4b67652, 0x45f387286ade3205,
+						0x03864f454a8920bd, 0xa68fa28725b1b384
 					};
 
-					state_type temporary_state{};
-					for (std::uint32_t jump_table_index = 0; jump_table_index < std::ssize(jump_table); jump_table_index++)
+					state_type temporary_state {};
+					for ( std::uint32_t jump_table_index = 0; jump_table_index < std::ssize( jump_table ); jump_table_index++ )
 					{
-						for (std::uint32_t b = 0; b < 64; b++)
+						for ( std::uint32_t b = 0; b < 64; b++ )
 						{
-							if (jump_table[jump_table_index] & (static_cast<std::uint64_t>(1) << b))
+							if ( jump_table[ jump_table_index ] & ( static_cast<std::uint64_t>( 1 ) << b ) )
 							{
-								temporary_state[0] ^= state[0];
-								temporary_state[1] ^= state[1];
-								temporary_state[2] ^= state[2];
-								temporary_state[3] ^= state[3];
-								temporary_state[4] ^= state[4];
-								temporary_state[5] ^= state[5];
-								temporary_state[6] ^= state[6];
-								temporary_state[7] ^= state[7];
-								temporary_state[8] ^= state[8];
-								temporary_state[9] ^= state[9];
-								temporary_state[10] ^= state[10];
-								temporary_state[11] ^= state[11];
-								temporary_state[12] ^= state[12];
-								temporary_state[13] ^= state[13];
-								temporary_state[14] ^= state[14];
-								temporary_state[15] ^= state[15];
+								temporary_state[ 0 ] ^= state[ 0 ];
+								temporary_state[ 1 ] ^= state[ 1 ];
+								temporary_state[ 2 ] ^= state[ 2 ];
+								temporary_state[ 3 ] ^= state[ 3 ];
+								temporary_state[ 4 ] ^= state[ 4 ];
+								temporary_state[ 5 ] ^= state[ 5 ];
+								temporary_state[ 6 ] ^= state[ 6 ];
+								temporary_state[ 7 ] ^= state[ 7 ];
+								temporary_state[ 8 ] ^= state[ 8 ];
+								temporary_state[ 9 ] ^= state[ 9 ];
+								temporary_state[ 10 ] ^= state[ 10 ];
+								temporary_state[ 11 ] ^= state[ 11 ];
+								temporary_state[ 12 ] ^= state[ 12 ];
+								temporary_state[ 13 ] ^= state[ 13 ];
+								temporary_state[ 14 ] ^= state[ 14 ];
+								temporary_state[ 15 ] ^= state[ 15 ];
 							}
 							operator()();
 						}
 					}
 
-					temporary_state[0] = state[0];
-					temporary_state[1] = state[1];
-					temporary_state[2] = state[2];
-					temporary_state[3] = state[3];
-					temporary_state[4] = state[4];
-					temporary_state[5] = state[5];
-					temporary_state[6] = state[6];
-					temporary_state[7] = state[7];
-					temporary_state[8] = state[8];
-					temporary_state[9] = state[9];
-					temporary_state[10] = state[10];
-					temporary_state[11] = state[11];
-					temporary_state[12] = state[12];
-					temporary_state[13] = state[13];
-					temporary_state[14] = state[14];
-					temporary_state[15] = state[15];
+					temporary_state[ 0 ] = state[ 0 ];
+					temporary_state[ 1 ] = state[ 1 ];
+					temporary_state[ 2 ] = state[ 2 ];
+					temporary_state[ 3 ] = state[ 3 ];
+					temporary_state[ 4 ] = state[ 4 ];
+					temporary_state[ 5 ] = state[ 5 ];
+					temporary_state[ 6 ] = state[ 6 ];
+					temporary_state[ 7 ] = state[ 7 ];
+					temporary_state[ 8 ] = state[ 8 ];
+					temporary_state[ 9 ] = state[ 9 ];
+					temporary_state[ 10 ] = state[ 10 ];
+					temporary_state[ 11 ] = state[ 11 ];
+					temporary_state[ 12 ] = state[ 12 ];
+					temporary_state[ 13 ] = state[ 13 ];
+					temporary_state[ 14 ] = state[ 14 ];
+					temporary_state[ 15 ] = state[ 15 ];
 				}
 
 				/*
@@ -969,61 +983,61 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				constexpr void long_jump() noexcept
 				{
 					constexpr std::uint64_t long_jump_table[] = {
-							0x7374156360bbf00f, 0x4630c2efa3b3c1f6,
-							0x6654183a892786b1, 0x94f7bfcbfb0f1661,
-							0x27d8243d3d13eb2d, 0x9701730f3dfb300f,
-							0x2f293baae6f604ad, 0xa661831cb60cd8b6,
-							0x68280c77d9fe008c, 0x50554160f5ba9459,
-							0x2fc20b17ec7b2a9a, 0x49189bbdc8ec9f8f,
-							0x92a65bca41852cc1, 0xf46820dd0509c12a,
-							0x52b00c35fbf92185, 0x1e5b3b7f589e03c1
+						0x7374156360bbf00f, 0x4630c2efa3b3c1f6,
+						0x6654183a892786b1, 0x94f7bfcbfb0f1661,
+						0x27d8243d3d13eb2d, 0x9701730f3dfb300f,
+						0x2f293baae6f604ad, 0xa661831cb60cd8b6,
+						0x68280c77d9fe008c, 0x50554160f5ba9459,
+						0x2fc20b17ec7b2a9a, 0x49189bbdc8ec9f8f,
+						0x92a65bca41852cc1, 0xf46820dd0509c12a,
+						0x52b00c35fbf92185, 0x1e5b3b7f589e03c1
 					};
 
-					state_type temporary_state{};
-					for (std::uint32_t long_jump_table_index = 0; long_jump_table_index < std::ssize(long_jump_table); long_jump_table_index++)
+					state_type temporary_state {};
+					for ( std::uint32_t long_jump_table_index = 0; long_jump_table_index < std::ssize( long_jump_table ); long_jump_table_index++ )
 					{
-						for (std::uint32_t b = 0; b < 64; b++)
+						for ( std::uint32_t b = 0; b < 64; b++ )
 						{
-							if (long_jump_table[long_jump_table_index] & (static_cast<std::uint64_t>(1) << b))
+							if ( long_jump_table[ long_jump_table_index ] & ( static_cast<std::uint64_t>( 1 ) << b ) )
 							{
-								temporary_state[0] ^= state[0];
-								temporary_state[1] ^= state[1];
-								temporary_state[2] ^= state[2];
-								temporary_state[3] ^= state[3];
-								temporary_state[4] ^= state[4];
-								temporary_state[5] ^= state[5];
-								temporary_state[6] ^= state[6];
-								temporary_state[7] ^= state[7];
-								temporary_state[8] ^= state[8];
-								temporary_state[9] ^= state[9];
-								temporary_state[10] ^= state[10];
-								temporary_state[11] ^= state[11];
-								temporary_state[12] ^= state[12];
-								temporary_state[13] ^= state[13];
-								temporary_state[14] ^= state[14];
-								temporary_state[15] ^= state[15];
+								temporary_state[ 0 ] ^= state[ 0 ];
+								temporary_state[ 1 ] ^= state[ 1 ];
+								temporary_state[ 2 ] ^= state[ 2 ];
+								temporary_state[ 3 ] ^= state[ 3 ];
+								temporary_state[ 4 ] ^= state[ 4 ];
+								temporary_state[ 5 ] ^= state[ 5 ];
+								temporary_state[ 6 ] ^= state[ 6 ];
+								temporary_state[ 7 ] ^= state[ 7 ];
+								temporary_state[ 8 ] ^= state[ 8 ];
+								temporary_state[ 9 ] ^= state[ 9 ];
+								temporary_state[ 10 ] ^= state[ 10 ];
+								temporary_state[ 11 ] ^= state[ 11 ];
+								temporary_state[ 12 ] ^= state[ 12 ];
+								temporary_state[ 13 ] ^= state[ 13 ];
+								temporary_state[ 14 ] ^= state[ 14 ];
+								temporary_state[ 15 ] ^= state[ 15 ];
 
 							}
 							operator()();
 						}
 					}
 
-					temporary_state[0] = state[0];
-					temporary_state[1] = state[1];
-					temporary_state[2] = state[2];
-					temporary_state[3] = state[3];
-					temporary_state[4] = state[4];
-					temporary_state[5] = state[5];
-					temporary_state[6] = state[6];
-					temporary_state[7] = state[7];
-					temporary_state[8] = state[8];
-					temporary_state[9] = state[9];
-					temporary_state[10] = state[10];
-					temporary_state[11] = state[11];
-					temporary_state[12] = state[12];
-					temporary_state[13] = state[13];
-					temporary_state[14] = state[14];
-					temporary_state[15] = state[15];
+					temporary_state[ 0 ] = state[ 0 ];
+					temporary_state[ 1 ] = state[ 1 ];
+					temporary_state[ 2 ] = state[ 2 ];
+					temporary_state[ 3 ] = state[ 3 ];
+					temporary_state[ 4 ] = state[ 4 ];
+					temporary_state[ 5 ] = state[ 5 ];
+					temporary_state[ 6 ] = state[ 6 ];
+					temporary_state[ 7 ] = state[ 7 ];
+					temporary_state[ 8 ] = state[ 8 ];
+					temporary_state[ 9 ] = state[ 9 ];
+					temporary_state[ 10 ] = state[ 10 ];
+					temporary_state[ 11 ] = state[ 11 ];
+					temporary_state[ 12 ] = state[ 12 ];
+					temporary_state[ 13 ] = state[ 13 ];
+					temporary_state[ 14 ] = state[ 14 ];
+					temporary_state[ 15 ] = state[ 15 ];
 				}
 
 			private:
@@ -1031,49 +1045,49 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				void generate_number_state_seeds(std::seed_seq& s_q)
 				{
-					std::uint32_t this_temparory_state[num_state_words * 2];
-					s_q.generate(std::begin(this_temparory_state), std::end(this_temparory_state));
-					for (std::uint32_t index = 0; index < num_state_words; ++index)
+					std::uint32_t this_temparory_state[ num_state_words * 2 ];
+					s_q.generate( std::begin( this_temparory_state ), std::end( this_temparory_state ) );
+					for ( std::uint32_t index = 0; index < num_state_words; ++index )
 					{
-						state[index] = this_temparory_state[index * 2];
-						state[index] <<= 32;
-						state[index] |= this_temparory_state[index * 2 + 1];
+						state[ index ] = this_temparory_state[ index * 2 ];
+						state[ index ] <<= 32;
+						state[ index ] |= this_temparory_state[ index * 2 + 1 ];
 					}
 				}
 
 				void generate_number_state_seeds(std::span<const result_type> seed_span)
 				{
-					std::uint32_t this_temparory_state[num_state_words * 2];
+					std::uint32_t this_temparory_state[ num_state_words * 2 ];
 
 					auto seed_span_begin = seed_span.begin();
 					auto seed_span_end = seed_span.end();
 					result_type seed = 0;
 					auto splitmix64 = [&seed_span_begin, &seed_span_end, &seed]() mutable {
+					
+						auto z = (seed += 0x9e3779b97f4a7c15 );
+						z = ( z ^ ( z >> 30 ) ) * 0xbf58476d1ce4e5b9;
+						z = ( z ^ ( z >> 27 ) ) * 0x94d049bb133111eb;
 
-						auto z = (seed += 0x9e3779b97f4a7c15);
-						z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-						z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-
-						if (seed_span_begin != seed_span_end)
+						if(seed_span_begin != seed_span_end)
 						{
 							++seed_span_begin;
 						}
 
-						return z ^ (z >> 31);
+						return z ^ ( z >> 31 );
 					};
-					std::ranges::generate(this_temparory_state, splitmix64);
+					std::ranges::generate( this_temparory_state, splitmix64 );
 					seed = 0;
 
-					for (std::uint32_t index = 0; index < num_state_words; ++index)
+					for ( std::uint32_t index = 0; index < num_state_words; ++index )
 					{
-						state[index] = this_temparory_state[index * 2];
-						state[index] <<= 32;
-						state[index] |= this_temparory_state[index * 2 + 1];
+						state[ index ] = this_temparory_state[ index * 2 ];
+						state[ index ] <<= 32;
+						state[ index ] |= this_temparory_state[ index * 2 + 1 ];
 					}
 				}
 			};
 
-		}  // namespace RNG_Xorshiro
+		}  // namespace Xorshiro
 	}
 
 	//CryptographicallySecurePseudoRandomNumberGenerator
@@ -1138,9 +1152,12 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			class RNG_ISAAC
 			{
 			public:
+				static constexpr std::size_t state_size = 1 << Alpha;
+
 				using result_type = T;
 
-				static constexpr std::size_t state_size = 1 << Alpha;
+				static constexpr T max() { return std::numeric_limits<T>::max(); }
+				static constexpr T min() { return std::numeric_limits<T>::min(); }
 
 				static constexpr result_type default_seed = 0;
 
@@ -1156,19 +1173,19 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				}
 
 				template <typename SeedSeq>
-					requires(not std::convertible_to<SeedSeq, result_type>)
-				explicit RNG_ISAAC(SeedSeq& number_sequence)
+				requires( not std::convertible_to<SeedSeq, result_type> )
+				explicit RNG_ISAAC( SeedSeq& number_sequence )
 					: issac_base_member_counter(state_size)
 				{
 					seed(number_sequence);
 				}
-
+	
 				RNG_ISAAC(const std::vector<result_type>& seed_vector)
 					: issac_base_member_counter(state_size)
 				{
 					seed(seed_vector);
 				}
-
+	
 				template<class IteratorType>
 				RNG_ISAAC
 				(
@@ -1176,15 +1193,15 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					IteratorType end,
 					typename std::enable_if
 					<
-					std::is_integral<typename std::iterator_traits<IteratorType>::value_type>::value&&
-					std::is_unsigned<typename std::iterator_traits<IteratorType>::value_type>::value
+							std::is_integral<typename std::iterator_traits<IteratorType>::value_type>::value &&
+							std::is_unsigned<typename std::iterator_traits<IteratorType>::value_type>::value
 					>::type* = nullptr
 				)
-					: issac_base_member_counter(state_size)
+				: issac_base_member_counter(state_size)
 				{
 					seed(begin, end);
 				}
-
+	
 				RNG_ISAAC(std::random_device& random_device_object)
 					: issac_base_member_counter(state_size)
 				{
@@ -1206,16 +1223,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				}
 
 			public:
-
-				static constexpr result_type min()
-				{
-					return std::numeric_limits<result_type>::min();
-				}
-				static constexpr result_type max()
-				{
-					return std::numeric_limits<result_type>::max();
-				}
-
+	
 				inline void seed(result_type seed_number)
 				{
 					for (std::size_t index = 0; index < state_size; ++index)
@@ -1224,10 +1232,10 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					}
 					init();
 				}
-
+	
 				template <typename SeedSeq>
-					requires(not std::convertible_to<SeedSeq, result_type>)
-				void seed(SeedSeq& number_sequence)
+				requires( not std::convertible_to<SeedSeq, result_type> )
+				void seed( SeedSeq& number_sequence )
 				{
 					std::seed_seq my_seed_sequence(number_sequence.begin(), number_sequence.end());
 					std::array<result_type, state_size> seed_array;
@@ -1241,11 +1249,11 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				template<class IteratorType>
 				inline typename std::enable_if
-					<
-					std::is_integral<typename std::iterator_traits<IteratorType>::value_type>::value&&
+				<
+					std::is_integral<typename std::iterator_traits<IteratorType>::value_type>::value &&
 					std::is_unsigned<typename std::iterator_traits<IteratorType>::value_type>::value, void
-					>::type
-					seed(IteratorType begin, IteratorType end)
+				>::type
+				seed(IteratorType begin, IteratorType end)
 				{
 					IteratorType iterator = begin;
 					for (std::size_t index = 0; index < state_size; ++index)
@@ -1259,7 +1267,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					}
 					init();
 				}
-
+	
 				void seed(std::random_device& random_device_object)
 				{
 					std::vector<result_type> random_seed_vector;
@@ -1268,8 +1276,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					{
 						result_type seed_number_value = GenerateSecureRandomNumberSeed<result_type>(random_device_object);
 
-						std::size_t bytes_filled{ sizeof(std::random_device::result_type) };
-						while (bytes_filled < sizeof(result_type))
+						std::size_t bytes_filled{sizeof(std::random_device::result_type)};
+						while(bytes_filled < sizeof(result_type))
 						{
 							result_type seed_number_value2 = GenerateSecureRandomNumberSeed<result_type>(random_device_object);
 
@@ -1284,12 +1292,12 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				inline result_type operator()()
 				{
-					if (issac_base_member_counter - 1 == std::numeric_limits<std::size_t>::max())
+					if(issac_base_member_counter - 1 == std::numeric_limits<std::size_t>::max())
 						issac_base_member_counter = state_size - 1;
 
 					return (!issac_base_member_counter--) ? (do_isaac(), issac_base_member_result[issac_base_member_counter]) : issac_base_member_result[issac_base_member_counter];
 				}
-
+	
 				inline void discard(unsigned long long z)
 				{
 					for (; z; --z) operator()();
@@ -1344,10 +1352,10 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					os.flags(format_flags);
 					return os;
 				}
-
+	
 				template <class CharT, class Traits>
 				friend std::basic_istream<CharT, Traits>&
-					operator>>(std::basic_istream<CharT, Traits>& is, RNG_ISAAC& isaac_base_object)
+				operator>>(std::basic_istream<CharT, Traits>& is, RNG_ISAAC& isaac_base_object)
 				{
 					bool failed = false;
 					result_type temporary_result[state_size];
@@ -1356,16 +1364,16 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					result_type temporary_register_b = 0;
 					result_type temporary_register_c = 0;
 					std::size_t temporary_register_counter = 0;
-
+		
 					auto format_flags = is.flags();
 					is.flags(std::ios_base::dec | std::ios_base::skipws);
-
+		
 					is >> temporary_register_counter;
 					if (is.fail())
 					{
 						failed = true;
 					}
-
+				
 					std::size_t process_counter = 0;
 
 					while (process_counter != 5)
@@ -1421,7 +1429,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 						++process_counter;
 					}
-
+		
 					if (!failed)
 					{
 						for (std::size_t i = 0; i < state_size; ++i)
@@ -1455,13 +1463,10 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				*/
 
 				//Use ISAAC+ Algorithm (32 bit)?
-#if 1
+				#if 1
 
 				void implementation_isaac()
 				{
-					using TwilightDreamOfMagical::BaseOperation::rotate_left;
-					using TwilightDreamOfMagical::BaseOperation::rotate_right;
-
 					/*
 						Modulo a power of two, the following works (assuming twos complement representation):
 
@@ -1477,7 +1482,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					*/
 
 					result_type index = 0, x = 0, y = 0, state_random_value = 0;
-
+				
 					result_type accumulate = this->issac_base_member_register_a;
 					result_type bit_result = this->issac_base_member_register_b + (++(this->issac_base_member_register_c)); //b ← (c + 1)
 
@@ -1487,7 +1492,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						x = this->issac_base_member_memory[index];
 						/*
 							//barrel shift
-
+					
 							function(a, index)
 							{
 								if index ≡ 0 mod 4
@@ -1499,43 +1504,43 @@ namespace TwilightDreamOfMagical::CustomSecurity
 								if index ≡ 3 mod 4
 									return a ^= a << 16
 							}
-
+				
 							mix_index ← function(a, index);
 						*/
 						switch (index & 3)
 						{
-						case 0:
-							accumulate ^= accumulate << 13;
-							break;
-						case 1:
-							accumulate ^= accumulate >> 6;
-							break;
-						case 2:
-							accumulate ^= accumulate << 2;
-							break;
-						case 3:
-							accumulate ^= accumulate >> 16;
-							break;
+							case 0:
+								accumulate ^= accumulate << 13;
+								break;
+							case 1:
+								accumulate ^= accumulate >>  6;
+								break;
+							case 2:
+								accumulate ^= accumulate <<  2;
+								break;
+							case 3:
+								accumulate ^= accumulate >> 16;
+								break;
 						}
 						// a(mix_index) + state[index] + 128 mod 256
-						accumulate += this->issac_base_member_memory[(index + this->state_size / 2) & (this->state_size - 1)];
+						accumulate += this->issac_base_member_memory[ (index + this->state_size / 2) & (this->state_size - 1) ];
 						//state[index] ← a(mix_index) ⊕ b + (state[x] >>> 2) mod 256
 						//y == state[index]
-						state_random_value = this->issac_base_member_memory[rotate_right(x, 2) & (this->state_size - 1)];
+						state_random_value = this->issac_base_member_memory[ Binary_RightRotateMove<result_type>(x, 2) & (this->state_size - 1) ];
 						y = accumulate ^ bit_result + state_random_value;
 						this->issac_base_member_memory[index] = y;
 						//result[index] ← x + a(mix_index) ⊕ (state[state[index]] >>> 10) mod 256
 						//b == result[index]
-						state_random_value = this->issac_base_member_memory[rotate_right(y, 10) & (this->state_size - 1)];
+						state_random_value = this->issac_base_member_memory[ Binary_RightRotateMove<result_type>(y, 10) & (this->state_size - 1) ];
 						bit_result = x + accumulate ^ state_random_value;
 						this->issac_base_member_result[index] = bit_result;
 					}
 				}
 
-#else
+				#else
 
 				//Diffusion of integer numbers by indirection memory address
-			//通过指示性内存地址扩散整数
+				//通过指示性内存地址扩散整数
 				inline result_type diffusion_with_indirection_memory_address(result_type* memory_pointer, result_type current_value)
 				{
 					/*
@@ -1549,7 +1554,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 					constexpr result_type mask = (this->state_size - 1) << 2;
 					//access state[index]
-					return *reinterpret_cast<result_type*>(reinterpret_cast<std::uint8_t*>(memory_pointer) + (current_value & mask));
+					return *reinterpret_cast<result_type*>( reinterpret_cast<std::uint8_t*>( memory_pointer ) + ( current_value & mask ) );
 				}
 
 				inline void RNG_do_step
@@ -1573,12 +1578,12 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					So assuming that Alpha is an 8-bit state, the value of this->state_size is: "1 << 8 == 256"
 					And after understanding the bit manipulation, we know that the calculation of the power of 2 is: "2 & (number - 1)".
 					So the ISAAC paper gives the calculation of "state[index] + 128 mod 256, and the derivation should be: state[index + (this->state_size / 2) & (this-> state_size - 1)]"
-
+				
 					This is the same as the initialization part of the previous for loop
 					new_memory_array_address = new_memory_array = update_memory_array + (this->state_size / 2);
 					*/
 					//a ← function(a, mix_index) + state[index] + 128 mod 256
-					a = (a ^ (mix)) + *(new_memory_array++);
+					a = (a^(mix)) + *(new_memory_array++);
 					//state[index] ← a + b + (state[x] >> 2) mod 256
 					//y == state[index]
 					*(update_memory_array++) = y = a + b + diffusion_with_indirection_memory_address(old_memory_array, x);
@@ -1595,48 +1600,45 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					result_type* update_memory_array = nullptr;
 					result_type* new_memory_array = nullptr;
 					result_type* new_memory_array_address = nullptr;
-
+		
 					result_type* old_memory_array = this->issac_base_member_memory;
 					result_type* current_result_array = this->issac_base_member_result;
 					result_type a = this->issac_base_member_register_a;
 					result_type b = this->issac_base_member_register_b + (++(this->issac_base_member_register_c)); //b ← (c + 1)
 
-					for (update_memory_array = old_memory_array, new_memory_array_address = new_memory_array = update_memory_array + (this->state_size / 2); update_memory_array < new_memory_array_address; )
+					for (update_memory_array = old_memory_array, new_memory_array_address = new_memory_array = update_memory_array + (this->state_size/2); update_memory_array < new_memory_array_address; )
 					{
-						RNG_do_step(a << 13, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
-						RNG_do_step(a >> 6, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
-						RNG_do_step(a << 2, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
-						RNG_do_step(a >> 16, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
+						RNG_do_step( a << 13, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
+						RNG_do_step( a >> 6 , a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
+						RNG_do_step( a << 2 , a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
+						RNG_do_step( a >> 16, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
 					}
 					for (new_memory_array = old_memory_array; new_memory_array < new_memory_array_address; )
 					{
-						RNG_do_step(a << 13, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
-						RNG_do_step(a >> 6, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
-						RNG_do_step(a << 2, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
-						RNG_do_step(a >> 16, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
+						RNG_do_step( a << 13, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
+						RNG_do_step( a >> 6 , a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
+						RNG_do_step( a << 2 , a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
+						RNG_do_step( a >> 16, a, b, old_memory_array, update_memory_array, new_memory_array, current_result_array, x, y);
 					}
 					this->issac_base_member_register_b = b;
 					this->issac_base_member_register_a = a;
 				}
 
-#endif
+				#endif
 
 				/*
 					ISAAC-64 generates a different sequence than ISAAC, but it uses the same principles. It uses 64-bit arithmetic.
 					It generates a 64-bit result every 19 instructions. All cycles are at least 2(^)72 values, and the average cycle length is 2(^)16583.
 
-					The following files implement ISAAC-64.
+					The following files implement ISAAC-64. 
 					The constants were tuned for a 64-bit machine, and a complement was thrown in so that all-zero states become nonzero faster.
 				*/
 
 				//Use ISAAC+ Algorithm (64 bit)?
-#if 1
+				#if 1
 
 				void implementation_isaac64()
 				{
-					using TwilightDreamOfMagical::BaseOperation::rotate_left;
-					using TwilightDreamOfMagical::BaseOperation::rotate_right;
-
 					/*
 						Modulo a power of two, the following works (assuming twos complement representation):
 
@@ -1652,7 +1654,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					*/
 
 					result_type index = 0, x = 0, y = 0, state_random_value = 0;
-
+				
 					result_type accumulate = this->issac_base_member_register_a;
 					result_type bit_result = this->issac_base_member_register_b + (++(this->issac_base_member_register_c)); //b ← (c + 1)
 
@@ -1662,7 +1664,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						x = this->issac_base_member_memory[index];
 						/*
 							//barrel shift
-
+					
 							function(a, index)
 							{
 								if index ≡ 0 mod 4
@@ -1674,43 +1676,43 @@ namespace TwilightDreamOfMagical::CustomSecurity
 								if index ≡ 3 mod 4
 									return a ^= a << 33
 							}
-
+				
 							mix_index ← function(a, index);
 						*/
 						switch (index & 3)
 						{
-						case 0:
-							accumulate ^= ~(accumulate << 21);
-							break;
-						case 1:
-							accumulate ^= accumulate >> 5;
-							break;
-						case 2:
-							accumulate ^= accumulate << 12;
-							break;
-						case 3:
-							accumulate ^= accumulate >> 33;
-							break;
+							case 0:
+								accumulate ^= ~(accumulate << 21);
+								break;
+							case 1:
+								accumulate ^= accumulate >>  5;
+								break;
+							case 2:
+								accumulate ^= accumulate << 12;
+								break;
+							case 3:
+								accumulate ^= accumulate >> 33;
+								break;
 						}
 						// a(mix_index) + state[index] + 128 mod 256
-						accumulate += this->issac_base_member_memory[(index + this->state_size / 2) & (this->state_size - 1)];
+						accumulate += this->issac_base_member_memory[ (index + this->state_size / 2) & (this->state_size - 1) ];
 						//state[index] ← a(mix_index) ⊕ b + (state[x] >>> 2) mod 256
 						//y == state[index]
-						state_random_value = this->issac_base_member_memory[rotate_right(x, 2) & (this->state_size - 1)];
+						state_random_value = this->issac_base_member_memory[ Binary_RightRotateMove<result_type>(x, 2) & (this->state_size - 1) ];
 						y = accumulate ^ bit_result + state_random_value;
 						this->issac_base_member_memory[index] = y;
 						//result[index] ← x + a(mix_index) ⊕ (state[state[index]] >>> 10) mod 256
 						//b == result[index]
-						state_random_value = this->issac_base_member_memory[rotate_right(y, 10) & (this->state_size - 1)];
+						state_random_value = this->issac_base_member_memory[ Binary_RightRotateMove<result_type>(y, 10) & (this->state_size - 1) ];
 						bit_result = x + accumulate ^ state_random_value;
 						this->issac_base_member_result[index] = bit_result;
 					}
 				}
 
-#else
+				#else
 
 				//Diffusion of integer numbers by indirection memory address
-			//通过指示性内存地址扩散整数
+				//通过指示性内存地址扩散整数
 				inline result_type diffusion_with_indirection_memory_address64(result_type* memory_pointer, result_type current_value)
 				{
 					/*
@@ -1724,7 +1726,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 					//access state[index]
 					constexpr result_type mask = (this->state_size - 1) << 3;
-					return *reinterpret_cast<result_type*>(reinterpret_cast<std::uint8_t*>(memory_pointer) + (current_value & mask));
+					return *reinterpret_cast<result_type*>( reinterpret_cast<std::uint8_t*>( memory_pointer ) + ( current_value & mask ) );
 				}
 
 				inline void RNG_do_step64
@@ -1749,12 +1751,12 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					So assuming that Alpha is an 8-bit state, the value of this->state_size is: "1 << 8 == 256"
 					And after understanding the bit manipulation, we know that the calculation of the power of 2 is: "2 & (number - 1)".
 					So the ISAAC paper gives the calculation of "state[index] + 128 mod 256, and the derivation should be: state[index + (this->state_size / 2) & (this-> state_size - 1)]"
-
+				
 					This is the same as the initialization part of the previous for loop
 					new_memory_array_address = new_memory_array = update_memory_array + (this->state_size / 2);
 					*/
 					//a ← function(a, mix_index) + state[index] + 128 mod 256
-					a = (a ^ (mix)) + *(new_memory_array++);
+					a = (a^(mix)) + *(new_memory_array++);
 					//state[index] ← a + b + (state[x] >> 2) mod 512
 					//y == state[index]
 					*(update_memory_array++) = y = a + b + diffusion_with_indirection_memory_address64(old_memory_array, x);
@@ -1771,7 +1773,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					result_type* update_memory_array = nullptr;
 					result_type* new_memory_array = nullptr;
 					result_type* new_memory_array_address = nullptr;
-
+		
 					result_type* old_memory_array = this->issac_base_member_memory;
 					result_type* current_result_array = this->issac_base_member_result;
 					result_type a = this->issac_base_member_register_a;
@@ -1795,7 +1797,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					this->issac_base_member_register_a = a;
 				}
 
-#endif
+				#endif
 
 				void init()
 				{
@@ -1807,63 +1809,63 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					result_type f = golden();
 					result_type g = golden();
 					result_type h = golden();
-
+		
 					issac_base_member_register_a = 0;
 					issac_base_member_register_b = 0;
 					issac_base_member_register_c = 0;
-
+				
 					/* scramble it */
 					for (std::size_t index = 0; index < 4; ++index)
 					{
-						mix(a, b, c, d, e, f, g, h);
+						mix(a,b,c,d,e,f,g,h);
 					}
-
+		
 					/* initialize using the contents of issac_base_member_result[] as the seed */
 					for (std::size_t index = 0; index < state_size; index += 8)
 					{
 						a += issac_base_member_result[index];
-						b += issac_base_member_result[index + 1];
-						c += issac_base_member_result[index + 2];
-						d += issac_base_member_result[index + 3];
-						e += issac_base_member_result[index + 4];
-						f += issac_base_member_result[index + 5];
-						g += issac_base_member_result[index + 6];
-						h += issac_base_member_result[index + 7];
-
-						mix(a, b, c, d, e, f, g, h);
-
+						b += issac_base_member_result[index+1];
+						c += issac_base_member_result[index+2];
+						d += issac_base_member_result[index+3];
+						e += issac_base_member_result[index+4];
+						f += issac_base_member_result[index+5];
+						g += issac_base_member_result[index+6];
+						h += issac_base_member_result[index+7];
+			
+						mix(a,b,c,d,e,f,g,h);
+			
 						issac_base_member_memory[index] = a;
-						issac_base_member_memory[index + 1] = b;
-						issac_base_member_memory[index + 2] = c;
-						issac_base_member_memory[index + 3] = d;
-						issac_base_member_memory[index + 4] = e;
-						issac_base_member_memory[index + 5] = f;
-						issac_base_member_memory[index + 6] = g;
-						issac_base_member_memory[index + 7] = h;
+						issac_base_member_memory[index+1] = b;
+						issac_base_member_memory[index+2] = c;
+						issac_base_member_memory[index+3] = d;
+						issac_base_member_memory[index+4] = e;
+						issac_base_member_memory[index+5] = f;
+						issac_base_member_memory[index+6] = g;
+						issac_base_member_memory[index+7] = h;
 					}
-
+		
 					/* do a second pass to make all of the seed affect all of issac_base_member_memory */
 					for (std::size_t index = 0; index < state_size; index += 8)
 					{
 						a += issac_base_member_memory[index];
-						b += issac_base_member_memory[index + 1];
-						c += issac_base_member_memory[index + 2];
-						d += issac_base_member_memory[index + 3];
-						e += issac_base_member_memory[index + 4];
-						f += issac_base_member_memory[index + 5];
-						g += issac_base_member_memory[index + 6];
-						h += issac_base_member_memory[index + 7];
-
-						mix(a, b, c, d, e, f, g, h);
-
+						b += issac_base_member_memory[index+1];
+						c += issac_base_member_memory[index+2];
+						d += issac_base_member_memory[index+3];
+						e += issac_base_member_memory[index+4];
+						f += issac_base_member_memory[index+5];
+						g += issac_base_member_memory[index+6];
+						h += issac_base_member_memory[index+7];
+			
+						mix(a,b,c,d,e,f,g,h);
+			
 						issac_base_member_memory[index] = a;
-						issac_base_member_memory[index + 1] = b;
-						issac_base_member_memory[index + 2] = c;
-						issac_base_member_memory[index + 3] = d;
-						issac_base_member_memory[index + 4] = e;
-						issac_base_member_memory[index + 5] = f;
-						issac_base_member_memory[index + 6] = g;
-						issac_base_member_memory[index + 7] = h;
+						issac_base_member_memory[index+1] = b;
+						issac_base_member_memory[index+2] = c;
+						issac_base_member_memory[index+3] = d;
+						issac_base_member_memory[index+4] = e;
+						issac_base_member_memory[index+5] = f;
+						issac_base_member_memory[index+6] = g;
+						issac_base_member_memory[index+7] = h;
 					}
 
 					/* fill in the first set of results */
@@ -1872,24 +1874,24 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				inline void do_isaac()
 				{
-					if constexpr (std::same_as<result_type, std::uint32_t>)
+					if constexpr(std::same_as<result_type,std::uint32_t>)
 						this->implementation_isaac();
-					else if constexpr (std::same_as<result_type, std::uint64_t>)
+					else if constexpr(std::same_as<result_type,std::uint64_t>)
 						this->implementation_isaac64();
 				}
 
 				/* the golden ratio */
 				inline result_type golden()
 				{
-					if constexpr (std::same_as<result_type, std::uint32_t>)
+					if constexpr(std::same_as<result_type,std::uint32_t>)
 						return static_cast<std::uint32_t>(0x9e3779b9);
-					else if constexpr (std::same_as<result_type, std::uint64_t>)
+					else if constexpr(std::same_as<result_type,std::uint64_t>)
 						return static_cast<std::uint64_t>(0x9e3779b97f4a7c13);
 				}
-
+	
 				inline void mix(result_type& a, result_type& b, result_type& c, result_type& d, result_type& e, result_type& f, result_type& g, result_type& h)
 				{
-					if constexpr (std::same_as<result_type, std::uint32_t>)
+					if constexpr(std::same_as<result_type,std::uint32_t>)
 					{
 						a ^= b << 11;
 						d += a;
@@ -1923,7 +1925,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						c += h;
 						a += b;
 					}
-					else if constexpr (std::same_as<result_type, std::uint64_t>)
+					else if constexpr(std::same_as<result_type,std::uint64_t>)
 					{
 						a -= e;
 						f ^= h >> 9;
@@ -1958,9 +1960,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						g += h;
 					}
 				}
-
-				std::array<result_type, state_size> issac_base_member_result{};
-				std::array<result_type, state_size> issac_base_member_memory{};
+	
+				std::array<result_type, state_size> issac_base_member_result {};
+				std::array<result_type, state_size> issac_base_member_memory {};
 				result_type issac_base_member_register_a = 0;
 				result_type issac_base_member_register_b = 0;
 				result_type issac_base_member_register_c = 0;

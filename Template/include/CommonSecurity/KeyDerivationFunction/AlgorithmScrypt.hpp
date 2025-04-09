@@ -28,8 +28,8 @@ namespace CommonSecurity::KDF::PBKDF2
 	{
 		std::vector<std::uint8_t> WithSHA2_512
 		(
-			std::span<std::uint8_t> secret_passsword_or_key_byte,
-			std::span<std::uint8_t> salt_data,
+			std::span<const std::uint8_t> secret_passsword_or_key_byte,
+			std::span<const std::uint8_t> salt_data,
 			const std::size_t round_count,
 			std::uint64_t result_byte_size
 		)
@@ -46,7 +46,7 @@ namespace CommonSecurity::KDF::PBKDF2
 			using UtilTools::DataFormating::ASCII_Hexadecmial::hexadecimalString2ByteArray;
 
 			/* PRF is HMAC-SHA2-512 */
-			CommonSecurity::DataHashingWrapper::HashersAssistantParameters HashersAssistantParameters_Instance;
+			CommonSecurity::DataHashingWrapper::HashersAssistantParameters HashersAssistantParameters_Instance {};
 			HashersAssistantParameters_Instance.hash_mode = CommonSecurity::SHA::Hasher::WORKER_MODE::SHA2_512;
 			HashersAssistantParameters_Instance.generate_hash_bit_size = 512;
 			HashersAssistantParameters_Instance.whether_use_hash_extension_bit_mode = false;
@@ -69,28 +69,20 @@ namespace CommonSecurity::KDF::PBKDF2
 			std::vector<std::uint8_t> _T_Array_;
 			std::vector<std::uint8_t> _U_Array_;
 
-			std::uint64_t Counter = 0;
+			std::uint64_t integer = 0;
 			while (result_byte_size > 0)
 			{
-				++Counter;
+				++integer;
 				std::string block_number_string;
 
-				/* 
-				 The function F is the xor (^) of c iterations of chained PRFs.
-				 The first iteration of PRF uses Password as the PRF key and Salt concatenated with encoded as a big-endian 32-bit integer as the input.
-				 (Note that i is a 1-based index.) Subsequent iterations of PRF use Password as the PRF key and the output of the previous PRF computation as the input: i
-				 */
-				if(std::endian::native != std::endian::big)
-					Counter = CommonToolkit::ByteSwap::byteswap(Counter);
-
-				block_number_string.push_back( static_cast<char>( (Counter >> 56) & 0xff ) );
-				block_number_string.push_back( static_cast<char>( (Counter >> 48) & 0xff ) );
-				block_number_string.push_back( static_cast<char>( (Counter >> 40) & 0xff ) );
-				block_number_string.push_back( static_cast<char>( (Counter >> 32) & 0xff ) );
-				block_number_string.push_back( static_cast<char>( (Counter >> 24) & 0xff ) );
-				block_number_string.push_back( static_cast<char>( (Counter >> 16) & 0xff ) );
-				block_number_string.push_back( static_cast<char>( (Counter >> 8) & 0xff ) );
-				block_number_string.push_back( static_cast<char>( (Counter) & 0xff ) );
+				block_number_string.push_back( static_cast<char>( (integer >> 56) & 0xff ) );
+				block_number_string.push_back( static_cast<char>( (integer >> 48) & 0xff ) );
+				block_number_string.push_back( static_cast<char>( (integer >> 40) & 0xff ) );
+				block_number_string.push_back( static_cast<char>( (integer >> 32) & 0xff ) );
+				block_number_string.push_back( static_cast<char>( (integer >> 24) & 0xff ) );
+				block_number_string.push_back( static_cast<char>( (integer >> 16) & 0xff ) );
+				block_number_string.push_back( static_cast<char>( (integer >> 8) & 0xff ) );
+				block_number_string.push_back( static_cast<char>( (integer) & 0xff ) );
 
 				/* Compute U[0] = PRF(Password, Salt || INTEGER(index)). */
 				U_Characters = HMAC_FunctionObject(HashersAssistantParameters_Instance, secret_passsword_or_key_string, 64, salt_string_data + block_number_string);
@@ -125,13 +117,13 @@ namespace CommonSecurity::KDF::PBKDF2
 					_T_Array_ = hexadecimalString2ByteArray(T_Characters);
 
 				/* Copy as many bytes as necessary into buffer. */
-				result_byte.insert(result_byte.end(), _T_Array_.begin(), _T_Array_.begin() + std::min(result_byte_size, _T_Array_.size()));
+				result_byte.insert(result_byte.end(), _T_Array_.begin(), _T_Array_.begin() + ::std::min<std::size_t>(result_byte_size, _T_Array_.size()));
 				result_byte_size -= _T_Array_.size();
 
 				block_number_string.clear();
 			}
 
-			Counter = 0;
+			integer = 0;
 
 			std::ranges::fill(U_Characters.begin(), U_Characters.end(), '\x00');
 			std::ranges::fill(T_Characters.begin(), T_Characters.end(), '\x00');
@@ -265,7 +257,7 @@ namespace CommonSecurity::KDF::Scrypt
 			std::array<std::uint32_t, 16> word32_buffer_t {};
 
 			/* 1: X = Block[2 * block_size - 1] */
-			std::memcpy(word32_buffer.data(), &in[ (2 * block_size - 1) * 16 ], 16 * sizeof(std::uint32_t));
+			::memcpy(word32_buffer.data(), &in[ (2 * block_size - 1) * 16 ], 16 * sizeof(std::uint32_t));
 			
 			/* 2: for index = 0 to 2 * block_size - 1 do */
 			for(std::size_t index = 0; index < 2 * block_size; index += 2)
@@ -283,7 +275,7 @@ namespace CommonSecurity::KDF::Scrypt
 
 				/* 5: Y[index] = X */
 				/* 6: Block' = (Y[0], Y[2], ..., Y[2 * block_size - 2], Y[1], Y[3], ..., Y[2 * block_size - 1]) */
-				std::memcpy(&out[index * 8], word32_buffer.data(), word32_buffer.size() * sizeof(std::uint32_t));
+				::memcpy(&out[index * 8], word32_buffer.data(), word32_buffer.size() * sizeof(std::uint32_t));
 
 				word32_buffer_t = this->ExclusiveOrBlock(word32_buffer, {in.begin() + (index * 16 + 16), in.end()});
 				
@@ -293,7 +285,7 @@ namespace CommonSecurity::KDF::Scrypt
 					word32_buffer
 				);
 
-				std::memcpy(&out[index * 8 + block_size * 16], word32_buffer.data(), word32_buffer.size() * sizeof(std::uint32_t));
+				::memcpy(&out[index * 8 + block_size * 16], word32_buffer.data(), word32_buffer.size() * sizeof(std::uint32_t));
 			}
 
 			volatile void* CheckPointer = memory_set_no_optimize_function<0x00>(word32_buffer_t.data(), word32_buffer_t.size() * sizeof(std::uint32_t));
@@ -329,13 +321,13 @@ namespace CommonSecurity::KDF::Scrypt
 			for(std::size_t index = 0; index < resource_cost; index += 2)
 			{
 				/* 3: V[index] = X */
-				std::memcpy(&block_v[index * word32_block_size], block_x.data(), word32_block_size * sizeof(std::uint32_t));
+				::memcpy(&block_v[index * word32_block_size], block_x.data(), word32_block_size * sizeof(std::uint32_t));
 				
 				/* 4: Y = MixSalsa20(X) */
 				this->MixBlock(word32_buffer, block_x, block_y, block_size);
 
 				/* 5: V[index] = Y */
-				std::memcpy(&block_v[(index + 1) * word32_block_size], block_y.data(), word32_block_size * sizeof(std::uint32_t));
+				::memcpy(&block_v[(index + 1) * word32_block_size], block_y.data(), word32_block_size * sizeof(std::uint32_t));
 				
 				/* 4: X = MixSalsa20(Y) */
 				this->MixBlock(word32_buffer, block_y, block_x, block_size);
@@ -398,15 +390,15 @@ namespace CommonSecurity::KDF::Scrypt
 
 		std::vector<std::uint8_t> DoGenerateKeys
 		(
-			std::span<std::uint8_t> secret_passsword_or_key_byte,
-			std::span<std::uint8_t> salt_data,
+			std::span<const std::uint8_t> secret_passsword_or_key_byte,
+			std::span<const std::uint8_t> salt_data,
 			std::uint64_t& result_byte_size,
 			std::uint64_t& resource_cost,
 			std::uint64_t& block_size,
 			std::uint64_t& parallelization_count
 		)
 		{
-			CommonSecurity::KDF::PBKDF2::Algorithm pbkdf2;
+			CommonSecurity::KDF::PBKDF2::Algorithm pbkdf2 {};
 
 			// 1: (Block[0] ... Block{ParallelizationCount-1}) = PBKDF2(Password, Salt, 1, ParallelizationCount * MixFunctionLength)
 			std::vector<std::uint8_t> block = pbkdf2.WithSHA2_512(secret_passsword_or_key_byte, salt_data, 1, parallelization_count * 128 * block_size);
@@ -439,8 +431,8 @@ namespace CommonSecurity::KDF::Scrypt
 
 		std::vector<std::uint8_t> GenerateKeys
 		(
-			std::span<std::uint8_t> secret_passsword_or_key_byte,
-			std::span<std::uint8_t> salt_data,
+			std::span<const std::uint8_t> secret_passsword_or_key_byte,
+			std::span<const std::uint8_t> salt_data,
 			std::uint64_t result_byte_size,
 			std::uint64_t resource_cost = DefaultResourceCost,
 			std::uint64_t block_size = DefaultBlockSize,

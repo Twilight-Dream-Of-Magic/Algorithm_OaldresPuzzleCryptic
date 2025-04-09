@@ -714,77 +714,77 @@ namespace UtilTools::DataFormating
 	{
 		//Hexadecimal To Binary String
 		inline const std::unordered_map<char, std::string> Hashmap_Number_H2BS
-				{
-						std::make_pair<char, std::string>( '0', "0000" ),
-						std::make_pair<char, std::string>( '1', "0001" ),
-						std::make_pair<char, std::string>( '2', "0010" ),
-						std::make_pair<char, std::string>( '3', "0011" ),
-						std::make_pair<char, std::string>( '4', "0100" ),
-						std::make_pair<char, std::string>( '5', "0101" ),
-						std::make_pair<char, std::string>( '6', "0110" ),
-						std::make_pair<char, std::string>( '7', "0111" ),
-						std::make_pair<char, std::string>( '8', "1000" ),
-						std::make_pair<char, std::string>( '9', "1001" )
-				};
+		{
+			std::make_pair<char, std::string>( '0', "0000" ), 
+			std::make_pair<char, std::string>( '1', "0001" ),
+			std::make_pair<char, std::string>( '2', "0010" ),
+			std::make_pair<char, std::string>( '3', "0011" ),
+			std::make_pair<char, std::string>( '4', "0100" ),
+			std::make_pair<char, std::string>( '5', "0101" ),
+			std::make_pair<char, std::string>( '6', "0110" ),
+			std::make_pair<char, std::string>( '7', "0111" ),
+			std::make_pair<char, std::string>( '8', "1000" ),
+			std::make_pair<char, std::string>( '9', "1001" )
+		};
 
 		//Hexadecimal To Binary String
 		inline const std::unordered_map<char, std::string> Hashmap_LowerCase_H2BS
-				{
-						std::make_pair<char, std::string>( 'a', "1010" ),
-						std::make_pair<char, std::string>( 'b', "1011" ),
-						std::make_pair<char, std::string>( 'c', "1100" ),
-						std::make_pair<char, std::string>( 'd', "1101" ),
-						std::make_pair<char, std::string>( 'e', "1110" ),
-						std::make_pair<char, std::string>( 'f', "1111" )
-				};
+		{
+			std::make_pair<char, std::string>( 'a', "1010" ),
+			std::make_pair<char, std::string>( 'b', "1011" ),
+			std::make_pair<char, std::string>( 'c', "1100" ),
+			std::make_pair<char, std::string>( 'd', "1101" ),
+			std::make_pair<char, std::string>( 'e', "1110" ),
+			std::make_pair<char, std::string>( 'f', "1111" )
+		};
 
 		//Hexadecimal To Binary String
 		inline const std::unordered_map<char, std::string> Hashmap_UpperCase_H2BS
-				{
-						std::make_pair<char, std::string>( 'A', "1010" ),
-						std::make_pair<char, std::string>( 'B', "1011" ),
-						std::make_pair<char, std::string>( 'C', "1100" ),
-						std::make_pair<char, std::string>( 'D', "1101" ),
-						std::make_pair<char, std::string>( 'E', "1110" ),
-						std::make_pair<char, std::string>( 'F', "1111" )
-				};
+		{
+			std::make_pair<char, std::string>( 'A', "1010" ),
+			std::make_pair<char, std::string>( 'B', "1011" ),
+			std::make_pair<char, std::string>( 'C', "1100" ),
+			std::make_pair<char, std::string>( 'D', "1101" ),
+			std::make_pair<char, std::string>( 'E', "1110" ),
+			std::make_pair<char, std::string>( 'F', "1111" )
+		};
 
 		//Hexadecimal From Binary String
 		inline const std::unordered_map<std::string, char> Hashmap_Number_BS2H
-				{
-						std::make_pair<std::string, char>( "0000", '0' ),
-						std::make_pair<std::string, char>( "0001", '1' ),
-						std::make_pair<std::string, char>( "0010", '2' ),
-						std::make_pair<std::string, char>( "0011", '3' ),
-						std::make_pair<std::string, char>( "0100", '4' ),
-						std::make_pair<std::string, char>( "0101", '5' ),
-						std::make_pair<std::string, char>( "0110", '6' ),
-						std::make_pair<std::string, char>( "0111", '7' ),
-						std::make_pair<std::string, char>( "1000", '8' ),
-						std::make_pair<std::string, char>( "1001", '9' )
-				};
+		{
+			std::make_pair<std::string, char>( "0000", '0' ),
+			std::make_pair<std::string, char>( "0001", '1' ),
+			std::make_pair<std::string, char>( "0010", '2' ),
+			std::make_pair<std::string, char>( "0011", '3' ),
+			std::make_pair<std::string, char>( "0100", '4' ),
+			std::make_pair<std::string, char>( "0101", '5' ),
+			std::make_pair<std::string, char>( "0110", '6' ),
+			std::make_pair<std::string, char>( "0111", '7' ),
+			std::make_pair<std::string, char>( "1000", '8' ),
+			std::make_pair<std::string, char>( "1001", '9' )
+		};
 
 		//Hexadecimal From Binary String
 		inline const std::unordered_map<std::string, char> Hashmap_LowerCase_BS2H
-				{
-						std::make_pair<std::string, char>( "1010", 'a' ),
-						std::make_pair<std::string, char>( "1011", 'b' ),
-						std::make_pair<std::string, char>( "1100", 'c' ),
-						std::make_pair<std::string, char>( "1101", 'd' ),
-						std::make_pair<std::string, char>( "1110", 'e' ),
-						std::make_pair<std::string, char>( "1111", 'f' )
-				};
+		{
+			std::make_pair<std::string, char>( "1010", 'a' ),
+			std::make_pair<std::string, char>( "1011", 'b' ),
+			std::make_pair<std::string, char>( "1100", 'c' ),
+			std::make_pair<std::string, char>( "1101", 'd' ),
+			std::make_pair<std::string, char>( "1110", 'e' ),
+			std::make_pair<std::string, char>( "1111", 'f' )
+		};
 
 		//Hexadecimal From Binary String
 		inline const std::unordered_map<std::string, char> Hashmap_UpperCase_BS2H
-				{
-						std::make_pair<std::string, char>( "1010", 'A' ),
-						std::make_pair<std::string, char>( "1011", 'B' ),
-						std::make_pair<std::string, char>( "1100", 'C' ),
-						std::make_pair<std::string, char>( "1101", 'D' ),
-						std::make_pair<std::string, char>( "1110", 'E' ),
-						std::make_pair<std::string, char>( "1111", 'F' )
-				};
+		{
+			std::make_pair<std::string, char>( "1010", 'A' ),
+			std::make_pair<std::string, char>( "1011", 'B' ),
+			std::make_pair<std::string, char>( "1100", 'C' ),
+			std::make_pair<std::string, char>( "1101", 'D' ),
+			std::make_pair<std::string, char>( "1110", 'E' ),
+			std::make_pair<std::string, char>( "1111", 'F' )
+		};
 
 		inline const std::map<int, std::unordered_map<char, std::string>> Map_H2BS{ { 0, Hashmap_Number_H2BS }, { 1, Hashmap_LowerCase_H2BS }, { 2, Hashmap_UpperCase_H2BS } };
 
@@ -1132,7 +1132,7 @@ namespace UtilTools::DataFormating
 			}
 		}
 
-		inline auto byteArray2HexadecimalString( std::span<unsigned char> byteArray ) -> std::string
+		inline auto byteArray2HexadecimalString( std::span<const unsigned char> byteArray ) -> std::string
 		{
 			constexpr char transArray[]{ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
@@ -1240,64 +1240,6 @@ namespace UtilTools::DataFormating
 			return string_data;
 		}
 
-		/* For byte array and hexadecimal string the exchange converter */
-
-#if 0
-
-		inline std::string new_bytesToHexadecimalString( const unsigned char* bytes, const int bytesSize )
-		{
-			if ( bytes == nullptr )
-			{
-				return "";
-			}
-
-			const int   sizeBytes = bytesSize;
-			std::string stringBuffers;
-
-			for ( int index = 0; index < sizeBytes; index++ )
-			{
-				/*if ((bytes[j] & 0xff) < 16) {
-					buffer_HexString.append("0");
-				}*/
-				int high = bytes[ index ] / 16, low = bytes[ index ] % 16;
-				stringBuffers += ( high < 10 ) ? ( '0' + high ) : ( 'a' + high - 10 );
-				stringBuffers += ( low < 10 ) ? ( '0' + low ) : ( 'a' + low - 10 );
-			}
-			return stringBuffers;
-		}
-
-		inline std::vector<unsigned char> new_hexadecimalStringToBytes( const std::string& hexadecimalString )
-		{
-			int			   byteSize = hexadecimalString.length() / 2;
-			std::string	string_byteFormat;
-			unsigned int   unsigned_number;
-			std::vector<unsigned char> byteBuffers;
-
-			for ( int index = 0; index < byteSize; index++ )
-			{
-				string_byteFormat = hexadecimalString.substr( index * 2, 2 );
-
-#if __cplusplus >= 201103L
-
-				std::size_t format_size = sscanf_s( string_byteFormat.c_str(), "%x", &unsigned_number );
-
-#else
-
-				std::size_t format_size = std::sscanf( string_byteFormat.c_str(), "%x", &unsigned_number );
-
-#endif
-
-
-				if(format_size > 0)
-				{
-					byteBuffers.at(index) = unsigned_number;
-				}
-			}
-			return byteBuffers;
-		}
-
-#endif
-
 		inline std::string HexStringFromBytes( const std::vector<unsigned char>& bytes, int bytesSize )
 		{
 			std::string hexadecimalString;
@@ -1377,87 +1319,6 @@ namespace UtilTools::DataFormating
 
 			temporary = nullptr;
 			return bytes;
-		}
-
-		inline static std::string bytesToHexString( const std::vector<unsigned char>& inputData )
-		{
-			std::string output_myHexString;
-			std::size_t		byteSize = inputData.size();
-
-			for ( std::size_t count = 0; count < byteSize; ++count )
-			{
-				int c = inputData.at( count );
-				int a = c / 16;
-				int b = c % 16;
-
-				auto& reference_a = a;
-				auto& reference_b = b;
-				output_myHexString.append( 1, reinterpret_cast<unsigned char&>( reference_a ) );
-				output_myHexString.append( 1, reinterpret_cast<unsigned char&>( reference_b ) );
-				if ( count != byteSize - 1 )
-				{
-					output_myHexString.append( 1, '\0' );
-				}
-			}
-
-			if ( output_myHexString.size() > 0 )
-			{
-				return output_myHexString;
-			}
-			else
-			{
-				throw std::runtime_error( "May be bytes to hexadecimal-string convertion has been failed ?" );
-			}
-		}
-
-		inline static std::vector<unsigned char> hexStringToBytes( const std::string& input_myHexString )
-		{
-			std::vector<unsigned char> outputData;
-			std::size_t					   hexStringSize = input_myHexString.size() + 1;
-			outputData.resize( hexStringSize );
-
-			for ( std::size_t count = 0; count < hexStringSize; count++ )
-			{
-				outputData[ count ] = 0x00;
-			}
-
-			std::vector<std::string> myStringVector;
-			std::string::size_type	 currPos = 0, prevPos = 0;
-
-			while ( ( currPos = input_myHexString.find( ' ', prevPos ) ) != std::string::npos )
-			{
-				std::string binaryString( input_myHexString.substr( prevPos, currPos - prevPos ) );
-				myStringVector.push_back( binaryString );
-				prevPos = currPos + 1;
-			}
-
-			while ( prevPos < input_myHexString.size() )
-			{
-				std::string binaryString( input_myHexString.substr( prevPos, 1 ) );
-				myStringVector.push_back( binaryString );
-				++prevPos;
-			}
-
-			std::vector<std::string>::size_type byteSize = myStringVector.size();
-			for ( std::vector<std::string>::size_type count = 0; count < byteSize; ++count )
-			{
-				int	 a = static_cast<unsigned int>( std::ref( myStringVector[ count ][ 0 ] ) );
-				int	 b = static_cast<unsigned int>( std::ref( myStringVector[ count ][ 1 ] ) );
-				char character_data = static_cast<char>( a * 16 + b );
-				outputData[ count ] = reinterpret_cast<unsigned char&>( character_data );
-			}
-
-			myStringVector.clear();
-			std::vector<std::string>().swap( myStringVector );
-
-			if ( outputData.size() > 0 || byteSize > 0 )
-			{
-				return outputData;
-			}
-			else
-			{
-				throw std::runtime_error( "May be hexadecimal-string to bytes convertion has been failed ?" );
-			}
 		}
 	}  // namespace ASCII_Hexadecmial
 

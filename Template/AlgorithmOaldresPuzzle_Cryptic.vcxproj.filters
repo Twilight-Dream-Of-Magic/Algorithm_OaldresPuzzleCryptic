@@ -1671,52 +1671,7 @@
     <ClInclude Include="include\CommonSecurity\SecureHashProvider\SecureHashProviderBase.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\GM_T-0005+2021.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\MonoBitFrequencyTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\FrequencyWithinBlockProtoTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\PokerTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\OverlappingTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\RunsTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\RunsDistributionTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\LongestRunOfOnesInABlockTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\BinaryDerivativeProtoTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\AutoCorrelationTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\MatrixRankTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\CumulativeSumsTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\ApproximateEntropyProtoTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\LinearComplexityTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\MaurerUniversalTest.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ChineseCryptographicStandard\DiscreteFourierTransformTest.hpp">
+    <ClInclude Include="include\CommonSecurity\OPC_PRNGs.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

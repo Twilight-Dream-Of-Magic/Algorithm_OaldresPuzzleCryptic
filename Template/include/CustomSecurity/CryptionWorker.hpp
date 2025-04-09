@@ -3535,8 +3535,6 @@ namespace Cryptograph
 
 					for ( std::size_t RoundCounter = 0; RoundCounter < 16; ++RoundCounter )
 					{
-						DoEncryptionDataBlock:
-
 						//L[0], R[0] --> L[N + 1], R[N + 1]
 						//K[0] --> K[N]
 						//正向应用RoundIndex (Index, KeyIndex) 和加密函数
@@ -3551,7 +3549,13 @@ namespace Cryptograph
 
 						if(KeyIndex < GeneratedRoundSubkeyVector.size())
 						{
-							goto DoEncryptionDataBlock;
+							for ( std::uint64_t Index = 0; Index < EachRoundDatas.size(); Index++ )
+							{
+								EachRoundDatas[Index] = this->LaiMasseyFramework<ThisExecuteMode>(EachRoundDatas[Index], GeneratedRoundSubkeyVector[KeyIndex]);
+
+								if(KeyIndex < GeneratedRoundSubkeyVector.size())
+									++KeyIndex;
+							}
 						}
 						else
 						{
@@ -3612,8 +3616,6 @@ namespace Cryptograph
 
 						CommonToolkit::MessagePacking<std::uint64_t, std::uint8_t>(BytesData, EachRoundDatas.data());
 
-						DoDecryptionDataBlock:
-
 						//L[N + 1], R[N + 1] --> L[0], R[0]
 						//K[N] --> K[0]
 						//反向应用RoundIndex (Index, KeyIndex) 和解密函数
@@ -3628,7 +3630,13 @@ namespace Cryptograph
 
 						if(KeyIndex - 1 > 0)
 						{
-							goto DoDecryptionDataBlock;
+							for ( std::uint64_t Index = EachRoundDatas.size(); Index > 0; Index-- )
+							{
+								EachRoundDatas[Index - 1] = this->LaiMasseyFramework<ThisExecuteMode>(EachRoundDatas[Index - 1], GeneratedRoundSubkeyVector[KeyIndex - 1]);
+
+								if(KeyIndex - 1 > 0)
+									--KeyIndex;
+							}
 						}
 						else
 						{

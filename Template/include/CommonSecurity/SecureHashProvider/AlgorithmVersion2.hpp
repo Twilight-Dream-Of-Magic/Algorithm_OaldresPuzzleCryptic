@@ -127,7 +127,7 @@ namespace CommonSecurity::SHA
 				// convert 128 bytes to 16 uint64(8bytes)
 				inline auto Byte128ToEightBytes( std::span< std::byte, Core::sha512BlockByteCount > chunkSpan )
 				{
-					std::array< CommonToolkit::EightByte, Core::sha512BlockByteCount / sizeof( CommonToolkit::EightByte ) > answer {};
+					std::array< CommonToolkit::EightByte, Core::sha512BlockByteCount / sizeof( CommonToolkit::EightByte ) > answer;
 					auto spanBegin = chunkSpan.begin();
 					for ( size_t index = 0; index < answer.size(); ++index )
 					{
@@ -170,6 +170,7 @@ namespace CommonSecurity::SHA
 				data.insert( data.end(), 8, static_cast< std::byte >( 0 ) );
 				auto lengthBytes = CommonToolkit::unpackInteger< decltype( data_size ) >( data_size * 8 );
 				data.insert( data.end(), lengthBytes.begin(), lengthBytes.end() );
+				return;
 			}
 
 			inline void StepInitialize()
@@ -182,30 +183,10 @@ namespace CommonSecurity::SHA
 				using namespace Core;
 				using namespace Core::Functions;
 
-				auto lambda_choose = []( CommonToolkit::EightByte e, CommonToolkit::EightByte f, CommonToolkit::EightByte g ) -> CommonToolkit::EightByte
-				{
-					return chooseHashCode( e, f, g );
-				};
-
-				auto lambda_sigmaE = []( CommonToolkit::EightByte e ) -> CommonToolkit::EightByte
-				{
-					return Sigma0( e );
-				};
-
-				auto lambda_sigmaA = []( CommonToolkit::EightByte a ) -> CommonToolkit::EightByte
-				{
-					return Sigma1( a );
-				};
-
-				auto lambda_majority = []( CommonToolkit::EightByte a, CommonToolkit::EightByte b, CommonToolkit::EightByte c ) -> CommonToolkit::EightByte
-				{
-					return majorityHashCode( a, b, c );
-				};
-
 				auto lambda_hashingRound = [ & ]( CommonToolkit::EightByte a, CommonToolkit::EightByte b, CommonToolkit::EightByte c, CommonToolkit::EightByte& d, CommonToolkit::EightByte e, CommonToolkit::EightByte f, CommonToolkit::EightByte g, CommonToolkit::EightByte& h, std::size_t count )
 				{
-					CommonToolkit::EightByte hashcode = h + lambda_choose( e, f, g ) + lambda_sigmaE( e ) + keys[ count ] + HASH_ROUND_CONSTANTS[ count ];
-					CommonToolkit::EightByte hashcode2 = lambda_sigmaA( a ) + lambda_majority( a, b, c );
+					CommonToolkit::EightByte hashcode = h + chooseHashCode( e, f, g ) + Sigma0( e ) + keys[ count ] + HASH_ROUND_CONSTANTS[ count ];
+					CommonToolkit::EightByte hashcode2 = Sigma1( a ) + majorityHashCode( a, b, c );
 					d += hashcode;
 					h = hashcode + hashcode2;
 				};
@@ -249,7 +230,7 @@ namespace CommonSecurity::SHA
 
 					// get 1024bits(128bytes) as chunk
 					std::span< std::byte, sha512BlockByteCount > chunkSpan{ blocks.begin() + loopCount, sha512BlockByteCount };
-					auto							words = Byte128ToEightBytes( chunkSpan );
+					auto							   words = Byte128ToEightBytes( chunkSpan );
 
 					// 1st-fill in keys[80]
 					// front 16 uint64 are from those 128bytes (16*8==128)

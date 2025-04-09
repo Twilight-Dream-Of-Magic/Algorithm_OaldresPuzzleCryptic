@@ -53,7 +53,16 @@
 */
 
 //#include <io.h>
+
+/* Do not change this include file order!!! */
+
 #include "../include/Support+Library/Support-Library.hpp"
+
+#include "../include/CommonToolkit/CPP2020_Concept.hpp"
+#include "../include/CommonToolkit/CommonToolkit.hpp"
+#include "../include/CommonToolkit/BytesExchangeInteger.hpp"
+
+#include "../include/UtilTools/UtilTools.hpp"
 
 #include <eigen/Eigen/Dense>
 #include <eigen/unsupported/Eigen/KroneckerProduct>
@@ -61,17 +70,11 @@
 
 #include "../include/CommonSecurity/CommonSecurity.hpp"
 
-#include "../include/CommonToolkit/CPP2020_Concept.hpp"
-#include "../include/CommonToolkit/CommonToolkit.hpp"
-#include "../include/CommonToolkit/BytesExchangeInteger.hpp"
-
-#include "../include/UtilTools/DataFormating.hpp"
-#include "../include/UtilTools/Base64Coder.hpp"
-
 #include "../include/CommonSecurity/SecureHashProvider/Hasher.hpp"
 #include "../include/CommonSecurity/KeyDerivationFunction/AlgorithmScrypt.hpp"
 
 #include "../include/CommonSecurity/SecureRandomUtilLibrary.hpp"
+#include "../include/CommonSecurity/OPC_PRNGs.hpp"
 
 #include "../include/CustomSecurity/CryptionWorker.hpp"
 
