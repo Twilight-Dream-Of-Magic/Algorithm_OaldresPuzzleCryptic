@@ -3339,19 +3339,12 @@ namespace CommonSecurity
 				//Binary polynomial data source : https://users.ece.cmu.edu/~koopman/lfsr/index.html
 				//x is 2, for example: x ^ 3 = 2 * 2 * 2;
 
-				/*
-					//Plan A:
-					
-					std::uint64_t linear_feed_back_register = state_value & 0x01;
-					state_value >>= 1; //state_value <<= 1;
-					if(linear_feed_back_register == 0x01)
-						state_value ^= polynomial
-					
-					//Plan B:
-
-					state_value >>= 1; //state_value <<= 1;
-					state_value ^= -(state_value & 0x01) & polynomial;
-				*/
+				auto feedback_function = [&state_number](uint64_t feedback) -> void
+				{
+					uint64_t lowest_bit = state_number & 0x01;    // 提取最低位
+					state_number >>= 1;                           // 右移
+					state_number ^= (~lowest_bit + 1) & feedback; // 如果最低位为1，则与 feedback 异或
+				};
 				
 				switch (irreducible_polynomial_count)
 				{
@@ -3359,8 +3352,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomial degree is 24
 						//x^23 + x^10 + x^9 + x^8 + x^6 + x^4 + x^3 + 1
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x80'0759ULL;
+						feedback_function(0x80'0759ULL);
 
 						break;
 					}
@@ -3368,8 +3360,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomial degree is 55
 						//x^54 - x^10 - x^9 - x^8 - x^7 - x^6 - x^5 - x^4 - x^3 - x^2
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x40'0000'0000'07FCULL;
+						feedback_function(0x40'0000'0000'07FCULL);
 
 						break;
 					}
@@ -3377,8 +3368,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomial degree is 48
 						//x^47 + x^11 + x^10 + x^8 + x^5 + x^4 + x^3 + 1
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x8000'0000'0D39ULL;
+						feedback_function(0x8000'0000'0D39ULL);
 
 						break;
 					}
@@ -3386,8 +3376,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomial degree is 31
 						//x^30 - x^9 - x^8 - x^7 - x^5 - x^4 - x^3 - x^2 - x - 1
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x4000'03BFULL;
+						feedback_function(0x4000'03BFULL);
 
 						break;
 					}
@@ -3395,8 +3384,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomial degree is 64
 						//x^63 + x^12 + x^9 + x^8 + x^5 + x^2
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x8000'0000'0000'1324ULL;
+						feedback_function(0x8000'0000'0000'1324ULL);
 
 						break;
 					}
@@ -3404,8 +3392,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomial degree is 27
 						//x^26 - x^10 - x^3 - x^2 - x - 1
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x400'040FULL;
+						feedback_function(0x400'040FULL);
 
 						break;
 					}
@@ -3413,8 +3400,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomialdegree is 7
 						//x^6 + 1
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x41ULL;
+						feedback_function(0x41ULL);
 
 						break;
 					}
@@ -3422,8 +3408,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomial degree is 16
 						//x^15 - x^10 - x^7 - x^5 - x^4 - x^3 - x^2 - x
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x84BEULL;
+						feedback_function(0x84BEULL);
 
 						break;
 					}
@@ -3431,8 +3416,7 @@ namespace CommonSecurity
 					{
 						//Primitive polynomial degree is 42
 						//x^41 + x^11 + x^10 + x^8 + x^6 + x^5 + x^4 + x^3 + x^2 + x
-						state_number >>= 1;
-						state_number ^= (~(state_number & 0x01) + 1) & 0x200'0000'0D7EULL;
+						feedback_function(0x200'0000'0D7EULL);
 
 						break;
 					}
