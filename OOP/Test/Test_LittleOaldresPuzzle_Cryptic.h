@@ -26,7 +26,8 @@
 #include <iostream>
 #include <chrono>
 
-#include "../StreamCipher/LittleOaldresPuzzle_Cryptic.h"
+// NOTE: keep include path consistent with current project layout
+#include "LittleOaldresPuzzle_Cryptic.h"
 
 namespace TwilightDreamOfMagical
 {

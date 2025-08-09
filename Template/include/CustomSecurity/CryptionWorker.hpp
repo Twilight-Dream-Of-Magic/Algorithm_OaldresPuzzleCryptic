@@ -26,6 +26,8 @@ namespace Cryptograph
 {
 	namespace OaldresPuzzle_Cryptic::Version1
 	{
+		static bool show_special_notice_message = true;
+
 		class XorConstantRotation
 		{
 			static constexpr std::array<std::uint64_t, 300> ROUND_CONSTANT
@@ -118,11 +120,15 @@ namespace Cryptograph
 					:
 					x(0), y(0), state(1), counter(0)
 			{
-				std::cout << "\nSpecial Notice\n";
-				std::cout << "The symmetric encryption and decryption algorithm (Type 1 StreamCipher) of the OaldresPuzzle_Cryptic (OPC) designed by Twilight-Dream.\n";
-				std::cout << "After calling the encryption function or decryption function, the key state inside the algorithm will change; This design is to deal with any possible brute force guess (including use quantum computer attack).\n";
-				std::cout << "If you have called the encryption function or decryption function, but want to restore your 'forward' operation.\n";
-				std::cout << "Please destroy the current instance and rebuild, then you can call the 'backward' operation function.\n";
+				if(show_special_notice_message)
+				{
+					std::cout << "\nSpecial Notice\n";
+					std::cout << "The symmetric encryption and decryption algorithm (Type 1 StreamCipher) of the OaldresPuzzle_Cryptic (OPC) designed by Twilight-Dream.\n";
+					std::cout << "After calling the encryption function or decryption function, the key state inside the algorithm will change; This design is to deal with any possible brute force guess (including use quantum computer attack).\n";
+					std::cout << "If you have called the encryption function or decryption function, but want to restore your 'forward' operation.\n";
+					std::cout << "Please destroy the current instance and rebuild, then you can call the 'backward' operation function.\n";
+				}
+				show_special_notice_message = false;
 
 				this->StateInitialize();
 			}
@@ -131,11 +137,15 @@ namespace Cryptograph
 					:
 					x(0), y(0), state(seed), counter(0)
 			{
-				std::cout << "\nSpecial Notice\n";
-				std::cout << "The symmetric encryption and decryption algorithm (Type 1 StreamCipher) of the OaldresPuzzle_Cryptic (OPC) designed by Twilight-Dream.\n";
-				std::cout << "After calling the encryption function or decryption function, the key state inside the algorithm will change; This design is to deal with any possible brute force guess (including use quantum computer attack).\n";
-				std::cout << "If you have called the encryption function or decryption function, but want to restore your 'forward' operation.\n";
-				std::cout << "Please destroy the current instance and rebuild, then you can call the 'backward' operation function.\n";
+				if(show_special_notice_message)
+				{
+					std::cout << "\nSpecial Notice\n";
+					std::cout << "The symmetric encryption and decryption algorithm (Type 1 StreamCipher) of the OaldresPuzzle_Cryptic (OPC) designed by Twilight-Dream.\n";
+					std::cout << "After calling the encryption function or decryption function, the key state inside the algorithm will change; This design is to deal with any possible brute force guess (including use quantum computer attack).\n";
+					std::cout << "If you have called the encryption function or decryption function, but want to restore your 'forward' operation.\n";
+					std::cout << "Please destroy the current instance and rebuild, then you can call the 'backward' operation function.\n";
+				}
+				show_special_notice_message = false;
 
 				this->StateInitialize();
 			}

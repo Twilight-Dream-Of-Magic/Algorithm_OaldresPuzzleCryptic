@@ -24,6 +24,7 @@
 #define ALGORITHM_OALDRESPUZZLE_CRYPTIC_LITTLEOALDRESPUZZLE_CRYPTIC_HPP
 
 #include <vector>
+#include <utility>
 #include <random>
 #include "XorConstantRotation.h"
 
@@ -36,6 +37,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 	//SymmetricEncryptionDecryption
 	namespace SED::StreamCipher
 	{
+		using Key128   = std::pair<std::uint64_t, std::uint64_t>;   // 128-bit key
+		using Block128 = std::pair<std::uint64_t, std::uint64_t>;   // 128-bit block
+
 		class LittleOaldresPuzzle_Cryptic
 		{
 
@@ -63,21 +67,21 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				
 			}
 
-			std::uint64_t SingleRoundEncryption(const std::uint64_t data, const std::uint64_t key, const std::uint64_t number_once)
+			Block128 SingleRoundEncryption(const Block128 data, const Key128 key, const std::uint64_t number_once)
 			{
-				std::uint64_t result = EncryptionCoreFunction(data, key, number_once);
+				Block128 result = EncryptionCoreFunction(data, key, number_once);
 				prng.Seed(seed);
 				return result;
 			}
 
-			std::uint64_t SingleRoundDecryption(const std::uint64_t data, const std::uint64_t key, const std::uint64_t number_once)
+			Block128 SingleRoundDecryption(const Block128 data, const Key128 key, const std::uint64_t number_once)
 			{
-				std::uint64_t result = DecryptionCoreFunction(data, key, number_once);
+				Block128 result = DecryptionCoreFunction(data, key, number_once);
 				prng.Seed(seed);
 				return result;
 			}
 
-			void MultipleRoundsEncryption(const std::vector<std::uint64_t>& data_array, std::vector<std::uint64_t>& keys, std::vector<std::uint64_t>& result_data_array)
+			void MultipleRoundsEncryption(const std::vector<Block128>& data_array, std::vector<Key128>& keys, std::vector<Block128>& result_data_array)
 			{
 				// Ensure result_data_array is of the same size as data_array
 				if(data_array.empty())
@@ -108,7 +112,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				ResetPRNG();
 			}
 
-			void MultipleRoundsDecryption(const std::vector<std::uint64_t>& data_array, std::vector<std::uint64_t>& keys, std::vector<std::uint64_t>& result_data_array)
+			void MultipleRoundsDecryption(const std::vector<Block128>& data_array, std::vector<Key128>& keys, std::vector<Block128>& result_data_array)
 			{
 				// Ensure result_data_array is of the same size as data_array
 				if(data_array.empty())
@@ -139,20 +143,21 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				ResetPRNG();
 			}
 
-			std::vector<std::uint64_t> GenerateSubkey_WithUseEncryption(const std::uint64_t key, std::uint64_t loop_count)
+			std::vector<Block128> GenerateSubkey_WithUseEncryption(const Key128 key, std::uint64_t loop_count)
 			{
-				std::uint64_t subkey = 0;
-				std::vector<std::uint64_t> subkeys(loop_count, 0);
+				Key128 subkey {0,0};
+				Key128 buffer {0,0};
+				std::vector<Key128> subkeys(loop_count, {0,0});
 
-				std::mt19937_64 cpp_prng(key ^ loop_count);
-				std::uint64_t number_once = 0;
+				std::mt19937_64 cpp_prng(key.first ^ key.second ^ loop_count);
+				Block128 number_once {0,0};
 
 				//NumberOnce/CounterMode
 				for(std::uint64_t counter = 0; counter < loop_count; ++counter)
 				{
-					number_once = cpp_prng() + cpp_prng();
-					subkey ^= EncryptionCoreFunction(number_once, key, counter);
-					subkeys[counter] = subkey;
+					number_once = {cpp_prng(), cpp_prng()};
+					buffer = EncryptionCoreFunction(number_once, key, counter);
+					subkeys[counter] = {subkey.first ^ buffer.first, subkey.second ^ buffer.second};
 				}
 				
 				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
@@ -161,20 +166,21 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				return subkeys;
 			}
 
-			std::vector<std::uint64_t> GenerateSubkey_WithUseDecryption(const std::uint64_t key, std::uint64_t loop_count)
+			std::vector<Block128> GenerateSubkey_WithUseDecryption(const Key128 key, std::uint64_t loop_count)
 			{
-				std::uint64_t subkey = 0;
-				std::vector<std::uint64_t> subkeys(loop_count, 0);
+				Key128 subkey {0,0};
+				Key128 buffer {0,0};
+				std::vector<Key128> subkeys(loop_count, {0,0});
 
-				std::mt19937_64 cpp_prng(key ^ loop_count);
-				std::uint64_t number_once = 0;
+				std::mt19937_64 cpp_prng(key.first ^ key.second ^ loop_count);
+				Block128 number_once {0,0};
 
 				//NumberOnce/CounterMode
 				for(std::uint64_t counter = 0; counter < loop_count; ++counter)
 				{
-					number_once = cpp_prng() + cpp_prng();
-					subkey ^= DecryptionCoreFunction(number_once, key, counter);
-					subkeys[counter] = subkey;
+					number_once = {cpp_prng(), cpp_prng()};
+					buffer = DecryptionCoreFunction(number_once, key, counter);
+					subkeys[counter] = {subkey.first ^ buffer.first, subkey.second ^ buffer.second};
 				}
 				
 				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
@@ -202,7 +208,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			
 			struct KeyState
 			{
-				std::uint64_t subkey = 0;
+				Key128 subkey{0,0};
 				std::uint64_t choice_function = 0;
 				std::uint64_t bit_rotation_amount_a = 0;
 				std::uint64_t bit_rotation_amount_b = 0;
@@ -211,10 +217,10 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 			std::vector<KeyState> KeyStates;
 			
-			void GenerateAndStoreKeyStates(const std::uint64_t key, const std::uint64_t number_once);
+			void GenerateAndStoreKeyStates(const Key128 key_128bit, const std::uint64_t number_once);
 
-			std::uint64_t EncryptionCoreFunction(const std::uint64_t data, const std::uint64_t key, const std::uint64_t round);
-			std::uint64_t DecryptionCoreFunction(const std::uint64_t data, const std::uint64_t key, const std::uint64_t round);
+			Block128 EncryptionCoreFunction(const Block128 data, const Key128 key_128bit, const std::uint64_t round);
+			Block128 DecryptionCoreFunction(const Block128 data, const Key128 key_128bit, const std::uint64_t round);
 		};
 	}
 

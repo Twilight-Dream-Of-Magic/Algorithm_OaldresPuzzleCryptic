@@ -23,29 +23,92 @@
 #ifndef ALGORITHM_OALDRESPUZZLECRYPTIC_WRAPPER_LITTLEOALDRESPUZZLE_CRYPTIC_H
 #define ALGORITHM_OALDRESPUZZLECRYPTIC_WRAPPER_LITTLEOALDRESPUZZLE_CRYPTIC_H
 
-#include <stdint.h>
+/*
+ * C API v2 for LittleOaldresPuzzle_Cryptic
+ * - Switched to 128-bit block/key (two uint64_t fields).
+ * - Exposes single-round and multi-round operations.
+ * - Subkey generators return heap arrays; free with LittleOPC_FreeBlocks.
+ */
+
+#include <stddef.h>   // size_t
+#include <stdint.h>   // uint64_t
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-	//OPC LittleOaldresPuzzle_Cryptic
+// Opaque instance handle
+typedef void* LittleOPC_Instance;
 
-	typedef void* LittleOPC_Instance;
+// 128-bit block and key (two 64-bit lanes)
+typedef struct {
+    uint64_t first;
+    uint64_t second;
+} LittleOPC_Block128;
 
-	LittleOPC_Instance New_LittleOPC(uint64_t seed);
-	void Delete_LittleOPC(LittleOPC_Instance cryptic);
-	uint64_t LittleOPC_SingleRoundEncryption(LittleOPC_Instance cryptic, uint64_t data, uint64_t key, uint64_t round);
-	uint64_t LittleOPC_SingleRoundDecryption(LittleOPC_Instance cryptic, uint64_t data, uint64_t key, uint64_t round);
-	void LittleOPC_MultipleRoundsEncryption(LittleOPC_Instance cryptic, uint64_t* data_array, size_t size, uint64_t* keys, uint64_t* result_data_array);
-	void LittleOPC_MultipleRoundsDecryption(LittleOPC_Instance cryptic, uint64_t* data_array, size_t size, uint64_t* keys, uint64_t* result_data_array);
-	uint64_t* LittleOPC_GenerateSubkeyWithEncryption(LittleOPC_Instance cryptic, uint64_t key, uint64_t loop_count);
-	uint64_t* LittleOPC_GenerateSubkeyWithDecryption(LittleOPC_Instance cryptic, uint64_t key, uint64_t loop_count);
-	void LittleOPC_ResetPRNG(LittleOPC_Instance cryptic);
+typedef struct {
+    uint64_t first;
+    uint64_t second;
+} LittleOPC_Key128;
+
+// Lifecycle
+LittleOPC_Instance LittleOPC_New(uint64_t seed);
+void LittleOPC_Delete(LittleOPC_Instance cryptic);
+void LittleOPC_ResetPRNG(LittleOPC_Instance cryptic);
+
+// Single-round ("number_once" plays role similar to a nonce/counter for that round)
+LittleOPC_Block128 LittleOPC_SingleRoundEncryption(
+    LittleOPC_Instance cryptic,
+    LittleOPC_Block128 data,
+    LittleOPC_Key128 key,
+    uint64_t number_once);
+
+LittleOPC_Block128 LittleOPC_SingleRoundDecryption(
+    LittleOPC_Instance cryptic,
+    LittleOPC_Block128 data,
+    LittleOPC_Key128 key,
+    uint64_t number_once);
+
+// Multi-round over arrays of blocks/keys
+// keys_count may be 1 (single key) or more; implementation will use all provided keys.
+void LittleOPC_MultipleRoundsEncryption(
+    LittleOPC_Instance cryptic,
+    const LittleOPC_Block128* data_array,
+    size_t data_count,
+    const LittleOPC_Key128* keys_array,
+    size_t keys_count,
+    LittleOPC_Block128* result_data_array);
+
+void LittleOPC_MultipleRoundsDecryption(
+    LittleOPC_Instance cryptic,
+    const LittleOPC_Block128* data_array,
+    size_t data_count,
+    const LittleOPC_Key128* keys_array,
+    size_t keys_count,
+    LittleOPC_Block128* result_data_array);
+
+// Subkey generation (returns heap array of length loop_count). Free with LittleOPC_FreeBlocks.
+LittleOPC_Block128* LittleOPC_GenerateSubkeyWithEncryption(
+    LittleOPC_Instance cryptic,
+    LittleOPC_Key128 key,
+    uint64_t loop_count);
+
+LittleOPC_Block128* LittleOPC_GenerateSubkeyWithDecryption(
+    LittleOPC_Instance cryptic,
+    LittleOPC_Key128 key,
+    uint64_t loop_count);
+
+// Deallocate arrays returned by the subkey generators
+void LittleOPC_FreeBlocks(LittleOPC_Block128* ptr);
+
+// ---- Backward-compat convenience (macro aliases) ----
+// Keep old constructor/destructor names mapping to v2 naming.
+#define New_LittleOPC(seed)            LittleOPC_New((seed))
+#define Delete_LittleOPC(inst)         LittleOPC_Delete((inst))
+#define LittleOPC_ResetPRNG_v1(inst)   LittleOPC_ResetPRNG((inst))
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //ALGORITHM_OALDRESPUZZLECRYPTIC_WRAPPER_LITTLEOALDRESPUZZLE_CRYPTIC_H
+#endif // ALGORITHM_OALDRESPUZZLECRYPTIC_WRAPPER_LITTLEOALDRESPUZZLE_CRYPTIC_H

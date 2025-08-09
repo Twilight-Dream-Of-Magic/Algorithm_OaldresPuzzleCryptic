@@ -1,19 +1,20 @@
-# Twilight-Dream-Of-Magic/Algorithm_OaldresPuzzleCryptic
+# Twilight-Dream-Of-Magic/Algorithm\_OaldresPuzzleCryptic
+
+> **Note**: This update only adjusts **Type 1 (XCR / LOPC)** wording and interfaces to match the current code. **Type 2 content is kept as-is** per your request.
 
 # English
 
-This is a symmetric encryption and decryption library based on C++. It provides two types of algorithms, namely stream/cipher algorithms (Type 1) and block/group cipher algorithms (Type 2). The project evolved from a previous C++ template project and has now adopted an object-oriented programming paradigm, with non-essential elements trimmed away. In addition, it also accommodates a C_API for ease of use with other languages.
+This is a symmetric encryption and decryption library based on C++. It provides two types of algorithms, namely stream/cipher algorithms (Type 1) and block/group cipher algorithms (Type 2). The project evolved from a previous C++ template project and has now adopted an object-oriented programming paradigm, with non-essential elements trimmed away. In addition, it also accommodates a C\_API for ease of use with other languages.
 
 ## Features and Technical Details
 
-- ** Type 1**: Stream/cipher algorithms XCR CSPRNG, offering exceptionally high speed and catering to modern needs. The algorithm has passed randomness tests like [NIST](%5BType%201%5D%20NIST/NIST%20Test%20Result%20Data%20And%20Experiment.md), China GM/T 0005-2021, and PractRand.
+* **Type 1**: Stream/cipher algorithms **XCR CSPRNG** + **LOPC** (LittleOaldresPuzzle\_Cryptic) core, offering high speed. It has passed randomness tests like [NIST](%5BType%201%5D%20NIST/NIST%20Test%20Result%20Data%20And%20Experiment.md), China GM/T 0005-2021, and PractRand.
 
+  It utilizes a structure similar to Addition–Rotation–XOR and blends several mathematical irrational constants to derive **deterministic, reproducible per‑round constants** (see the Python script under `StreamCipher/GenerateAndDisplay_XorConstantRotation_RoundConstant.py`). Type 1 uses a **128‑bit block and key** (two `uint64_t` lanes) and relies on the **Cryptographically Secure Pseudorandom Number Generator (CSPRNG) XCR – XorConstantRotation** to drive the internal state and subkey material.
 
-It utilizes a structure similar to Addition-Rotation-Bitwise Exclusive-Or, and blends various mathematical irrational numbers, generating constants with a wide range of variations for each round. This makes for an extremely nonlinear boolean function, $f(x) = (e^x - \cos(\pi x)) \times (\phi x^2 - \phi x - 1) \times (\sqrt[2]{2x} - \lfloor \sqrt[2]{2x} \rfloor) \times (\sqrt[2]{3x} - \lfloor \sqrt[2]{3x} \rfloor) \times \ln(1 + x) \times (x\delta - \lfloor x\delta \rfloor) \times (x\rho - \lfloor x\rho \rfloor)$. LittleOaldresPuzzle_Cryptic(Type 1 lightweight cryptography block cipher) relies on the Cryptographically Secure Pseudorandom Number Generator (CSPRNG) XCR - XorConstantRotation.
+* **Type 2**: Block/group cipher algorithms, slower in speed but incredibly secure, capable of withstanding future demands. They are impervious to any brute force attack methods, whether it's quantum computing, exhaustive search, or differential cryptanalysis.
 
-- ** Type 2**: Block/group cipher algorithms, slower in speed but incredibly secure, capable of withstanding future demands. They are impervious to any brute force attack methods, whether it's quantum computing, exhaustive search, or differential cryptanalysis.
-
-The encryption/decryption part of block ciphers adopts the Lai–Massey scheme structure, similar to the Byte Substitution Box of Rijndael algorithm (AES), but with a different polynomial ($x^8 + x^5 + x^4 + x^3 + x^2 + x + 1$) as modulus number. The key generation part is a massive module involving linear algebra's Kronecker product, multiplication, and addition; akin to Ajtai's one-way function. It uses a custom sponge structure hash function (internally uses CSPRNG ISAAC64+ algorithm at initialization, seed is 1946379852749613 --- 0110111010100011100011011111101110001001101100101101). The project features a self-designed Non-Linear Feedback Shift Register (NLFSR), a Linear Feedback Shift Register (LFSR) built using a polynomial of at least 128 bits ($x^{128} + x^{41} + x^{39} + x + 1$), and a secure pseudorandom number generator constructed using a simulated chaotic system of double pendulum oscillations (SDP). It also modifies the Chinese ZUC stream cipher algorithm (initialization function uses LFSR, NLFSR, SDP, then Byte Substitution Box becomes dynamically generated, will use LineSegmentTree); and a self-designed bit reorganization function. Overall, the block cipher's key generation algorithm can be divided into two abstract functions, one for generating subkeys, and the other for generating round subkeys. The former is a massive confusion layer, and the latter is a massive diffusion layer.
+  The encryption/decryption part of block ciphers adopts the Lai–Massey scheme structure, similar to the Byte Substitution Box of Rijndael algorithm (AES), but with a different polynomial (\$x^8 + x^5 + x^4 + x^3 + x^2 + x + 1\$) as modulus number. The key generation part is a massive module involving linear algebra's Kronecker product, multiplication, and addition; akin to Ajtai's one-way function. It uses a custom sponge structure hash function (internally uses CSPRNG ISAAC64+ algorithm at initialization, seed is 1946379852749613 --- 0110111010100011100011011111101110001001101100101101). The project features a self-designed Non-Linear Feedback Shift Register (NLFSR), a Linear Feedback Shift Register (LFSR) built using a polynomial of at least 128 bits (\$x^{128} + x^{41} + x^{39} + x + 1\$), and a secure pseudorandom number generator constructed using a simulated chaotic system of double pendulum oscillations (SDP). It also modifies the Chinese ZUC stream cipher algorithm (initialization function uses LFSR, NLFSR, SDP, then Byte Substitution Box becomes dynamically generated, will use LineSegmentTree); and a self-designed bit reorganization function. Overall, the block cipher's key generation algorithm can be divided into two abstract functions, one for generating subkeys, and the other for generating round subkeys. The former is a massive confusion layer, and the latter is a massive diffusion layer.
 
 More technical details can be found in the `TechnicalDetailPapers` folder.
 
@@ -22,6 +23,7 @@ More technical details can be found in the `TechnicalDetailPapers` folder.
 Before compiling the project, you may need to adjust the `main.cpp` file based on the specific tests or features you want to enable. Here's how you can do it:
 
 ### Step 1: Open `main.cpp`
+
 Open the `main.cpp` file in your preferred text editor or IDE.
 
 ### Step 2: Choose Your Compilation Mode
@@ -29,22 +31,28 @@ Open the `main.cpp` file in your preferred text editor or IDE.
 The project supports multiple compilation modes, controlled by specific macro definitions. Depending on what you want to test or use, uncomment one of the following lines at the top of `main.cpp`:
 
 1. **Library Test Mode**:
-   - This mode compiles the program with C API wrappers, making it suitable for testing or exposing functions to other projects.
-   - Uncomment the following line:
+
+   * This mode compiles the program with C API wrappers, making it suitable for testing or exposing functions to other projects.
+   * Uncomment the following line:
+
      ```cpp
      #define IS_LIBRARY_TEST
      ```
 
 2. **Binary Test Mode for `LittleOaldresPuzzle_Cryptic`**:
-   - Use this mode if you want to run unit tests specific to the `LittleOaldresPuzzle_Cryptic` implementation.
-   - Uncomment the following line:
+
+   * Use this mode if you want to run unit tests specific to the `LittleOaldresPuzzle_Cryptic` implementation.
+   * Uncomment the following line:
+
      ```cpp
      #define IS_BINARY_TEST_LITTLEOPC
      ```
 
 3. **Binary Test Mode for `OaldresPuzzle_Cryptic`**:
-   - This mode runs unit tests for the `OaldresPuzzle_Cryptic` implementation, focusing on cryptographic functions with random data.
-   - Uncomment the following line:
+
+   * This mode runs unit tests for the `OaldresPuzzle_Cryptic` implementation, focusing on cryptographic functions with random data.
+   * Uncomment the following line:
+
      ```cpp
      #define IS_BINARY_TEST_OPC
      ```
@@ -77,32 +85,31 @@ This project supports three compilers: Clang, G++, and MSVC. It uses CMake as a 
 Here are the general steps to build the project with CMake (a CMakeLists.txt script file must be present):
 
 1. Create and enter the build directory (for example: mkdir build && cd build).
-Run CMake to generate the build system (for example: cmake ..).
+   Run CMake to generate the build system (for example: cmake ..).
 2. Compile according to the generated build system (for example: for Unix systems, you can directly use the make command).
 3. Please note that this project uses the C++20 standard, so the compiler must support C++20. If the compiler version you are using does not support C++20, then the compilation will fail.
 
-Although all implementations of this project are in C++ .hpp and .cpp files, the C_API remains unchanged. If you are a C language user, you only need to take the compiled library and use the pure C language .h header files.
+Although all implementations of this project are in C++ .hpp and .cpp files, the C\_API remains unchanged. If you are a C language user, you only need to take the compiled library and use the pure C language .h header files.
 
 ## Notes
+
 After each encryption or decryption operation using this C API, the internal state will change, much like executing the RunUnit function used in main.cpp. Therefore, we need to destroy the current instance and rebuild, then replace that instance. The C++ class implementation of the Type 1 algorithm automatically performs this operation, no manual action is required from the user. The C API function's C++ implementation of the Type 2 algorithm has also automatically performed this operation, no manual action is required from the user.
 
 # Chinese
 
 这是一个基于C++的对称加密和解密算法库。
 它提供了两种类型的算法，即流/序列密码算法（Type 1）和块/分组密码算法（Type 2）。
-这个项目是从以前的C++模板项目改造而来，现在已经采用了面向对象的编程范式，并且去掉了和算法设计不相关的东西。同时，也适配了C_API，方便其他语言调用。
+这个项目是从以前的C++模板项目改造而来，现在已经采用了面向对象的编程范式，并且去掉了和算法设计不相关的东西。同时，也适配了C\_API，方便其他语言调用。
 
 ## 特性和技术细节
 
-- **Type 1**：流/序列的密码算法 XCR CSPRNG，具有极高速度，适应现代需求，通过了[NIST](%5BType%201%5D%20NIST/NIST%20Test%20Result%20Data%20And%20Experiment.md)，GM/T 0005-2021，PractRand的随机性测试。
+* **Type 1**：流/序列的密码算法 **XCR CSPRNG + LOPC**，具有较高速度，适应现代需求，通过了[NIST](%5BType%201%5D%20NIST/NIST%20Test%20Result%20Data%20And%20Experiment.md)，GM/T 0005-2021，PractRand的随机性测试。
 
-采用了类似于Addition-Rotation-Bitwise Exclusive-Or的结构，并混合各种数学无理数，生成的大范围幅度变化的常数，每一轮获取不同的常数。使得构造了一个极高非线性的布尔函数。
-$f(x) = (e^x - \cos(\pi x)) \times (\phi x^2 - \phi x - 1) \times (\sqrt[2]{2x} - \lfloor \sqrt[2]{2x} \rfloor) \times (\sqrt[2]{3x} - \lfloor \sqrt[2]{3x} \rfloor) \times \ln(1 + x) \times (x\delta - \lfloor x\delta \rfloor) \times (x\rho - \lfloor x\rho \rfloor)$
-制作了XCR - XorConstantRotation 密码学安全伪随机数生成器(CSPRNG)，LittleOaldresPuzzle_Cryptic(Type 1 轻量级密码学块密码器)算法依赖了它。
+  采用了类似于 Addition–Rotation–XOR 的结构，并混合多种数学常数，通过脚本可复现每轮常量（`StreamCipher/GenerateAndDisplay_XorConstantRotation_RoundConstant.py`）。**Type 1 现为 128‑bit 块与密钥**（两个 `uint64_t` 车道），内部由 **XCR – XorConstantRotation** 的 CSPRNG 驱动状态与子密钥。
 
-- **Type 2**：块/分组密码算法，速度较慢，但是安全性极高，适应未来需求，无论使用何种暴力破解方法，如量子计算机，穷举搜索或差分，都无法破解。
+* **Type 2**：块/分组密码算法，速度较慢，但是安全性极高，适应未来需求，无论使用何种暴力破解方法，如量子计算机，穷举搜索或差分，都无法破解。
 
-分组密码的加密解密算法部分采用Lai–Massey scheme架构，并类似于Rijndael算法(AES)同样原理的字节替换盒，但我选择了不同多项式($x^8 + x^5 + x^4 + x^3 + x^2 + x + 1$)作为模数。密钥生成算法部分是一个非常巨大的模块，涉及到了线性代数的Kronecker product，乘法和加法；类似于Ajtai's 的单向函数，使用了自主设计的海绵结构的哈希函数(初始化时内部使用CSPRNG ISAAC64+算法，种子是1946379852749613 --- 0110111010100011100011011111101110001001101100101101)。自主设计的非线性反馈移位寄存器(NLFSR)；使用了一个至少为128比特的多项式($x^{128} + x^{41} + x^{39} + x + 1$)构建的线性反馈移位寄存器(LFSR)；使用了双段摆锤的现象模拟的混沌系统(SDP)，构造的安全伪随机数生成器；修改了中国的ZUC流密码算法(初始化函数使用LFSR、我的NLFSR、SDP然后字节替换盒变成了动态生成，会使用LineSegmentTree)；自主设计的比特重组函数；模拟伽罗瓦(2^64)有限域非线性乘法的Bitwise-XOR扩散层。总体而言，分组密码的密钥生成算法可以分为两个抽象的函数，一个是生成子密钥，一个是生成子轮密钥，前一个函数是巨大的混淆层，后一个函数是巨大的扩散层。
+  分组密码的加密解密算法部分采用Lai–Massey scheme架构，并类似于Rijndael算法(AES)同样原理的字节替换盒，但我选择了不同多项式(\$x^8 + x^5 + x^4 + x^3 + x^2 + x + 1\$)作为模数。密钥生成算法部分是一个非常巨大的模块，涉及到了线性代数的Kronecker product，乘法和加法；类似于Ajtai's 的单向函数，使用了自主设计的海绵结构的哈希函数(初始化时内部使用CSPRNG ISAAC64+算法，种子是1946379852749613 --- 0110111010100011100011011111101110001001101100101101)。自主设计的非线性反馈移位寄存器(NLFSR)；使用了一个至少为128比特的多项式(\$x^{128} + x^{41} + x^{39} + x + 1\$)构建的线性反馈移位寄存器(LFSR)；使用了双段摆锤的现象模拟的混沌系统(SDP)，构造的安全伪随机数生成器；修改了中国的ZUC流密码算法(初始化函数使用LFSR、我的NLFSR、SDP然后字节替换盒变成了动态生成，会使用LineSegmentTree)；自主设计的比特重组函数；模拟伽罗瓦(2^64)有限域非线性乘法的Bitwise-XOR扩散层。总体而言，分组密码的密钥生成算法可以分为两个抽象的函数，一个是生成子密钥，一个是生成子轮密钥，前一个函数是巨大的混淆层，后一个函数是巨大的扩散层。
 
 更多技术细节见`TechnicalDetailPapers`文件夹的内容。
 
@@ -123,7 +130,7 @@ $f(x) = (e^x - \cos(\pi x)) \times (\phi x^2 - \phi x - 1) \times (\sqrt[2]{2x} 
 ## 注意事项
 
 在使用这个C API每次进行加密或解密操作之后，因为内部状态会发生改变，就像执行main.cpp使用的`RunUnit`函数一样，所以我们需要销毁当前的实例并重新构建，然后替换掉那个实例。
-Type 1算法我们的C++ 类的实现自动执行了这个操作，无需用户手动进行
+Type 1算法我们的C++ 类的实现自动执行了这个操作，无需用户手动进行。
 Type 2算法我们的C API函数的C++ 实现已经自动执行了这个操作，无需用户手动进行。
 
 # English and Chinese
@@ -222,102 +229,110 @@ int main()
 Here are 2 examples of encryption and decryption in C using Type 1 and Type 2 algorithms (Visual C++):
 以下是2个C语言使用Type 1和Type 2算法进行加密和解密的例子 (Visual C++):
 ```c
-#include "Wrapper_LittleOaldresPuzzle_Cryptic.h" //This c header file is in the repository (这个c头文件在仓库)
+#include "Wrapper_LittleOaldresPuzzle_Cryptic.h"  // C API v2 (128-bit block/key)
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
-#include <assert.h>
+#include <inttypes.h>
 
-// I provide c++ code that can be compiled cross-platform, and then you compile your own static libraries
-// 我提供了可以跨平台编译的c++代码，然后你自己编译的静态库
+// Link the static lib on MSVC (optional for GCC/Clang)
 #pragma comment(lib, "Algorithm_OaldresPuzzleCryptic.lib")
 
-void TestLittleOPC()
+// -------- helpers --------
+static void print_block(const char* label, LittleOPC_Block128 b)
 {
-	// Create LittleOPC Instance
-	// 创建 LittleOPC 实例
-	LittleOPC_Instance cryptic = New_LittleOPC(12345);
-
-	// Perform a single round of encryption and decryption tests
-	// 进行单轮加密和解密测试
-	uint64_t data = 0x123456789abcdef0;
-	uint64_t key = 0xdeadbeef;
-	uint64_t round = 1;
-
-	uint64_t encrypted = LittleOPC_SingleRoundEncryption(cryptic, data, key, round);
-	uint64_t decrypted = LittleOPC_SingleRoundDecryption(cryptic, encrypted, key, round);
-
-	printf("Original Data: 0x%llx\n", data);
-	printf("Encrypted Data: 0x%llx\n", encrypted);
-	printf("Decrypted Data: 0x%llx\n", decrypted);
-	printf("\n");
-
-	// Perform multiple rounds of encryption and decryption tests
-	// 进行多轮加密和解密测试
-	static const size_t size = 3;
-	uint64_t data_array[] = {0x123456789abcdef0, 0xdeadbeefdeadbeef, 0xfacefacefaceface};
-	uint64_t keys[] = {0x1111111111111111, 0x2222222222222222, 0x3333333333333333};
-	uint64_t result_data_array[3];
-
-	LittleOPC_MultipleRoundsEncryption(cryptic, data_array, size, keys, result_data_array);
-
-	printf("Original Data Array:\n");
-	for (int i = 0; i < size; i++) {
-		printf("0x%llx ", data_array[i]);
-	}
-	printf("\n");
-
-	printf("Encrypted Data Array:\n");
-	for (int i = 0; i < size; i++) {
-		printf("0x%llx ", result_data_array[i]);
-	}
-	printf("\n");
-
-	LittleOPC_MultipleRoundsDecryption(cryptic, result_data_array, size, keys, result_data_array);
-
-	printf("Decrypted Data Array:\n");
-	for (int i = 0; i < size; i++) {
-		printf("0x%llx ", result_data_array[i]);
-	}
-	printf("\n");
-
-	// Generate subkey test
-	// 生成子密钥测试
-	uint64_t* subkey_encryption = LittleOPC_GenerateSubkeyWithEncryption(cryptic, key, 10);
-	uint64_t* subkey_decryption = LittleOPC_GenerateSubkeyWithDecryption(cryptic, key, 10);
-
-	printf("Encryption Subkeys:\n");
-	for (int i = 0; i < 10; i++) {
-		printf("0x%llx ", subkey_encryption[i]);
-	}
-	printf("\n");
-
-	printf("Decryption Subkeys:\n");
-	for (int i = 0; i < 10; i++) {
-		printf("0x%llx ", subkey_decryption[i]);
-	}
-	printf("\n");
-
-	// Reset PRNG state
-	// 重置 PRNG 状态
-	LittleOPC_ResetPRNG(cryptic);
-
-	// Delete LittleOPC Instance
-	// 删除 LittleOPC 实例
-	Delete_LittleOPC(cryptic);
+    printf("%s: 0x%016" PRIx64 "%016" PRIx64 "\n", label, b.first, b.second);
+}
+static void print_key(const char* label, LittleOPC_Key128 k)
+{
+    printf("%s: 0x%016" PRIx64 "%016" PRIx64 "\n", label, k.first, k.second);
 }
 
-int main()
+int main(void)
 {
-	TestLittleOPC();
-	return 0;
+    // 1) Create instance (seed can be any 64-bit value)
+    LittleOPC_Instance ctx = LittleOPC_New(12345ULL);
+
+    // ---------------- single-round API ----------------
+    LittleOPC_Block128 pt  = { 0x123456789ABCDEF0ULL, 0x0FEDCBA987654321ULL };
+    LittleOPC_Key128   key = { 0xDEADBEEFCAFEBABEULL, 0x0123456789ABCDEFULL };
+    uint64_t           number_once = 1;  // plays like a per-round counter/nonce
+
+    print_block("PT", pt);
+    print_key  ("K ", key);
+
+    LittleOPC_Block128 ct = LittleOPC_SingleRoundEncryption(ctx, pt, key, number_once);
+    LittleOPC_Block128 rt = LittleOPC_SingleRoundDecryption(ctx, ct, key, number_once);
+
+    print_block("CT", ct);
+    print_block("RT", rt);
+    puts("");
+
+    // ---------------- multi-round (array) API ----------------
+    const size_t N = 3, M = 2; // N blocks, M keys
+    LittleOPC_Block128 in[N] = {
+        { 0x1111111111111111ULL, 0x2222222222222222ULL },
+        { 0x3333333333333333ULL, 0x4444444444444444ULL },
+        { 0x5555555555555555ULL, 0x6666666666666666ULL },
+    };
+    LittleOPC_Key128   ks[M] = {
+        { 0xAAAAAAAAAAAAAAAAULL, 0xBBBBBBBBBBBBBBBBULL },
+        { 0xCCCCCCCCCCCCCCCCULL, 0xDDDDDDDDDDDDDDDDULL },
+    };
+    LittleOPC_Block128 out[N];
+
+    LittleOPC_MultipleRoundsEncryption(ctx, in, N, ks, M, out);
+
+    puts("Array encrypt → decrypt test:");
+    for (size_t i = 0; i < N; ++i) {
+        printf("  i=%zu  ", i);
+        print_block("in ", in[i]);
+        printf("          ");
+        print_block("enc", out[i]);
+    }
+
+    // decrypt back into `in` (reuse buffer)
+    LittleOPC_MultipleRoundsDecryption(ctx, out, N, ks, M, in);
+    for (size_t i = 0; i < N; ++i) {
+        printf("  i=%zu  ", i);
+        print_block("dec", in[i]);
+    }
+    puts("");
+
+    // ---------------- subkey generation ----------------
+    const uint64_t L = 5; // how many subkeys
+    LittleOPC_Block128* subs_enc = LittleOPC_GenerateSubkeyWithEncryption(ctx, key, L);
+    LittleOPC_Block128* subs_dec = LittleOPC_GenerateSubkeyWithDecryption(ctx, key, L);
+
+    puts("Subkeys (enc):");
+    for (uint64_t i = 0; i < L; ++i) {
+        char tag[32];
+        snprintf(tag, sizeof(tag), "SKe[%" PRIu64 "]", i);
+        print_block(tag, subs_enc[i]);
+    }
+    puts("Subkeys (dec):");
+    for (uint64_t i = 0; i < L; ++i) {
+        char tag[32];
+        snprintf(tag, sizeof(tag), "SKd[%" PRIu64 "]", i);
+        print_block(tag, subs_dec[i]);
+    }
+
+    LittleOPC_FreeBlocks(subs_enc);
+    LittleOPC_FreeBlocks(subs_dec);
+
+    // Optionally reset PRNG state between batches
+    LittleOPC_ResetPRNG(ctx);
+
+    // 2) Destroy instance
+    LittleOPC_Delete(ctx);
+
+    return 0;
 }
 ```
 
 ```c
-#include "Wrapper_LittleOaldresPuzzle_Cryptic.h" //This c header file is in the repository (这个c头文件在仓库)
+#include "Wrapper_OaldresPuzzle_Cryptic.h" //This c header file is in the repository (这个c头文件在仓库)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -454,6 +469,156 @@ int main()
 	return 0;
 }
 ```
+
+# Type 1 (XCR + LOPC) — What changed and why
+
+> Focus: **algorithm & math** and **engineering pitfalls**. (C API changes are documented elsewhere.)
+
+---
+
+## TL;DR — Big changes
+
+* **True 128‑bit design**: blocks and keys are now two 64‑bit lanes \$(x\_0, x\_1)\$ with diagonal mixing in the round path. This removes the old “64+64 concatenation” ambiguity and improves cross‑lane diffusion.
+* **XCR as the driving CSPRNG**: the XorConstantRotation core deterministically produces per‑round material (constants/keystream), with constants **reproducible** from a Python script (high‑precision \$e,,\pi,,\varphi,,\sqrt2,,\sqrt3,,\gamma,,\delta,,\rho\$). Same constants on any machine ⇒ easier review.
+* **Unified ARX model**: every `+ rc` is modeled as a **true modular addition** (with carries), not a free XOR. This aligns the code with the math used for security bounds.
+* **Non‑resonant rotations**: odd rotation counts are chosen in the key/seed mixing to avoid angle resonance with the ARX box (e.g. \$1,13\$ vs. \$8,16,24,31,17\$ used elsewhere). Intent: broaden the spectrum of active bits across lanes.
+
+---
+
+## Math snapshot (bounds, not claims)
+
+We separate **worst‑case upper bounds** from **empirical averages**.
+
+### Carry‑chain upper bound for modular addition
+
+Let a 32‑bit modular addition be \$c = a \boxplus b\$. For input/output differences \$(\alpha,\beta,\gamma)\$ define the carry constraint operator \$\Psi\$ (bitwise):
+
+$$
+\Psi(\alpha,\beta,\gamma) = (\neg \alpha \oplus \beta) \;\wedge\; (\neg \alpha \oplus \gamma),
+$$
+
+where \$\wedge\$ and \$\oplus\$ are AND/XOR over \$\mathbb F\_2\$ (bitwise). The **per‑add** differential propagation probability is upper‑bounded by
+
+$$
+\Pr[\alpha,\beta \xrightarrow{\boxplus} \gamma] \;\le\; 2^{-\omega}, \qquad \omega = \mathrm{wt}\big(\Psi(\alpha,\beta,\gamma)\; \bmod 2^{31}\big),
+$$
+
+with the usual **low‑31‑bit** convention for carries. This applies **equally** when one operand is a round constant (i.e. `a + rc`).
+
+### From single box to one round
+
+Let \$w\_{\min}\$ be the **worst‑case** (over all 1‑bit input differences and all constants) Hamming‑weight bound returned by SMT/MILP for the S‑box output difference. If the linear layer between two S‑boxes has branch number \$d\$ (empirically \$d\ge 2\$), then by piling‑up:
+
+$$
+\boxed{\quad p_{\max}^{(\text{round})} \;\le\; \big(2^{-w_{\min}}\big)^{d+2} \quad}
+$$
+
+(“\$+2\$” comes from the two explicit S‑boxes in the round; \$d\$ more are forced by diffusion.)
+
+For \$R\$ rounds with independent trail choices:
+
+$$
+\boxed{\quad p_{\max}^{(\text{cipher})} \;\le\; 2^{-\,w_{\min}\,(d+2)\,R} \quad}
+$$
+
+> **Note**: We keep \$w\_{\min}\$ as a symbol; numbers can be re‑filled as the SMT/MILP model evolves. Empirical averages (e.g., `avg_same_bit`, `avg_cross_bit`) are **sanity checks**, not bounds.
+
+### Linear snapshot (for context)
+
+XOR/rot/constant injection are linear over \$(\mathbb F\_2^{32})^2\$; biases originate at additions. With a single‑add maximal bias \$|c\_{\max}|=2^{-\ell}\$ (empirical search suggests \$\ell\approx 9\$ for 1‑bit masks), piling‑up yields
+
+$$
+|C_{\max}^{(\text{cipher})}|\;\le\; 2^{-\,\ell\,(d+2)\,R}.
+$$
+
+Again, keep \$\ell\$ symbolic until the exhaustive LAT is finished.
+
+---
+
+## Why diagonal lane mixing?
+
+Let the 128‑bit state be \$(x\_0,x\_1)\$ and the temporary words inside the ARX box be \$w\_0,\dots,w\_3\$. Pairing lanes diagonally, e.g. \$(w\_0,w\_2)\$ and \$(w\_1,w\_3)\$, reduces the chance that a low‑weight trail stays confined to a single 64‑bit lane. Intuitively all active bits must “cross the aisle” at least every other step, raising the effective number of active boxes per round.
+
+---
+
+## XCR constant generation (reproducibility)
+
+Constants are derived as fractional‑hex expansions from several irrational sources:
+
+* take high‑precision decimals via `mpmath` (\$\text{mp.dps}=100\$),
+* form deterministic combinations (documented in the script),
+* truncate/pack into 32/64‑bit limbs, output as hex.
+
+> Result: **same constants on any platform**, enabling reviewers to rebuild the tables, diff them, and reproduce test logs.
+
+---
+
+## Engineering notes — pitfalls we hit (and fixes)
+
+1. **State semantics & determinism**
+   Single‑shot vs. batch executions can subtly diverge if the PRNG state isn’t restored. We enforce: *single-round calls leave the PRNG as if seeded; batch calls reset at the end.* This makes unit tests reproducible and prevents accidental keystream drift.
+
+2. **Endianness & packing**
+   128‑bit values are carried as two `uint64_t` lanes. We fixed pack/unpack so that printing, file I/O, and cross‑platform tests agree. Always print with `PRIx64` and avoid UB‑prone casts.
+
+3. **Rotation resonance**
+   Some rotation pairs can cancel each other on specific bit‑patterns. Using **odd** angles in seed/key mixing (e.g. \$1,13\$) avoids resonance with round angles (\$8,16,24,31,17,\dots\$) and helps disperse carries.
+
+4. **Constant‑time behavior**
+   ARX primitives are constant‑time by construction, but we audited for data‑dependent branches in helpers (mix/ghash‑like ops). No table lookups; only shifts, adds, XORs, rotations.
+
+5. **Fuzzing & long‑run tests**
+   PractRand/GM/T/NIST runs are scripted. Remember: they **don’t prove** cryptographic strength—only spot statistical anomalies. Keep them as CI sanity checks.
+
+6. **Solver modeling gotchas**
+   Early prototypes “XOR‑ed” constants or pinned input bits, which **over‑estimated** resistance. The current SMT/MILP model:
+
+   * treats every `+ rc` as true add, same carry constraints;
+   * doesn’t lock output bits; searches **worst‑case** \$w\_{\min}\$ across constants;
+   * reports averages as auxiliary metrics only.
+
+7. **Threading**
+   Instances are not implicitly thread‑safe; share keystreams explicitly or isolate per‑thread instances. Seed collision can make tests look deterministic but hide data races.
+
+---
+
+## What to publish (now) vs. later
+
+* **Now**
+
+  * Full description of XCR/LOPC round structure and constants provenance.
+  * The **unified** carry‑chain model and how \$w\_{\min}\$ is obtained (procedure, not numbers).
+  * Reproducible test harness and logs.
+
+* **Later**
+
+  * A cleaned, compact proof package (possibly in Lean4):
+
+    * lemmas that rotations/XOR preserve differential weight;
+    * the carry‑chain upper bound as a theorem;
+    * wide‑trail bound for the chosen diffusion matrix.
+  * Exhaustive LAT for 32‑bit masks and multi‑round MILP blocks.
+
+---
+
+## “Do / Don’t” for contributors
+
+* **Do**: use the Python generator when changing constants; re‑run long tests; commit seeds/logs.
+* **Do**: keep `+ rc` as add in any model; avoid pinning input/output bits when searching worst cases.
+* **Do**: report both \$(w\_{\min},,d,,R)\$ and the symbolic bounds, not just Monte‑Carlo averages.
+* **Don’t**: draw security conclusions from PractRand/NIST alone.
+* **Don’t**: conflate single‑round averages with cipher‑level bounds.
+
+---
+
+## Open questions
+
+* Final choice of rotation set for seed/key mixing (keep odd/odd; verify no hidden resonance under the linear layer).
+* Minimum guaranteed branch number \$d\$ under all key/nonce patterns.
+* Target round count \$R\$ once the revised \$w\_{\min}\$ settles.
+* Whether to ship a minimal Lean4 artifact with the repo (recommended).
+
+
 
 ---
 
