@@ -157,60 +157,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 			return product;
 		}
-
-		// --- 32-bit Binary Pseudo-Hadamard Transform ---
-		// Forward  : a' = a ^ b;  b' = a ^ (b << 1)
-		// Inverse  : b  = (I ⊕ S)^{-1}(a'^b')  via broadword prefix-xor;  a = a' ^ b
-
-		static inline void mix( uint32_t& a, uint32_t& b )
-		{
-			uint32_t ap = a ^ b;
-			uint32_t bp = a ^ ( b << 1 );  // 零扩展左移，截断到 32 位
-			a = ap;
-			b = bp;
-		}
-
-		static inline void unmix( uint32_t& a, uint32_t& b )
-		{
-			// c = a' ^ b' = b ^ (b << 1)  = (I ⊕ S) b
-			uint32_t c = a ^ b;
-
-			// b = (I ⊕ S)^{-1} c = (I ⊕ S ⊕ S^2 ⊕ S^3 ⊕ S^4 ⊕ S^5) c
-			uint32_t bb = c;
-			bb ^= bb << 1;
-			bb ^= bb << 2;
-			bb ^= bb << 4;
-			bb ^= bb << 8;
-			bb ^= bb << 16;
-
-			uint32_t aa = a ^ bb;  // a = a' ^ b
-			a = aa;
-			b = bb;
-		}
-
-		// --- 64-bit Binary Pseudo-Hadamard Transform（如需 64 位词宽） ---
-		static inline void mix( uint64_t& a, uint64_t& b )
-		{
-			uint64_t ap = a ^ b;
-			uint64_t bp = a ^ ( b << 1 );
-			a = ap;
-			b = bp;
-		}
-
-		static inline void unmix( uint64_t& a, uint64_t& b )
-		{
-			uint64_t c = a ^ b;
-			uint64_t bb = c;
-			bb ^= bb << 1;
-			bb ^= bb << 2;
-			bb ^= bb << 4;
-			bb ^= bb << 8;
-			bb ^= bb << 16;
-			bb ^= bb << 32;
-			uint64_t aa = a ^ bb;
-			a = aa;
-			b = bb;
-		}
 		
 		// 生成所有轮次密钥状态的方法
 		void LittleOaldresPuzzle_Cryptic::GenerateAndStoreKeyStates( const Key128 key, const std::uint64_t number_once )
@@ -413,14 +359,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				/* Keyed Switching Layer - MixLinearTransform (Forward) */
 				MixLinearTransform_Forward(lane0, lane1, current_key_state);
 
-				unpack64( lane0, w0, w1 );
-				unpack64( lane1, w2, w3 );
-				/* Keyed Switching Layer - Binary Pseudo-Hadamard Transform */
-				mix( w0, w1 );
-				mix( w2, w3 );
-				lane0 = pack64( w0, w1 );
-				lane1 = pack64( w2, w3 );
-
 				/*  Keyed Switching Layer - Random Bit Tweak (Nonlinear)(Forward) */
 				lane0 ^= ( uint64_t( 1 ) << current_key_state.bit_rotation_amount_a );
 				lane1 ^= ( uint64_t( 1 ) << ( 63 - current_key_state.bit_rotation_amount_a ) );
@@ -472,14 +410,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				/* Keyed Switching Layer^{-1} - Random Bit Tweak (Nonlinear)(Backward) */
 				lane0 ^= ( uint64_t( 1 ) << current_key_state.bit_rotation_amount_a );
 				lane1 ^= ( uint64_t( 1 ) << ( 63 - current_key_state.bit_rotation_amount_a ) );
-
-				unpack64( lane0, w0, w1 );
-				unpack64( lane1, w2, w3 );
-				/* Keyed Switching Layer^{-1} - Undo Binary Pseudo-Hadamard Transform */
-				unmix( w2, w3 );
-				unmix( w0, w1 );
-				lane0 = pack64( w0, w1 );
-				lane1 = pack64( w2, w3 );
 
 				/* Keyed Switching Layer^{-1} - MixLinearTransform (Backward) */
 				MixLinearTransform_Backward(lane0, lane1, current_key_state);
