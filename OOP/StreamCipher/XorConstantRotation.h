@@ -46,7 +46,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 		
 			XorConstantRotation()
 					:
-					x(0), y(0), state(1), counter(0)
+					x(0), y(0), z(0), state(1), counter(0)
 			{
 				if(show_special_notice_message)
 				{
@@ -63,7 +63,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 			explicit XorConstantRotation(const std::uint64_t seed)
 					:
-					x(0), y(0), state(seed), counter(0)
+					x(0), y(0), z(0), state(seed), counter(0)
 			{
 				if(show_special_notice_message)
 				{
@@ -79,7 +79,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			}
 
 			XorConstantRotation(const XorConstantRotation& other)
-				: x(other.x), y(other.y), state(other.state), counter(other.counter)
+				: x(other.x), y(other.y), z(other.z), state(other.state), counter(other.counter)
 			{
 				
 			};
@@ -89,15 +89,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			{
 				x = 0;
 				y = 0;
+				z = 0;
 				state = seed;
-
-				this->StateInitialize();
-			}
-
-			void ChangeCondition(const std::uint64_t value)
-			{
-				x = value;
-				y = 0;
 
 				this->StateInitialize();
 			}
@@ -125,6 +118,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 		private:
 			std::uint64_t x = 0;
 			std::uint64_t y = 0;
+			std::uint64_t z = 0;
 			std::uint64_t state = 0;
 			std::uint64_t counter = 0;
 

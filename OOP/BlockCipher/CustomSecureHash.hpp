@@ -83,7 +83,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				const std::uint64_t BITWORDS_CAPACITY = BYTES_CAPACITY / sizeof(std::uint64_t);
 
 				static constexpr std::uint8_t PAD_BYTE_DATA = 0b00000001;
-				static constexpr std::uint64_t PAD_BITSWORD_DATA = 0b0000000100000001000000010000000100000001000000010000000100000001;
+				static constexpr std::uint64_t PAD_BITSWORD_DATA = 0b0000000000000000000000000000000000000000000000000000000000000001;
 
 				std::vector<std::uint64_t> BitsHashState = std::vector<std::uint64_t>(BITS_STATE_SIZE / std::numeric_limits<std::uint64_t>::digits, 0);
 
@@ -175,125 +175,171 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					using TwilightDreamOfMagical::BaseOperation::rotate_left;
 					using TwilightDreamOfMagical::BaseOperation::rotate_right;
 
-					std::vector<std::uint64_t> StateBuffer(BITS_STATE_SIZE / std::numeric_limits<std::uint64_t>::digits / 2, 0);
-					std::vector<std::uint64_t> StateBuffer2(BITS_STATE_SIZE / std::numeric_limits<std::uint64_t>::digits / 2, 0);
-					std::vector<std::uint64_t> StateBuffer3(BITS_STATE_SIZE / std::numeric_limits<std::uint64_t>::digits / 2, 0);
+					const std::size_t W = this->BitsHashState.size();   // 全状态词数
+					if (W == 0 || Counter == 0) 
+						return;
+					const std::size_t H = W / 2;                        // 半状态词数
 
-					for(std::size_t RoundIndex = BitsHashState.size() - 1 - Counter; RoundIndex < BitsHashState.size(); ++RoundIndex)
+					std::vector<std::uint64_t> StateBuffer(W, 0);
+					std::vector<std::uint64_t> StateBuffer2(W, 0);
+					std::vector<std::uint64_t> StateBuffer3(W, 0);
+
+					for (std::size_t RoundIndex = 0; RoundIndex < Counter; ++RoundIndex)
 					{
-						//Step 1
-						while(StateCurrentCounter % BitsHashState.size() != 0)
+						// Step 1: 哈希状态混合
+						for (std::size_t i = 0; i < H; ++i)
 						{
-							StateBuffer[StateCurrentCounter % StateBuffer.size()] = BitsHashState[StateCurrentCounter % BitsHashState.size()] ^ BitsHashState[(StateCurrentCounter + 1) % BitsHashState.size()];
-							++StateCurrentCounter;
-							StateBuffer[StateCurrentCounter % StateBuffer.size()] = BitsHashState[(StateCurrentCounter + 2) % BitsHashState.size()] ^ BitsHashState[(StateCurrentCounter + 3) % BitsHashState.size()];
-							++StateCurrentCounter;
+							const std::size_t a0 = (2*i)     % W;
+							const std::size_t a1 = (2*i + 1) % W;
+							const std::size_t a2 = (2*i + 2) % W;
+							const std::size_t a3 = (2*i + 3) % W;
+
+							StateBuffer[i]     = this->BitsHashState[a0] ^ this->BitsHashState[a1];
+							StateBuffer[i + H] = this->BitsHashState[a2] ^ this->BitsHashState[a3];
 						}
 
-						//Step 2
-						for(std::size_t StateBufferIndex = 0; StateBufferIndex < BITS_STATE_SIZE / std::numeric_limits<std::uint64_t>::digits / 2; ++StateBufferIndex)
+						// Step 2: 线性函数
+						for (std::size_t i = 0; i < H; ++i)
 						{
-							StateBuffer2[StateBufferIndex] = StateBuffer[RightRotatedStateBufferIndices[StateBufferIndex]] ^ rotate_right(StateBuffer[LeftRotatedStateBufferIndices[StateBufferIndex]], 1);
+							const std::size_t li = static_cast<std::size_t>(this->LeftRotatedStateBufferIndices[i]);
+							const std::size_t ri = static_cast<std::size_t>(this->RightRotatedStateBufferIndices[i]);
+
+							StateBuffer2[i]     = StateBuffer[ri]       ^ rotate_right(StateBuffer[li], 1);
+							StateBuffer2[i + H] = StateBuffer[ri + H]   ^ rotate_right(StateBuffer[li + H], 1);
 						}
 
-						//Step 3
-						StateBuffer3[0] = BitsHashState[0] ^ StateBuffer2[0];
+						// Step 3: 比特伪随机置换（P）
+						StateBuffer3[0] = this->BitsHashState[0] ^ StateBuffer2[0];
 
-						for(std::size_t StateBufferIndex = 1; StateBufferIndex < StateBuffer3.size(); ++StateBufferIndex)
+						for (std::size_t i = 1; i < W; ++i)
 						{
-							StateBuffer3[HashStateIndices[StateBufferIndex]] = rotate_right(BitsHashState[StateBufferIndex] ^ StateBuffer2[StateBufferIndex % StateBuffer2.size()], MoveBitCounts[StateCurrentCounter % MoveBitCounts.size()]);
-							++StateCurrentCounter;
+							const std::size_t source = static_cast<std::size_t>(this->HashStateIndices[i % H]);
+							const std::size_t target  = (i < H) ? source : (source + H);
+
+							const std::uint32_t rot =
+								this->MoveBitCounts[this->StateCurrentCounter % this->MoveBitCounts.size()];
+
+							StateBuffer3[target] = rotate_right(this->BitsHashState[i] ^ StateBuffer2[i], rot);
+							++this->StateCurrentCounter;
 						}
 
-						//Step 4
-						for(std::size_t StateBufferIndex = 0; StateBufferIndex < StateBuffer3.size(); ++StateBufferIndex)
+						// Step 4: 非线性函数（χ 型）
+						for (std::size_t i = 0; i < W; ++i)
 						{
-							BitsHashState[StateBufferIndex] = StateBuffer3[StateBufferIndex] ^ ( ~(StateBuffer3[(StateBufferIndex + 1) % StateBuffer3.size()]) & StateBuffer3[(StateBufferIndex + 2) % StateBuffer3.size()] );
+							const std::uint64_t x = StateBuffer3[i];
+							const std::uint64_t y = StateBuffer3[(i + 1) % W];
+							const std::uint64_t z = StateBuffer3[(i + 2) % W];
+							this->BitsHashState[i] = x ^ ((~y) & z);
 						}
 
-						//Step 5
-						BitsHashState[0] ^= HASH_ROUND_CONSTANTS[RoundIndex % HASH_ROUND_CONSTANTS.size()];
-						BitsHashState[BitsHashState.size() - 1] ^= HASH_ROUND_CONSTANTS[(HASH_ROUND_CONSTANTS.size() - 1 - RoundIndex) % HASH_ROUND_CONSTANTS.size()];
+						// Step 5: 常量注入（保持你原来的双端异或）
+						this->BitsHashState[0]     ^= HASH_ROUND_CONSTANTS[RoundIndex % HASH_ROUND_CONSTANTS.size()];
+						this->BitsHashState[W - 1] ^= HASH_ROUND_CONSTANTS[(HASH_ROUND_CONSTANTS.size() - 1 - RoundIndex) % HASH_ROUND_CONSTANTS.size()];
 					}
 				}
 
-				void AbsorbInputData(std::span<const std::uint8_t> ByteDatas)
+				// ---------- [private:] 复用缓冲（不在声明处用 BITWORDS_RATE/ BYTES_RATE 做 NSDMI，避免依赖顺序隐患） ----------
+				std::vector<std::uint64_t> io_words_;  // size = BITWORDS_RATE
+				std::vector<std::uint8_t>  io_bytes_;  // size = BYTES_RATE
+
+				// ---------- [public:/private:] 吸收（字节版） ----------
+				void AbsorbInputData(std::span<const std::uint8_t> input_bytes)
 				{
 					using CommonToolkit::IntegerExchangeBytes::MessagePacking;
 
-					std::vector<std::uint64_t> BitWords(ByteDatas.size() / sizeof(std::uint64_t), 0);
+					my_cpp2020_assert(this->BYTES_RATE == this->BITWORDS_RATE * sizeof(std::uint64_t),
+						"Sponge rate geometry mismatch (BYTES_RATE vs BITWORDS_RATE).",
+						std::source_location::current());
+					my_cpp2020_assert(input_bytes.size() % this->BYTES_RATE == 0,
+						"AbsorbInputData(byte) expects rate-aligned input. Do padding in SpongeHash().",
+						std::source_location::current());
 
-					MessagePacking<std::uint64_t, std::uint8_t>(ByteDatas, BitWords.data());
-
-					for(std::uint64_t InputBytesIndex = 0, OutputBytesIndex = 0; OutputBytesIndex < BitWords.size(); ++InputBytesIndex, ++OutputBytesIndex)
+					for (std::size_t off = 0; off < input_bytes.size(); off += this->BYTES_RATE)
 					{
-						if(InputBytesIndex >= BITWORDS_RATE)
-							InputBytesIndex = 0;
-						BitsHashState[InputBytesIndex] ^= BitWords[OutputBytesIndex];
+						std::span<const std::uint8_t> chunk{ input_bytes.data() + off, static_cast<std::size_t>(this->BYTES_RATE) };
 
-						//状态排列和变换(信息熵池搅拌)
-						//State permutation and transformation (string of information entropy pool)
-						this->TransfromState(BitsHashState.size());
+						// 当前块字节 → u64（写入类内 io_words_）
+						MessagePacking<std::uint64_t, std::uint8_t>(chunk, this->io_words_.data());
+
+						// XOR 到 rate 槽
+						for (std::size_t w = 0; w < static_cast<std::size_t>(this->BITWORDS_RATE); ++w)
+							this->BitsHashState[w] ^= this->io_words_[w];
+
+						// 块结束搅拌
+						this->TransfromState(this->BitsHashState.size());
 					}
 
-					memory_set_no_optimize_function<0x00>(BitWords.data(), BitWords.size() * sizeof(std::uint64_t));
+					// 擦缓冲
+					memory_set_no_optimize_function<0x00>(this->io_words_.data(),
+														  this->io_words_.size() * sizeof(std::uint64_t));
 				}
 
-				void AbsorbInputData(std::span<const std::uint64_t> BitWordDatas)
+				// ---------- 吸收（u64 版） ----------
+				void AbsorbInputData(std::span<const std::uint64_t> input_words)
 				{
-					for(std::uint64_t InputBitsIndex = 0, OutputBitsIndex = 0; OutputBitsIndex < BitWordDatas.size(); ++InputBitsIndex, ++OutputBitsIndex)
-					{
-						if(InputBitsIndex >= BITWORDS_RATE)
-							InputBitsIndex = 0;
-						BitsHashState[InputBitsIndex] ^= BitWordDatas[OutputBitsIndex];
+					my_cpp2020_assert(input_words.size() % this->BITWORDS_RATE == 0,
+						"AbsorbInputData(u64) expects rate-aligned input. Pad outside in SpongeHash().",
+						std::source_location::current());
 
-						//状态排列和变换(信息熵池搅拌)
-						//State permutation and transformation (string of information entropy pool)
-						this->TransfromState(BitsHashState.size());
+					for (std::size_t i = 0; i < input_words.size(); i += static_cast<std::size_t>(this->BITWORDS_RATE))
+					{
+						for (std::size_t w = 0; w < static_cast<std::size_t>(this->BITWORDS_RATE); ++w)
+							this->BitsHashState[w] ^= input_words[i + w];
+
+						this->TransfromState(this->BitsHashState.size());
 					}
 				}
 
-				void SqueezeOutputData(std::span<std::uint8_t> ByteDatas)
+				// ---------- 挤出（字节版） ----------
+				void SqueezeOutputData(std::span<std::uint8_t> output_bytes)
 				{
 					using CommonToolkit::IntegerExchangeBytes::MessageUnpacking;
 
-					std::vector<std::uint64_t> BitWords(HashBitSize / std::numeric_limits<std::uint64_t>::digits, 0);
-					
-					size_t BitsIndexOffest = 0;
-					
-					for(std::uint64_t BitsIndex = 0; BitsIndex < BitWords.size(); ++BitsIndex)
+					std::size_t remaining = output_bytes.size();
+					std::size_t out_off   = 0;
+
+					while (remaining > 0)
 					{
-						BitWords[BitsIndex] = BitsHashState[BitsIndexOffest];
-						
-						if(BitsIndexOffest >= BITWORDS_RATE)
-						{
-							//状态排列和变换(信息熵池搅拌)
-							//State permutation and transformation (string of information entropy pool)
-							this->TransfromState(BitsHashState.size());
-							
-							BitsIndexOffest = 0;
-						}
+						// 从状态的 rate 槽抓一块到 io_words_
+						for (std::size_t w = 0; w < static_cast<std::size_t>(this->BITWORDS_RATE); ++w)
+							this->io_words_[w] = this->BitsHashState[w];
+
+						// 拆成字节到 io_bytes_
+						MessageUnpacking<std::uint64_t, std::uint8_t>(this->io_words_, this->io_bytes_.data());
+
+						const std::size_t emit = std::min<std::size_t>(static_cast<std::size_t>(this->BYTES_RATE), remaining);
+						std::memcpy(output_bytes.data() + out_off, this->io_bytes_.data(), emit);
+
+						out_off   += emit;
+						remaining -= emit;
+
+						if (remaining > 0)
+							this->TransfromState(this->BitsHashState.size());
 					}
 
-					MessageUnpacking<std::uint64_t, std::uint8_t>(BitWords, ByteDatas.data());
+					// 擦缓冲
+					memory_set_no_optimize_function<0x00>(this->io_words_.data(),
+														  this->io_words_.size() * sizeof(std::uint64_t));
+					memory_set_no_optimize_function<0x00>(this->io_bytes_.data(),
+														  this->io_bytes_.size());
 				}
 
-				void SqueezeOutputData(std::span<std::uint64_t> WordDatas)
+				// ---------- 挤出（u64 版） ----------
+				void SqueezeOutputData(std::span<std::uint64_t> output_words)
 				{
-					size_t BitsIndexOffest = 0;
-				
-					for(std::uint64_t BitsIndex = 0; BitsIndex < (HashBitSize / std::numeric_limits<std::uint64_t>::digits); ++BitsIndex)
+					std::size_t produced = 0;
+					while (produced < output_words.size())
 					{
-						WordDatas[BitsIndex] = BitsHashState[BitsIndexOffest];
-						
-						if(BitsIndexOffest >= BITWORDS_RATE)
-						{
-							//状态排列和变换(信息熵池搅拌)
-							//State permutation and transformation (string of information entropy pool)
-							this->TransfromState(BitsHashState.size());
-							
-							BitsIndexOffest = 0;
-						}
+						const std::size_t take =
+							std::min(static_cast<std::size_t>(this->BITWORDS_RATE), output_words.size() - produced);
+
+						for (std::size_t w = 0; w < take; ++w)
+							output_words[produced + w] = this->BitsHashState[w];
+
+						produced += take;
+
+						if (produced < output_words.size())
+							this->TransfromState(this->BitsHashState.size());
 					}
 				}
 
@@ -322,67 +368,43 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					return TestData;
 				}
 
-				void SpongeHash
-				(
-					std::span<const std::uint8_t> InputData,
-					std::span<std::uint8_t> OuputData
-				)
+				// ---------- SpongeHash（字节版）：pad = 1 后补 0 到整块 ----------
+				void SpongeHash(std::span<const std::uint8_t> InputData,
+								std::span<std::uint8_t> OuputData)
 				{
 					std::vector<std::uint8_t> BlockDataBuffer(InputData.begin(), InputData.end());
 
-					//填充数据和吸收数据阶段
-					//Pad data and Absorbing data stage
-					if(BlockDataBuffer.size() % BYTES_RATE != 0)
+					if (BlockDataBuffer.size() % this->BYTES_RATE != 0)
 					{
-						for(std::size_t PadCount = 0; PadCount < BlockDataBuffer.size() % BYTES_RATE; ++PadCount)
-						{
-							BlockDataBuffer.push_back(PAD_BYTE_DATA);
-						}
+						const std::size_t need = static_cast<std::size_t>(this->BYTES_RATE) - (BlockDataBuffer.size() % this->BYTES_RATE);
+						BlockDataBuffer.push_back(this->PAD_BYTE_DATA);                // 1
+						BlockDataBuffer.resize(BlockDataBuffer.size() + need - 1, 0x00); //0*
 					}
-					this->AbsorbInputData(BlockDataBuffer);
 
-					//挤压数据阶段
-					//squeeze data stage
+					this->AbsorbInputData(BlockDataBuffer);
 					this->SqueezeOutputData(OuputData);
 
 					memory_set_no_optimize_function<0x00>(BlockDataBuffer.data(), BlockDataBuffer.size());
-
-					//如果已经生成哈希摘要数据，就必须把当前状态全部重置和清理
-					//如果不重置和清理，你将会影响哈希函数的质量
-					//If the hash summary data has been generated, the current state must be completely reset and cleaned up.
-					//If you don't reset and clean, you will affect the quality of the hash function
 					this->Reset();
 				}
 
-				void SpongeHash
-				(
-					std::span<const std::uint64_t> InputData,
-					std::span<std::uint64_t> OuputData
-				)
+				// ---------- SpongeHash（u64 版）：pad = 1 后补 0 到整块 ----------
+				void SpongeHash(std::span<const std::uint64_t> InputData,
+								std::span<std::uint64_t> OuputData)
 				{
 					std::vector<std::uint64_t> BlockDataBuffer(InputData.begin(), InputData.end());
 
-					//填充数据和吸收数据阶段
-					//Pad data and Absorbing data stage
-					if(BlockDataBuffer.size() % BITWORDS_RATE != 0)
+					if (BlockDataBuffer.size() % this->BITWORDS_RATE != 0)
 					{
-						for(std::size_t PadCount = 0; PadCount < BlockDataBuffer.size() % BYTES_RATE; ++PadCount)
-						{
-							BlockDataBuffer.push_back(PAD_BITSWORD_DATA);
-						}
+						const std::size_t need = static_cast<std::size_t>(this->BITWORDS_RATE) - (BlockDataBuffer.size() % this->BITWORDS_RATE);
+						BlockDataBuffer.push_back(this->PAD_BITSWORD_DATA);             // 1
+						BlockDataBuffer.resize(BlockDataBuffer.size() + need - 1, 0x00); //0*
 					}
-					this->AbsorbInputData(BlockDataBuffer);
 
-					//挤压数据阶段
-					//squeeze data stage
+					this->AbsorbInputData(BlockDataBuffer);
 					this->SqueezeOutputData(OuputData);
 
 					memory_set_no_optimize_function<0x00>(BlockDataBuffer.data(), BlockDataBuffer.size() * sizeof(std::uint64_t));
-
-					//如果已经生成哈希摘要数据，就必须把当前状态全部重置和清理
-					//如果不重置和清理，你将会影响哈希函数的质量
-					//If the hash summary data has been generated, the current state must be completely reset and cleaned up.
-					//If you don't reset and clean, you will affect the quality of the hash function
 					this->Reset();
 				}
 
@@ -404,6 +426,10 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 					std::ranges::rotate_copy(StateBufferIndices.begin(), StateBufferIndices.begin() + 1, StateBufferIndices.end(), LeftRotatedStateBufferIndices.begin());
 					std::ranges::rotate_copy(StateBufferIndices.begin(), StateBufferIndices.end() - 1, StateBufferIndices.end(), RightRotatedStateBufferIndices.begin());
+
+					// io 缓冲按当前 rate 分配一次，后续复用
+					this->io_words_.assign(static_cast<std::size_t>(this->BITWORDS_RATE), 0);
+					this->io_bytes_.assign(static_cast<std::size_t>(this->BYTES_RATE),   0);
 				}
 
 				~CustomSecureHash() = default;

@@ -13,122 +13,202 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			隐秘的奥尔德雷斯之谜 (类型 1)
 		*/
 
-		constexpr std::array<std::uint32_t, 16> ROUND_CONSTANT
-		{ 
-			//1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181 (Fibonacci numbers)
-			//Concatenation of Fibonacci numbers : 123581321345589144233377610987159725844181
-			//Hexadecimal : 16b2c40bc117176a0f9a2598a1563aca6d5
-			0x16B2C40B, 0xC117176A, 0x0F9A2598, 0xA1563ACA,
-
-			/*
-					Mathematical Constants - Millions of Digits
-					http://www.numberworld.org/constants.html
-			*/
-
-			//π Pi (3.243f6a8885a308d313198a2e0370734)
-			0x243F6A88, 0x85A308D3, 0x13198102, 0xE0370734,
-			//φ Golden ratio (1.9e3779b97f4a7c15f39cc0605cedc834)
-			0x9E3779B9, 0x7F4A7C15, 0xF39CC060, 0x5CEDC834,
-			//e Natural Constant (2.b7e151628aed2a6abf7158809cf4f3c7)
-			0xB7E15162, 0x8AED2A6A, 0xBF715880, 0x9CF4F3C7
-		};
-
 		//NeoAlzette is like the Alzette ARX-box of Sparkle algorithms, but not, just similar in structure.
 		//NeoAlzette就像 Sparkle 算法的 Alzette ARX-box，但又不是，只是结构相似而已。
 		//https://eprint.iacr.org/2019/1378.pdf
-		//NeoAlzette has only one more layer than the Alzette ARX-box, and the confusions are better
-		//NeoAlzette只比Alzette ARX-box多一层，而且混淆程度更好
-		inline void NeoAlzette_ForwardLayer( uint32_t& a, uint32_t& b, const uint32_t rc )
+		
+		class NeoAlzetteSubstitutionBox
 		{
-#if 1
-			b = b ^ a;
-			a = std::rotr( a + b, 31 );
-			a = a ^ rc;
+		public:
+			inline void forward( std::uint32_t& a, std::uint32_t& b ) const noexcept
+			{
+				using std::rotl;
+				using std::rotr;
+				const auto&	  RC = ROUND_CONSTANT;
+				std::uint32_t A = a, B = b;
 
-			b = b + a;
-			a = std::rotl( a ^ b, 24 );
-			a = a + rc;
+				// ── Subround 0 : NL → Diffuse → CD  (CD ← B) / 第 0 子轮：非线性→扩散→注入（CD ← B）
+				B += ( rotl( A, 31 ) ^ rotl( A, 17 ) ^ RC[ 0 ] );  // ★ 唯一一次 变量↔变量 模加（非线性） / only variable-variable modular add (nonlinear)
+				A -= RC[ 1 ];									   // ★ 常量模减：断链 / constant modular subtraction to break the chain
+				// Linear cross-branch diffusion (reversible) / 线性交叉扩散（可逆）
+				A ^= rotl( B, CROSS_XOR_ROT_R0 );
+				B ^= rotl( A, CROSS_XOR_ROT_R1 );
+				// Simplified CD injection with quadratic term / 简化 CD 注入并加入布尔二次项
+				{
+					auto [ C0, D0 ] = cd_injection_from_B( B, ( RC[ 2 ] | RC[ 3 ] ), RC[ 3 ] );
+					A ^= ( rotl( C0, 24 ) ^ rotl( D0, 16 ) ^ RC[ 4 ] );
+					B = l1_backward( B );
+				}
 
-			//a = a - std::rotl(b ^ rc, 17);
-			//b = b + (a ^ rc);
-			//b = b - std::rotr(a ^ rc, 24);
-			//a = a + (b ^ rc);
-			b = std::rotl( b, 8 ) ^ rc;
-			a = a + b;
+				// ── Subround 1 : NL → Diffuse → CD  (CD ← A) / 第 1 子轮：非线性→扩散→注入（CD ← A）
+				A += ( rotl( B, 31 ) ^ rotl( B, 17 ) ^ RC[ 5 ] );  // ★ 唯一一次 变量↔变量 模加（非线性） / only variable-variable modular add (nonlinear)
+				B -= RC[ 6 ];									   // ★ 常量模减：断链 / constant modular subtraction to break the chain
+				// Linear cross-branch diffusion (reversible) / 线性交叉扩散（可逆）
+				B ^= rotl( A, CROSS_XOR_ROT_R0 );
+				A ^= rotl( B, CROSS_XOR_ROT_R1 );
+				// Simplified CD injection with quadratic term / 简化 CD 注入并加入布尔二次项
+				{
+					auto [ C1, D1 ] = cd_injection_from_A( A, ( RC[ 7 ] & RC[ 8 ] ), RC[ 8 ] );
+					B ^= ( rotl( C1, 24 ) ^ rotl( D1, 16 ) ^ RC[ 9 ] );
+					A = l2_backward( A );
+				}
 
-			a = a ^ b;
-			b = std::rotr( a + b, 17 );
-			b = b ^ rc;
+				// Light whitening (reversible) / 轻度白化（可逆）
+				A ^= RC[ 10 ];
+				B ^= RC[ 11 ];
+				a = A;
+				b = B;
+			}
 
-			a = a + b;
-			b = std::rotl( a ^ b, 16 );
-			b = b + rc;
-#else
-			//Alzette ForwardLayer
+			inline void backward( std::uint32_t& a, std::uint32_t& b ) const noexcept
+			{
+				using std::rotl;
+				using std::rotr;
+				const auto&	  RC = ROUND_CONSTANT;
+				std::uint32_t A = a, B = b;
 
-			a += std::rotr( b, 31 );
-			b ^= std::rotr( a, 24 );
-			a ^= rc;
+				// Undo whitening / 撤白化
+				B ^= RC[ 11 ];
+				A ^= RC[ 10 ];
 
-			a += std::rotr( b, 17 );
-			b ^= std::rotr( a, 17 );
-			a ^= rc;
+				// Undo Subround 1 (reverse order) / 撤第 1 子轮（逆序）
+				{
+					A = l2_forward( A );
+					auto [ C1, D1 ] = cd_injection_from_A( A, ( RC[ 7 ] & RC[ 8 ] ), RC[ 8 ] );
+					B ^= ( rotl( C1, 24 ) ^ rotl( D1, 16 ) ^ RC[ 9 ] );
+				}  // Undo CD injection (XOR is involutive) / 撤 CD 注入（XOR 自反）
+				A ^= rotl( B, CROSS_XOR_ROT_R1 );
+				B ^= rotl( A, CROSS_XOR_ROT_R0 );
+				B += RC[ 6 ];									   // Undo constant subtraction / 撤常量模减
+				A -= ( rotl( B, 31 ) ^ rotl( B, 17 ) ^ RC[ 5 ] );  // Undo variable add / 撤变量↔变量 模加
 
-			a += std::rotr( b, 0 );
-			b ^= std::rotr( a, 31 );
-			a ^= rc;
+				// Undo Subround 0 (reverse order) / 撤第 0 子轮（逆序）
+				{
+					B = l1_forward( B );
+					auto [ C0, D0 ] = cd_injection_from_B( B, ( RC[ 2 ] | RC[ 3 ] ), RC[ 3 ] );
+					A ^= ( rotl( C0, 24 ) ^ rotl( D0, 16 ) ^ RC[ 4 ] );
+				}
+				B ^= rotl( A, CROSS_XOR_ROT_R1 );
+				A ^= rotl( B, CROSS_XOR_ROT_R0 );
+				A += RC[ 1 ];
+				B -= ( rotl( A, 31 ) ^ rotl( A, 17 ) ^ RC[ 0 ] );
 
-			a += std::rotr( b, 24 );
-			b ^= std::rotr( a, 16 );
-			a ^= rc;
-#endif
-		}
+				a = A;
+				b = B;
+			}
 
-		inline void NeoAlzette_BackwardLayer( uint32_t& a, uint32_t& b, const uint32_t rc )
-		{
-#if 0
-			//Alzette BackwardLayer
 
-			a ^= rc;
-			b ^= std::rotr(a, 16);
-			a -= std::rotr(b, 24);
+		private:
+			/*
+				Cross Injection: simplified structure with linear layers + small XOR/ROT mixing,
+				while adding a quadratic Boolean term to retain nonlinearity.
+				交叉注入：将结构简化为线性层 + 小型 XOR/ROT 混合，但加入布尔二次项以保留非线性。
 
-			a ^= rc;
-			b ^= std::rotr(a, 31);
-			a -= std::rotr(b, 0);
+				Reason: purely linear injection can allow low-weight linear/differential trails to bypass it;
+				quadratic terms (NOT-AND / NOT-OR) break linear subspaces and improve diffusion.
+				原因：纯线性注入可能让低权重线性/差分路径绕过；布尔二次项（非与/非或）可打破线性子空间并增强扩散。
+			*/
 
-			a ^= rc;
-			b ^= std::rotr(a, 17);
-			a -= std::rotr(b, 17);
+			// Cross-branch XOR/ROT mixing constants / 分支交叉 XOR/ROT 常量
+			static constexpr int CROSS_XOR_ROT_R0 = 23;
+			static constexpr int CROSS_XOR_ROT_R1 = 16;
+			static constexpr int CROSS_XOR_ROT_SUM = ( ( CROSS_XOR_ROT_R0 + CROSS_XOR_ROT_R1 ) & 31 );
+			static_assert( ( CROSS_XOR_ROT_SUM & 1 ) == 1, "CROSS_XOR_ROT_R0 + CROSS_XOR_ROT_R1 must be odd (coprime with 32)." );
 
-			a ^= rc;
-			b ^= std::rotr(a, 24);
-			a -= std::rotr(b, 31);
-#else
-			b = b - rc;
-			b = std::rotr( b, 16 ) ^ a;
-			a = a - b;
+			// Dynamic diffusion masks (rotation XOR family) / 动态扩散掩码（旋转异或族）
+			inline std::uint32_t generate_dynamic_diffusion_mask0( std::uint32_t x ) const noexcept
+			{
+				using std::rotl;
+				return rotl( x, 2 ) ^ rotl( x, 3 ) ^ rotl( x, 6 ) ^ rotl( x, 9 )
+					^ rotl( x, 10 ) ^ rotl( x, 13 ) ^ rotl( x, 16 ) ^ rotl( x, 17 )
+					^ rotl( x, 20 ) ^ rotl( x, 24 ) ^ rotl( x, 27 ) ^ rotl( x, 31 );
+			}
 
-			b = b ^ rc;
-			b = std::rotl( b, 17 ) - a;
-			a = a ^ b;
+			inline std::uint32_t generate_dynamic_diffusion_mask1( std::uint32_t x ) const noexcept
+			{
+				using std::rotr;
+				return rotr( x, 2 ) ^ rotr( x, 3 ) ^ rotr( x, 6 ) ^ rotr( x, 9 )
+					^ rotr( x, 10 ) ^ rotr( x, 13 ) ^ rotr( x, 16 ) ^ rotr( x, 17 )
+					^ rotr( x, 20 ) ^ rotr( x, 24 ) ^ rotr( x, 27 ) ^ rotr( x, 31 );
+			}
 
-			a = a - b;
-			b = std::rotr( b ^ rc, 8 );
-			//a = a - (b ^ rc);
-			//b = b + std::rotr(a ^ rc, 24);
-			//b = b - (a ^ rc);
-			//a = a + std::rotl(b ^ rc, 17);
+			// —— CD(B)：依赖 B 与常量，简化结构并引入布尔二次项 / depends on B+constants, simplified with quadratic term
+			inline std::pair<std::uint32_t, std::uint32_t> cd_injection_from_B( std::uint32_t B, std::uint32_t rc0, std::uint32_t rc1 ) const noexcept
+			{
+				using std::rotl;
+				using std::rotr;
+				const auto&	  RC = ROUND_CONSTANT;
+				// Quadratic Boolean term (NOT-AND) for nonlinearity / 布尔二次项（非与）增加非线性
+				std::uint32_t s_box_in_B = ( B ^ RC[ 2 ] ) ^ ( ~( B & generate_dynamic_diffusion_mask0( B ) ) );
 
-			a = a - rc;
-			a = std::rotr( a, 24 ) ^ b;
-			b = b - a;
+				std::uint32_t c = l2_forward( B );
+				std::uint32_t d = l1_forward( B ) ^ rc0;
+				std::uint32_t t = c ^ d;
+				c ^= d ^ s_box_in_B;
+				d ^= rotr( t, 16 ) ^ rc1;
+				return { c, d };
+			}
 
-			a = a ^ rc;
-			a = std::rotl( a, 31 ) - b;
-			b = b ^ a;
-#endif
-		}
+			// —— CD(A)：依赖 A 与常量，简化结构并引入布尔二次项 / depends on A+constants, simplified with quadratic term
+			inline std::pair<std::uint32_t, std::uint32_t> cd_injection_from_A( std::uint32_t A, std::uint32_t rc0, std::uint32_t rc1 ) const noexcept
+			{
+				using std::rotl;
+				using std::rotr;
+				const auto&	  RC = ROUND_CONSTANT;
+				// Quadratic Boolean term (NOT-OR) for nonlinearity / 布尔二次项（非或）增加非线性
+				std::uint32_t s_box_in_A = ( A ^ RC[ 7 ] ) ^ ( ~( A | generate_dynamic_diffusion_mask1( A ) ) );
+
+				std::uint32_t c = l1_forward( A );
+				std::uint32_t d = l2_forward( A ) ^ rc0;
+				std::uint32_t t = c ^ d;
+				c ^= d ^ s_box_in_A;
+				d ^= rotl( t, 16 ) ^ rc1;
+				return { c, d };
+			}
+
+			// ==== L1/L2 linear layers / 你给的 L1/L2 线性层 ====
+			constexpr std::uint32_t l1_forward(std::uint32_t in) const noexcept {
+				using std::rotl;
+				return in ^ rotl(in, 2) ^ rotl(in, 10) ^ rotl(in, 18) ^ rotl(in, 24);
+			}
+			constexpr std::uint32_t l1_backward(std::uint32_t out) const noexcept {
+				using std::rotr;
+				return out ^ rotr(out, 2) ^ rotr(out, 8) ^ rotr(out, 10) ^ rotr(out, 14)
+						   ^ rotr(out,16) ^ rotr(out,18) ^ rotr(out,20) ^ rotr(out,24)
+						   ^ rotr(out,28) ^ rotr(out,30);
+			}
+			constexpr std::uint32_t l2_forward(std::uint32_t in) const noexcept {
+				using std::rotl;
+				return in ^ rotl(in, 8) ^ rotl(in, 14) ^ rotl(in, 22) ^ rotl(in, 30);
+			}
+			constexpr std::uint32_t l2_backward(std::uint32_t out) const noexcept {
+				using std::rotr;
+				return out ^ rotr(out, 2) ^ rotr(out, 4) ^ rotr(out, 8) ^ rotr(out, 12)
+						   ^ rotr(out,14) ^ rotr(out,16) ^ rotr(out,18) ^ rotr(out,22)
+						   ^ rotr(out,24) ^ rotr(out,30);
+			}
+
+			// ==== NeoAlzette ARX-box constants / NeoAlzette ARX-box 常量 ====
+			static constexpr std::array<std::uint32_t, 16> ROUND_CONSTANT
+			{ 
+				//1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181 (Fibonacci numbers)
+				//Concatenation of Fibonacci numbers : 123581321345589144233377610987159725844181
+				//Hexadecimal : 16b2c40bc117176a0f9a2598a1563aca6d5
+				0x16B2C40B, 0xC117176A, 0x0F9A2598, 0xA1563ACA,
+
+				/*
+						Mathematical Constants - Millions of Digits
+						http://www.numberworld.org/constants.html
+				*/
+
+				//π Pi (3.243f6a8885a308d313198a2e0370734)
+				0x243F6A88, 0x85A308D3, 0x13198102, 0xE0370734,
+				//φ Golden ratio (1.9e3779b97f4a7c15f39cc0605cedc834)
+				0x9E3779B9, 0x7F4A7C15, 0xF39CC060, 0x5CEDC834,
+				//e Natural Constant (2.b7e151628aed2a6abf7158809cf4f3c7)
+				0xB7E15162, 0x8AED2A6A, 0xBF715880, 0x9CF4F3C7
+			};
+		};
 
 		uint64_t ghash_multiply( uint64_t a, uint64_t b )
 		{
@@ -164,7 +244,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			// Crypto Version Fold Multiply Generate Seed
 			uint64_t a = ( key.first ^ key.second );
 			uint64_t b = ~ghash_multiply( key.first, key.second );
-			mix( a, b );
 			// Rationale for rot=1 and rot=13:
 			// - rot1(b): 打断 a'⊕b' 的线性抵消恒等式（I⊕S），把乘法支路 b 的影响直接扩散到相邻位；
 			// - rot13(a): 选用与 64 互素且与{8,16,24,31,17,…}等常见角度“错位”的中距奇数旋转，
@@ -194,7 +273,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				key_state.bit_rotation_amount_a = bit_rotation & 0x3F;			 // 0..63 (Selected bit 0~5)
 				key_state.bit_rotation_amount_b = ( bit_rotation >> 6 ) & 0x3F;	 // 0..63 (Selected bit 6~11)
 
-				key_state.round_constant_index = ( round_constant_index >> 1 ) & 0x0F;
+				//key_state.round_constant_index = ( round_constant_index >> 1 ) & 0x0F;
 				round_constant_index += 2;
 			}
 		}
@@ -220,7 +299,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 		}
 
 		//Mix Linear Transform Layer (Forward)
-		inline void MixLinearTransform_Forward
+		inline void LittleOaldresPuzzle_Cryptic::MixLinearTransform_Forward
 		(
 			uint64_t& lane0, uint64_t& lane1, const KeyState& current_key_state
 		)
@@ -273,7 +352,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 		}
 
 		// Mix Linear Transform Layer (Backward)
-		inline void MixLinearTransform_Backward
+		inline void LittleOaldresPuzzle_Cryptic::MixLinearTransform_Backward
 		(
 			uint64_t& lane0, uint64_t& lane1, const KeyState& current_key_state
 		)
@@ -330,6 +409,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			// 生成并缓存密钥状态（保持实现不变）
 			GenerateAndStoreKeyStates( key, number_once );
 
+			NeoAlzetteSubstitutionBox SubstitutionBox;
+
 			// 128-bit 状态按两条 64-bit 车道存放
 			uint64_t lane0 = data.first;   // (w0 || w1)
 			uint64_t lane1 = data.second;  // (w2 || w3)
@@ -340,7 +421,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			for ( size_t round = 0; round < rounds; ++round )
 			{
 				const KeyState& current_key_state = KeyStates[ round ];
-				const uint32_t	rc = ROUND_CONSTANT[ current_key_state.round_constant_index ];
 
 				unpack64( lane0, w0, w1 );
 				unpack64( lane1, w2, w3 );
@@ -349,8 +429,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					NeoAlzette ARX Layer (Forward)
 					—— 采用“对角配对”：(w0,w2) 与 (w1,w3)，跨车道混合
 				*/
-				NeoAlzette_ForwardLayer( w0, w2, rc );
-				NeoAlzette_ForwardLayer( w1, w3, rc );
+				SubstitutionBox.forward( w0, w2 );
+				SubstitutionBox.forward( w1, w3 );
 
 				// 重新打包回两条 64-bit 车道
 				lane0 = pack64( w0, w1 );
@@ -359,7 +439,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				/* Keyed Switching Layer - MixLinearTransform (Forward) */
 				MixLinearTransform_Forward(lane0, lane1, current_key_state);
 
-				/*  Keyed Switching Layer - Random Bit Tweak (Nonlinear)(Forward) */
+				/* Keyed Switching Layer - Random Bit Tweak (Nonlinear)(Forward) */
 				lane0 ^= ( uint64_t( 1 ) << current_key_state.bit_rotation_amount_a );
 				lane1 ^= ( uint64_t( 1 ) << ( 63 - current_key_state.bit_rotation_amount_a ) );
 
@@ -384,6 +464,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			// 生成并缓存密钥状态（保持实现不变）
 			GenerateAndStoreKeyStates( key, number_once );
 
+			NeoAlzetteSubstitutionBox SubstitutionBox;
+
 			uint64_t lane0 = data.first;
 			uint64_t lane1 = data.second;
 
@@ -393,7 +475,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			for ( size_t round = rounds; round > 0; --round )
 			{
 				const KeyState& current_key_state = KeyStates[ round - 1 ];
-				const uint32_t	rc = ROUND_CONSTANT[ current_key_state.round_constant_index ];
 
 				// Subtract Round key
 				const uint64_t k0 = key.first;
@@ -417,8 +498,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				unpack64( lane0, w0, w1 );
 				unpack64( lane1, w2, w3 );
 
-				NeoAlzette_BackwardLayer( w1, w3, rc );
-				NeoAlzette_BackwardLayer( w0, w2, rc );
+				SubstitutionBox.backward( w1, w3 );
+				SubstitutionBox.backward( w0, w2 );
 
 				lane0 = pack64( w0, w1 );
 				lane1 = pack64( w2, w3 );

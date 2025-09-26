@@ -144,51 +144,84 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 		void XorConstantRotation::StateInitialize()
 		{
+			// nonzero_flag: value!=0 -> 1, value==0 -> 0
+			std::uint64_t nonzero_flag = (state | (0ULL - state)) >> 63;
+			// is_zero: value==0 -> 1, value!=0 -> 0
+			std::uint64_t is_zero = nonzero_flag ^ 1ULL;
+			// if value==0 add 1 else add 0
+			state = state + is_zero;
+
+			// Public counter / Weyl counter reset (no branch)
 			counter = 0;
 
-			if(state == 0)
-				state = 1;
+			const std::uint64_t initial_state_snapshot = state;
 
-			uint64_t state_0 = state;
-			uint64_t random = state;
-			
-			//Goldreich-Goldwasser-Micali Construct PRF’s <How to construct random functions>
-			//https://www.wisdom.weizmann.ac.il/~oded/X/ggm.pdf 
-			for(size_t round = 0; round < 4; round++)
+			// Initialize the 3 lanes from the seed (no extra loops, no table indexing by secret)
+			// We intentionally use fixed RC entries here to keep it predictable and fast.
+			x = state ^ ROUND_CONSTANT[0] ^ std::rotl(state, 21);
+			y = std::rotl(state, 33) ^ ROUND_CONSTANT[1] ^ std::rotr(state, 9);
+			z = std::rotr(state, 27) ^ ROUND_CONSTANT[2] ^ std::rotl(state, 15);
+
+			// One-shot boolean quadratic mixing (NOT-AND / NOT-OR) moved here
+			// No additional for-loops, only bitwise/rotate/XOR.
 			{
-				uint64_t next_random = 0;
-				for ( size_t bit_index = 0; bit_index < 64; bit_index++ )
-				{
-					//Iterative use of PRG to generate random values
-					//迭代使用PRG生成随机值
-					random = this->StateIteration(random);
+				const std::uint64_t state_lane_a = x;
+				const std::uint64_t state_lane_b = y;
+				const std::uint64_t state_lane_c = z;
 
-					if(random & 1)
-					{
-						//If the generated random value is odd, set the current bit of the next random value to zero
-						//如果生成的随机值是奇数,把下一次随机值当前比特设置为0
-						//y=PRG[0](x)
-						next_random |= 0;
-						next_random <<= 1;
-					}
-					else
-					{
-						//Otherwise the random value generated is even, set the current bit of the next random value to 1
-						//否则生成的随机值是偶数,把下一次随机值当前比特设置为1
-						//y=PRG[1](x)
-						next_random |= 1;
-						next_random <<= 1;
-					}
-				}
+				const std::uint64_t not_and_bc = ~(std::rotl(state_lane_b, 5) & std::rotl(state_lane_c, 9));
+				const std::uint64_t not_or_bc  = ~(std::rotl(state_lane_b, 19) | std::rotl(state_lane_c, 23));
 
-				//Updates the next random value to the current random value.
-				//把下一次的随机值更新为当前的随机值。
-				random = next_random;
+				const std::uint64_t not_and_ca = ~(std::rotl(state_lane_c, 5) & std::rotl(state_lane_a, 9));
+				const std::uint64_t not_or_ca  = ~(std::rotl(state_lane_c, 19) | std::rotl(state_lane_a, 23));
+
+				const std::uint64_t not_and_ab = ~(std::rotl(state_lane_a, 5) & std::rotl(state_lane_b, 9));
+				const std::uint64_t not_or_ab  = ~(std::rotl(state_lane_a, 19) | std::rotl(state_lane_b, 23));
+
+				x ^= not_and_bc ^ std::rotl(not_or_bc, 7) ^ ROUND_CONSTANT[3];
+				y ^= not_and_ca ^ std::rotl(not_or_ca, 29) ^ ROUND_CONSTANT[4];
+				z ^= not_and_ab ^ std::rotl(not_or_ab, 43) ^ ROUND_CONSTANT[5];
 			}
 
-			//Securely whitened uniformly randomized seeds.
-			//安全白化的均匀随机种子。
-			state ^= state_0 + random;
+
+			// Goldreich-Goldwasser-Micali Construct PRF’s <How to construct random functions> 
+			// https://www.wisdom.weizmann.ac.il/~oded/X/ggm.pdf
+
+			// Seed for the existing warm-up (kept)
+			std::uint64_t random = x ^ y ^ z;
+
+			const std::uint64_t selector = (std::rotl(x, 13) ^ std::rotl(y, 37) ^ std::rotl(z, 7) ^ initial_state_snapshot); //GGM Input
+
+			// Domain separation tags (public, non-toy, no tiny-period patterns)
+			constexpr std::uint64_t GGM_LEFT  = 0x6A09E667F3BCC908ULL; // SHA-512 IV[0] / HW = 32
+			constexpr std::uint64_t GGM_RIGHT = 0x510E527FADE682D1ULL; // SHA-512 IV[4] / HW = 32
+
+			struct Snapshot { uint64_t x,y,z,state,counter,random; };
+			auto restore_state = [&](const Snapshot& s) 
+			{
+				x=s.x; y=s.y; z=s.z; state=s.state; counter=s.counter; random=s.random;
+			};
+
+			Snapshot parent{ x,y,z,state,counter,random };
+
+			for (size_t bit_index=0; bit_index < 32; ++bit_index)
+			{
+				restore_state(parent);
+				const uint64_t left_random = this->StateIteration(random ^ GGM_LEFT);
+
+				restore_state(parent);
+				const uint64_t right_random = this->StateIteration(random ^ GGM_RIGHT);
+
+				const uint64_t mask = 0ULL - ((selector >> bit_index) & 1ULL);
+				random = (left_random & ~mask) | (right_random & mask);
+
+				parent = Snapshot{ x,y,z,state,counter,random };
+			}
+
+			// Final whitening (kept minimal)
+			x ^= std::rotl(random, 51) ^ ROUND_CONSTANT[6];
+			y ^= std::rotl(random, 47) ^ ROUND_CONSTANT[7];
+			z ^= initial_state_snapshot + random;
 		}
 
 		//Version select
@@ -211,46 +244,68 @@ namespace TwilightDreamOfMagical::CustomSecurity
 		}
 		
 		#else
-		
+
 		XorConstantRotation::result_type XorConstantRotation::StateIteration(std::size_t number_once)
 		{
-			//使用本次轮常量
-			std::uint64_t RC0 = ROUND_CONSTANT[number_once % ROUND_CONSTANT.size()];
-			std::uint64_t RC1 = ROUND_CONSTANT[(counter + number_once) % ROUND_CONSTANT.size()];
-			std::uint64_t RC2 = ROUND_CONSTANT[state % ROUND_CONSTANT.size()];
+			// Weyl counter: one add, no branch
+			// Because std::array<std::uint64_t, 300> ROUND_CONSTANT;
+			// So, mod 300 = 89, gcd(89,300)=1
+			constexpr std::uint64_t weylstep = 0x9E3779B97F4A7C19ULL;
+			counter += weylstep;
 
-			//使用 链式AR-Constant 模型 来密码分析？
-			if(x == 0)
-				x = RC0;
-			else
-			{
-				/*
-					扩散层：通过BitRotate和XOR操作实现各自状态之间的独立变换
-					Diffusion layer: independent transformations between respective states via BitRotate and XOR operations
-				*/
+			const std::uint64_t numbervalue = static_cast<std::uint64_t>(number_once);
 
-				// SM4-like algorithm Linear diffusion
-				// r1,r2,r3,r4
-				// 使用 RX 模型 来密码分析？
-				y = y ^ std::rotl(x, 19) ^ std::rotl(x, 32);
-				state = state ^ std::rotl(y, 32) ^ std::rotl(y, 47) ^ std::rotl(y, 63) ^ counter;
-				x = x ^ std::rotl(state, 7) ^ std::rotl(state, 19) ^ RC0 ^ number_once;
-			}
+			// 3-lane state
+			std::uint64_t statefirst  = x;
+			std::uint64_t statesecond = y;
+			std::uint64_t statethird  = z;
 
-			/*
-				混淆层：通过混合内部状态和非线性运算实现各自状态之间复杂关联变换
-				Confusion layer: complex associative transformations between states by mixing internal states and nonlinear operations
-			*/
+			// Lane-local linear mixing
+			const std::uint64_t linearmix1 = std::rotl(statefirst, 23) ^ std::rotl(statefirst, 5);
+			const std::uint64_t linearmix2 = std::rotl(statesecond, 24) ^ std::rotl(statesecond, 7);
+			const std::uint64_t linearmix3 = std::rotl(statethird, 25) ^ std::rotl(statethird, 11);
 
-			state += y ^ std::rotr(y, 1) ^ RC0; //use y
-			x ^= state + std::rotr(state, 1) + RC1; //use state
-			y += x ^ std::rotr(x, 1) ^ RC2; //use x
+			// Weyl-derived values (no multiplication, no table)
+			const std::uint64_t weylvalue1 = counter ^ numbervalue;
+			const std::uint64_t weylvalue2 = std::rotl(counter, 21) ^ std::rotl(numbervalue, 21);
+			const std::uint64_t weylvalue3 = std::rotl(counter, 42) ^ std::rotl(numbervalue, 42);
 
-			counter++;
+			// Round constants injected into the 3 lanes (RC -> injection)
+			// Choose Weyl step so that (step mod 300) is coprime with 300 => counter mod 300 has full period 300.
+			constexpr std::size_t constantcount = ROUND_CONSTANT.size();
+			const std::size_t indexbase = static_cast<std::size_t>(counter % constantcount);
+			std::size_t indexnext1 = indexbase + 1;
+			std::size_t indexnext2 = indexbase + 2;
+			if (indexnext1 >= constantcount) indexnext1 -= constantcount;
+			if (indexnext2 >= constantcount) indexnext2 -= constantcount;
+			const std::uint64_t roundconstant1 = ROUND_CONSTANT[indexbase];
+			const std::uint64_t roundconstant2 = ROUND_CONSTANT[indexnext1];
+			const std::uint64_t roundconstant3 = ROUND_CONSTANT[indexnext2];
 
-			return y;
+			// Injection values: linear mixes + Weyl + RC
+			const std::uint64_t injection1 = linearmix2 ^ linearmix3 ^ weylvalue1 ^ roundconstant1;
+			const std::uint64_t injection2 = linearmix3 ^ linearmix1 ^ weylvalue2 ^ roundconstant2;
+			const std::uint64_t injection3 = linearmix1 ^ linearmix2 ^ weylvalue3 ^ roundconstant3;
+
+			// Only three modular add/sub operations (nonlinearity comes from carry)
+			// Use asymmetry (+, -, +) to reduce trivial lane symmetry.
+			statefirst  += injection1;
+			statesecond -= injection2;
+			statethird  += injection3;
+
+			// Update State Input
+			x = statefirst;
+			y = statesecond;
+			z = statethird;
+
+			// a ^ b ^ c + linear whitening 
+			std::uint64_t outputstate = statefirst ^ statesecond ^ statethird;
+			outputstate ^= std::rotl(outputstate, 17) ^ std::rotl(outputstate, 41) ^ state;
+			// Update State Output
+			state = outputstate;
+			return state;
 		}
-		
+
 		#endif
 
 	} // TwilightDreamOfMagical
