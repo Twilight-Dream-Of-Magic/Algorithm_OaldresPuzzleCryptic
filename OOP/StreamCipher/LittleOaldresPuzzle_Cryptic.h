@@ -47,37 +47,46 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			using XorConstantRotation = CSPRNG::XorConstantRotation;
 
 			LittleOaldresPuzzle_Cryptic(const std::uint64_t seed, std::uint64_t rounds)
-				: 
-				seed(seed), prng(seed), rounds(rounds), KeyStates(std::vector<KeyState>(rounds, KeyState()))
+				:
+				seed(seed),
+				prng(seed),
+				prng_second(~seed ^ std::rotl(seed, 32)),
+				rounds(rounds),
+				KeyStates(std::vector<KeyState>(rounds, KeyState()))
 			{
-				
 			}
 
 			LittleOaldresPuzzle_Cryptic(const std::uint64_t seed)
-				: 
-				seed(seed), prng(seed), rounds(4), KeyStates(std::vector<KeyState>(rounds, KeyState()))
+				:
+				seed(seed),
+				prng(seed),
+				prng_second(~seed ^ std::rotl(seed, 32)),
+				rounds(4),
+				KeyStates(std::vector<KeyState>(rounds, KeyState()))
 			{
-
 			}
 
 			LittleOaldresPuzzle_Cryptic()
 				:
-				seed(1), prng(seed), rounds(4), KeyStates(std::vector<KeyState>(rounds, KeyState()))
+				seed(1),
+				prng(seed),
+				prng_second(~seed ^ std::rotl(seed, 32)),
+				rounds(4),
+				KeyStates(std::vector<KeyState>(rounds, KeyState()))
 			{
-				
 			}
 
 			Block128 SingleRoundEncryption(const Block128 data, const Key128 key, const std::uint64_t number_once)
 			{
 				Block128 result = EncryptionCoreFunction(data, key, number_once);
-				prng.Seed(seed);
+				ResetPRNG();
 				return result;
 			}
 
 			Block128 SingleRoundDecryption(const Block128 data, const Key128 key, const std::uint64_t number_once)
 			{
 				Block128 result = DecryptionCoreFunction(data, key, number_once);
-				prng.Seed(seed);
+				ResetPRNG();
 				return result;
 			}
 
@@ -157,7 +166,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				{
 					number_once = {cpp_prng(), cpp_prng()};
 					buffer = EncryptionCoreFunction(number_once, key, counter);
-					subkeys[counter] = {subkey.first ^ buffer.first, subkey.second ^ buffer.second};
+					subkey.first  ^= buffer.first;
+					subkey.second ^= buffer.second;
+					subkeys[counter] = subkey;
 				}
 				
 				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
@@ -180,7 +191,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				{
 					number_once = {cpp_prng(), cpp_prng()};
 					buffer = DecryptionCoreFunction(number_once, key, counter);
-					subkeys[counter] = {subkey.first ^ buffer.first, subkey.second ^ buffer.second};
+					subkey.first  ^= buffer.first;
+					subkey.second ^= buffer.second;
+					subkeys[counter] = subkey;
 				}
 				
 				// Reset the PRNG state for the next encryption or decryption (Must be call this function)
@@ -192,6 +205,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			void ResetPRNG()
 			{
 				prng.Seed(seed);
+				prng_second.Seed(~seed ^ std::rotl(seed, 32));
 			}
 			
 			#if _DEBUG
@@ -203,7 +217,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 		private:
 			std::uint64_t seed = 0;
+			// Left / Right domain PRNG instances (member variables, no locals in GenerateAndStoreKeyStates)
 			XorConstantRotation prng;
+			XorConstantRotation prng_second;
 			std::uint64_t rounds = 4;
 			
 			struct KeyState
@@ -212,12 +228,15 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				std::uint64_t choice_function = 0;
 				std::uint64_t bit_rotation_amount_a = 0;
 				std::uint64_t bit_rotation_amount_b = 0;
-				std::uint32_t round_constant_index = 0;
+				//std::uint32_t round_constant_index = 0;
 			};
 
 			std::vector<KeyState> KeyStates;
 			
 			void GenerateAndStoreKeyStates(const Key128 key_128bit, const std::uint64_t number_once);
+
+			void MixLinearTransform_Forward(uint64_t& lane0, uint64_t& lane1, const KeyState& current_key_state);
+			void MixLinearTransform_Backward(uint64_t& lane0, uint64_t& lane1, const KeyState& current_key_state);
 
 			Block128 EncryptionCoreFunction(const Block128 data, const Key128 key_128bit, const std::uint64_t round);
 			Block128 DecryptionCoreFunction(const Block128 data, const Key128 key_128bit, const std::uint64_t round);

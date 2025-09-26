@@ -44,6 +44,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				static constexpr std::uint64_t LargePrimeNumber = 18446744073709551557ULL;
 
+				static constexpr std::uint64_t UnbiasedThreshold = std::numeric_limits<std::uint64_t>::max() - ( std::numeric_limits<std::uint64_t>::max() % LargePrimeNumber );
+
 				/*
 					@details
 					https://en.wikipedia.org/wiki/Short_integer_solution_problem
@@ -66,7 +68,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					Ajtais哈希函数:
 					Original Ajtai's Hash Function Algorithm:
 					```
-					A is matrices
+					A is Z_p matrices (In The Prime Field)
 					x and y = is input and output vector
 					LargePrimeNumber = 18446744073709551557
 
@@ -75,13 +77,10 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 					Our Hashing algorithms resistant to quantum computing (Referenced Lattice Cryptography and Learning with Errors):
 					```
-					[A_lowbits, A_hightbits] = A
-					[x_lowbits, x_hightbits] = x
-					[y_lowbits, y_hightbits] = y
-
-					y_lowbits = A_lowbits x_lowbits
-					y_hightbits = A_hightbits x_hightbits
-					y = MySpongeHash(y_lowbits) + MySpongeHash(y_hightbits) (mod LargePrimeNumber)
+					y = Ax 
+					(Each Element Compute In The Prime Field) Matrix-Vector Multiplication
+					y' = CustomSpongeHash(y)
+					y'' = y + y' (mod LargePrimeNumber)
 					```
 
 					@return EigenLibrary column vector
@@ -93,7 +92,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					const Eigen::Matrix<std::uint64_t, Eigen::Dynamic, 1>& IntegerVector
 				);
 
-				explicit TDOM_HashModule(std::uint64_t HashBitSize)
+				explicit TDOM_HashModule(std::uint32_t HashBitSize)
 					:
 					CustomSecureHashObject(HashBitSize)
 				{
@@ -114,7 +113,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					StateDataPointer(std::addressof(CommonStateDataObject)),
 					SubkeyMatrixOperationObject(CommonStateDataObject)
 				{
-					std::size_t HashBitSize = ((StateDataPointer->OPC_KeyMatrix_Rows) * 64) / 2;
+					std::uint32_t HashBitSize = static_cast<uint32_t>((StateDataPointer->OPC_KeyMatrix_Rows) * 64) / 2;
 					HashObjectPointer = std::unique_ptr<TDOM_HashModule>(new TDOM_HashModule(HashBitSize));
 				}
 

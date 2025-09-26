@@ -197,8 +197,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
 				}
 
 				/*
@@ -228,8 +228,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
 
 				}
 
@@ -633,9 +633,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				constexpr result_type operator()() noexcept
 				{
-					const std::size_t this_state_position = this->state_position;
-					this->state_position = (this->state_position + 1) & 15;
-				
 					// xorshiro512+:
 					// const auto result = s[0] + s[2];
 					// xorshiro512++:
@@ -705,14 +702,14 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
-					temporary_state[ 2 ] = state[ 2 ];
-					temporary_state[ 3 ] = state[ 3 ];
-					temporary_state[ 4 ] = state[ 4 ];
-					temporary_state[ 5 ] = state[ 5 ];
-					temporary_state[ 6 ] = state[ 6 ];
-					temporary_state[ 7 ] = state[ 7 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
+					state[ 4 ] = temporary_state[ 4 ];
+					state[ 5 ] = temporary_state[ 5 ];
+					state[ 6 ] = temporary_state[ 6 ];
+					state[ 7 ] = temporary_state[ 7 ];
 				}
 
 				/*
@@ -751,14 +748,14 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
-					temporary_state[ 2 ] = state[ 2 ];
-					temporary_state[ 3 ] = state[ 3 ];
-					temporary_state[ 4 ] = state[ 4 ];
-					temporary_state[ 5 ] = state[ 5 ];
-					temporary_state[ 6 ] = state[ 6 ];
-					temporary_state[ 7 ] = state[ 7 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
+					state[ 4 ] = temporary_state[ 4 ];
+					state[ 5 ] = temporary_state[ 5 ];
+					state[ 6 ] = temporary_state[ 6 ];
+					state[ 7 ] = temporary_state[ 7 ];
 				}
 
 			private:
@@ -956,22 +953,22 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
-					temporary_state[ 2 ] = state[ 2 ];
-					temporary_state[ 3 ] = state[ 3 ];
-					temporary_state[ 4 ] = state[ 4 ];
-					temporary_state[ 5 ] = state[ 5 ];
-					temporary_state[ 6 ] = state[ 6 ];
-					temporary_state[ 7 ] = state[ 7 ];
-					temporary_state[ 8 ] = state[ 8 ];
-					temporary_state[ 9 ] = state[ 9 ];
-					temporary_state[ 10 ] = state[ 10 ];
-					temporary_state[ 11 ] = state[ 11 ];
-					temporary_state[ 12 ] = state[ 12 ];
-					temporary_state[ 13 ] = state[ 13 ];
-					temporary_state[ 14 ] = state[ 14 ];
-					temporary_state[ 15 ] = state[ 15 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
+					state[ 4 ] = temporary_state[ 4 ];
+					state[ 5 ] = temporary_state[ 5 ];
+					state[ 6 ] = temporary_state[ 6 ];
+					state[ 7 ] = temporary_state[ 7 ];
+					state[ 8 ] = temporary_state[ 8 ];
+					state[ 9 ] = temporary_state[ 9 ];
+					state[ 10 ] = temporary_state[ 10 ];
+					state[ 11 ] = temporary_state[ 11 ];
+					state[ 12 ] = temporary_state[ 12 ];
+					state[ 13 ] = temporary_state[ 13 ];
+					state[ 14 ] = temporary_state[ 14 ];
+					state[ 15 ] = temporary_state[ 15 ];
 				}
 
 				/*
@@ -1022,22 +1019,22 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
-					temporary_state[ 2 ] = state[ 2 ];
-					temporary_state[ 3 ] = state[ 3 ];
-					temporary_state[ 4 ] = state[ 4 ];
-					temporary_state[ 5 ] = state[ 5 ];
-					temporary_state[ 6 ] = state[ 6 ];
-					temporary_state[ 7 ] = state[ 7 ];
-					temporary_state[ 8 ] = state[ 8 ];
-					temporary_state[ 9 ] = state[ 9 ];
-					temporary_state[ 10 ] = state[ 10 ];
-					temporary_state[ 11 ] = state[ 11 ];
-					temporary_state[ 12 ] = state[ 12 ];
-					temporary_state[ 13 ] = state[ 13 ];
-					temporary_state[ 14 ] = state[ 14 ];
-					temporary_state[ 15 ] = state[ 15 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
+					state[ 4 ] = temporary_state[ 4 ];
+					state[ 5 ] = temporary_state[ 5 ];
+					state[ 6 ] = temporary_state[ 6 ];
+					state[ 7 ] = temporary_state[ 7 ];
+					state[ 8 ] = temporary_state[ 8 ];
+					state[ 9 ] = temporary_state[ 9 ];
+					state[ 10 ] = temporary_state[ 10 ];
+					state[ 11 ] = temporary_state[ 11 ];
+					state[ 12 ] = temporary_state[ 12 ];
+					state[ 13 ] = temporary_state[ 13 ];
+					state[ 14 ] = temporary_state[ 14 ];
+					state[ 15 ] = temporary_state[ 15 ];
 				}
 
 			private:
@@ -1137,7 +1134,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 		Reference paper:
 		http://eprint.iacr.org/2006/438.pdf
-	*/
+		*/
 		namespace ISAAC
 		{
 
@@ -2109,17 +2106,18 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				//Interleaved concatenate one-by-one bits
 				std::int64_t concat(std::int32_t a, std::int32_t b)
 				{
-					std::string result_binary_string;
-					for (int i = 0; i < 32; i++)
-					{
-						result_binary_string.push_back((b % 2) == 1 ? '1' : '0');
-						b /= 2;
-						result_binary_string.push_back((a % 2) == 1 ? '1' : '0');
-						a /= 2;
-					}
-					std::bitset<64> concate_bitset(result_binary_string);
-					std::int64_t c = static_cast<std::int64_t>(concate_bitset.to_ullong());
-					return c;
+					std::uint64_t x = a, y = b;
+					x = (x | (x << 16)) & 0x0000FFFF0000FFFFULL;
+					x = (x | (x << 8))  & 0x00FF00FF00FF00FFULL;
+					x = (x | (x << 4))  & 0x0F0F0F0F0F0F0F0FULL;
+					x = (x | (x << 2))  & 0x3333333333333333ULL;
+					x = (x | (x << 1))  & 0x5555555555555555ULL;
+					y = (y | (y << 16)) & 0x0000FFFF0000FFFFULL;
+					y = (y | (y << 8))  & 0x00FF00FF00FF00FFULL;
+					y = (y | (y << 4))  & 0x0F0F0F0F0F0F0F0FULL;
+					y = (y | (y << 2))  & 0x3333333333333333ULL;
+					y = (y | (y << 1))  & 0x5555555555555555ULL;
+					return (y << 1) | x;
 				}
 
 				std::int64_t generate()
@@ -2135,8 +2133,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					temporary_floating_a = this->SystemData[0] * ::sin(this->SystemData[4]) + this->SystemData[1] * ::sin(this->SystemData[5]);
 					temporary_floating_b = -(this->SystemData[0]) * ::sin(this->SystemData[4]) - this->SystemData[1] * ::sin(this->SystemData[5]);
 
-					left_number = ::floor(::fmod(temporary_floating_a * 1000, 1.0) * 4294967296);
-					right_number = ::floor(::fmod(temporary_floating_b * 1000, 1.0) * 4294967296);
+					left_number = static_cast<int64_t>( ::floor( ::fmod( temporary_floating_a * 1000, 1.0 ) * 4294967296 ) );
+					right_number = static_cast<int64_t>( ::floor( ::fmod( temporary_floating_b * 1000, 1.0 ) * 4294967296 ) );
 
 					return this->concat(static_cast<std::int32_t>(left_number), static_cast<std::int32_t>(right_number));
 				}
@@ -2365,6 +2363,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				LinearFeedbackShiftRegister(result_type seed)
 				{
+					if (seed == 0) 
+						++seed;
+
 					state[0] = 0;
 					state[1] = seed;
 					this->generate_bits(64);
@@ -2389,7 +2390,41 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				}
 			};
 
-#define SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION 2
+			
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <intrin.h>
+#endif
+
+			// 无偏映射 [0,9) —— Lemire multiply-high + 阈值拒绝；
+			// 参考：
+			// Lemire
+			// Fast Random Integer Generation in an Interval
+			// https://arxiv.org/abs/1805.10941
+			// MSVC _umul128 文档。
+			// 注意：拒绝概率为 (2^64 mod 9) / 2^64 = 7 / 2^64，几乎不会循环。
+			inline std::uint64_t map_u64_to_0_9( std::uint64_t x ) noexcept
+			{
+				constexpr std::uint64_t m = 9;
+				constexpr std::uint64_t t = ( std::uint64_t(0ull - m) ) % m;  // 2^64 mod 9 == 7
+#if defined( _MSC_VER ) && !defined( __clang__ )
+				std::uint64_t hi, lo;
+				for ( ;; )
+				{
+					lo = _umul128( x, m, &hi );	 // lo = (x*m).low64, hi = (x*m).high64
+					if ( lo >= t )
+						return hi;				 // hi ∈ [0,8]
+					x += 0x9E3779B97F4A7C15ULL;	 // Weyl 序列/黄金比例步长 奇常数推进；加法是模2^64的双射
+				}
+#else
+				for ( ;; )
+				{
+					__uint128_t p = ( ( __uint128_t )x ) * m;
+					if ( ( std::uint64_t )p >= t )	// 低64位 ≥ 阈值则接受
+						return ( std::uint64_t )( p >> 64 );
+					x += 0x9E3779B97F4A7C15ULL;	 // 避免依赖外部 next64()
+				}
+#endif
+			}
 
 			//一种使用非线性反馈移位寄存器算法的随机数发生器
 			//A random number generator using non-linear feedback shift register algorithm
@@ -2402,18 +2437,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 			private:
 
-#if defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 1
-
-				/*
-				数组位置0是当前的随机数的种子
-				数组位置1是当前的随机数
-				Array position 0 is the current random number seed
-				Array position 1 is the current random number
-			*/
-				std::array<result_type, 2> state{};
-
-#elif defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 2
-
 				/*
 					数组位置0是当前的随机数的种子
 					数组位置1是当前的随机数
@@ -2422,10 +2445,40 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				*/
 				std::array<result_type, 4> state{};
 
-#endif
+				// ----------- constant-time 小工具（避免 secret-dependent branch）-----------
+				static inline std::uint8_t ct_is_zero_u8(std::uint8_t x) noexcept
+				{
+					// returns 1 if x==0 else 0 (branchless)
+					std::uint8_t nonzero = static_cast<std::uint8_t>((x | static_cast<std::uint8_t>(0u - x)) >> 7);
+					return static_cast<std::uint8_t>(nonzero ^ 1u);
+				}
 
-				//应用不可约的本源多项式的复杂性质生成非线性的随机比特流的数字
-				//Apply complex properties of irreducible primitive polynomials to generate nonlinear random bit streams of numbers
+				static inline std::uint8_t ct_eq_u8(std::uint8_t a, std::uint8_t b) noexcept
+				{
+					return ct_is_zero_u8(static_cast<std::uint8_t>(a ^ b));
+				}
+
+				static inline std::uint8_t ct_select_u8(std::uint8_t a, std::uint8_t b, std::uint8_t flag01) noexcept
+				{
+					// flag01: 0 -> pick a, 1 -> pick b
+					std::uint8_t mask = static_cast<std::uint8_t>(0u - flag01); // 0x00 or 0xFF
+					return static_cast<std::uint8_t>((a & static_cast<std::uint8_t>(~mask)) | (b & mask));
+				}
+
+				static inline std::uint16_t ct_is_zero_u16(std::uint16_t x) noexcept
+				{
+					// returns 1 if x==0 else 0 (branchless)
+					std::uint16_t nonzero = static_cast<std::uint16_t>((x | static_cast<std::uint16_t>(0u - x)) >> 15);
+					return static_cast<std::uint16_t>(nonzero ^ 1u);
+				}
+
+				static inline std::uint16_t rotl9(std::uint16_t x, unsigned r) noexcept
+				{
+					// 9-bit rotate-left, keep in 0..0x1FF
+					r %= 9u;
+					return static_cast<std::uint16_t>(((x << r) | (x >> (9u - r))) & 0x1FFu);
+				}
+
 				//应用不可约的本源多项式的复杂性质生成非线性的随机比特流的数字
 				//Apply complex properties of irreducible primitive polynomials to generate nonlinear random bit streams of numbers
 				result_type random_bits(std::uint64_t& state_number, std::uint64_t irreducible_polynomial_count, const std::uint8_t bit)
@@ -2440,474 +2493,193 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						state_number >>= 1;                           // 右移
 						state_number ^= (~lowest_bit + 1) & feedback; // 如果最低位为1，则与 feedback 异或
 					};
-				
-					switch (irreducible_polynomial_count)
+
+					// 用常量表 + 掩码选择，替代 switch（避免 secret-dependent branch）
+					static constexpr std::uint64_t kFeedbackMasks[9] =
 					{
-						case 0:
-						{
-							//Primitive polynomial degree is 24
-							//x^23 + x^10 + x^9 + x^8 + x^6 + x^4 + x^3 + 1
-							feedback_function(0x80'0759ULL);
+						//Primitive polynomial degree is 24
+						//x^23 + x^10 + x^9 + x^8 + x^6 + x^4 + x^3 + 1
+						0x80'0759ULL,
 
-							break;
-						}
-						case 1:
-						{
-							//Primitive polynomial degree is 55
-							//x^54 - x^10 - x^9 - x^8 - x^7 - x^6 - x^5 - x^4 - x^3 - x^2
-							feedback_function(0x40'0000'0000'07FCULL);
+						//Primitive polynomial degree is 55
+						//x^54 - x^10 - x^9 - x^8 - x^7 - x^6 - x^5 - x^4 - x^3 - x^2
+						0x40'0000'0000'07FCULL,
 
-							break;
-						}
-						case 2:
-						{
-							//Primitive polynomial degree is 48
-							//x^47 + x^11 + x^10 + x^8 + x^5 + x^4 + x^3 + 1
-							feedback_function(0x8000'0000'0D39ULL);
+						//Primitive polynomial degree is 48
+						//x^47 + x^11 + x^10 + x^8 + x^5 + x^4 + x^3 + 1
+						0x8000'0000'0D39ULL,
 
-							break;
-						}
-						case 3:
-						{
-							//Primitive polynomial degree is 31
-							//x^30 - x^9 - x^8 - x^7 - x^5 - x^4 - x^3 - x^2 - x - 1
-							feedback_function(0x4000'03BFULL);
+						//Primitive polynomial degree is 31
+						//x^30 - x^9 - x^8 - x^7 - x^5 - x^4 - x^3 - x^2 - x - 1
+						0x4000'03BFULL,
 
-							break;
-						}
-						case 4:
-						{
-							//Primitive polynomial degree is 64
-							//x^63 + x^12 + x^9 + x^8 + x^5 + x^2
-							feedback_function(0x8000'0000'0000'1324ULL);
+						//Primitive polynomial degree is 64
+						//x^63 + x^12 + x^9 + x^8 + x^5 + x^2
+						0x8000'0000'0000'1324ULL,
 
-							break;
-						}
-						case 5:
-						{
-							//Primitive polynomial degree is 27
-							//x^26 - x^10 - x^3 - x^2 - x - 1
-							feedback_function(0x400'040FULL);
+						//Primitive polynomial degree is 27
+						//x^26 - x^10 - x^3 - x^2 - x - 1
+						0x400'040FULL,
 
-							break;
-						}
-						case 6:
-						{
-							//Primitive polynomialdegree is 7
-							//x^6 + 1
-							feedback_function(0x41ULL);
+						//Primitive polynomialdegree is 7
+						//x^6 + 1
+						0x41ULL,
 
-							break;
-						}
-						case 7:
-						{
-							//Primitive polynomial degree is 16
-							//x^15 - x^10 - x^7 - x^5 - x^4 - x^3 - x^2 - x
-							feedback_function(0x84BEULL);
+						//Primitive polynomial degree is 16
+						//x^15 - x^10 - x^7 - x^5 - x^4 - x^3 - x^2 - x
+						0x84BEULL,
 
-							break;
-						}
-						default:
-						{
-							//Primitive polynomial degree is 42
-							//x^41 + x^11 + x^10 + x^8 + x^6 + x^5 + x^4 + x^3 + x^2 + x
-							feedback_function(0x200'0000'0D7EULL);
+						//Primitive polynomial degree is 42
+						//x^41 + x^11 + x^10 + x^8 + x^6 + x^5 + x^4 + x^3 + x^2 + x
+						0x200'0000'0D7EULL
+					};
 
-							break;
-						}
+					// 默认分支：对应原来的 default
+					std::uint64_t feedback = kFeedbackMasks[8];
+
+					// case 0..7 覆盖 default
+					for (std::uint8_t k = 0; k < 8; ++k)
+					{
+						const std::uint8_t eq = ct_eq_u8(static_cast<std::uint8_t>(irreducible_polynomial_count), k);
+						const std::uint64_t mask = 0ULL - static_cast<std::uint64_t>(eq);
+						feedback = (feedback & ~mask) | (kFeedbackMasks[k] & mask);
 					}
 
-					return state_number ^ bit;
+					feedback_function(feedback);
+
+					return state_number ^ static_cast<result_type>(bit & 0x01);
+				}
+
+				// 非线性组合函数 f
+				// Nonlinear combining function f
+				// f2 candidate (A): lightweight combiner
+				// Metrics (per-round, 4 vars): balanced, deg=2, AI=2, NL=4, corr_immunity_order=1
+				static inline std::uint8_t combining_function(std::uint8_t u1, std::uint8_t u2, std::uint8_t u3, std::uint8_t u4) noexcept
+				{
+					/*
+						Bit-only ANF:
+						f = u1 ^ (u1 & u2) ^ u3 ^ u4
+					*/
+					return static_cast<std::uint8_t>((u1 ^ (u1 & u2) ^ u3 ^ u4) & 0x01);
+				}
+
+				// 非线性组合函数 f2
+				// Nonlinear combining function f2 
+				// f2 candidate (A): Trivium-ish clean combiner
+				// Metrics (per-round, 6 vars): balanced, deg=3, AI_ub=3, NL=24, max|Walsh|=16
+				static inline std::uint8_t combining_function_f2
+				(
+					std::uint8_t f1,
+					std::uint8_t u1, std::uint8_t u2, std::uint8_t u3, std::uint8_t u4,
+					std::uint8_t extra
+				) noexcept
+				{
+					// Bit-only ANF:
+					// f2 = f1
+					//    ^ (u1 & u3) ^ (u2 & u4) ^ (u3 & u4)
+					//    ^ (u1 & extra) ^ (u4 & extra)
+					//    ^ (f1 & u3 & u4) ^ (f1 & u1 & extra)
+					std::uint8_t out =
+						(f1)
+						^ (u1 & u3) ^ (u2 & u4) ^ (u3 & u4)
+						^ (u1 & extra) ^ (u4 & extra)
+						^ (f1 & u3 & u4) ^ (f1 & u1 & extra);
+
+					return static_cast<std::uint8_t>(out & 0x01);
+				}
+
+				//生成 1bit 的 st，然后你可以按需累积成 64bit
+				//Generate 1-bit st, then you can accumulate to 64-bit as needed
+				std::uint8_t next_nlfsr_bit()
+				{
+					/*
+						说明：
+						- 我们有 9 个“门控 LFSR 反馈多项式槽位”(0..8)，但不保存 9 份状态
+						- 每轮用门控掩码随机启用其中 4 个槽位
+						- 这 4 个槽位分别驱动现有 4 个 64-bit state 寄存器
+						- 然后取四路输出 bit 喂给 f 得到 s_t
+
+						Notes:
+						- We have 9 gated polynomial slots (0..8), but we do NOT store 9 states
+						- Each round enables 4 of them via a gate mask derived from current state bits
+						- Those 4 slots drive the existing 4x64-bit state registers
+						- Then four output bits feed f to produce s_t
+					*/
+
+					//门控掩码：9-bit
+					//Gate mask: 9-bit
+					std::uint16_t gate = static_cast<std::uint16_t>(
+						( ( state[0]      ) ^
+						  ( std::rotr(state[1], 7)  ) ^
+						  ( std::rotl(state[2], 19) ) ^
+						  ( state[3] >> 3 ) ^
+						  ( state[0] >> 41 ) ) & 0x1FFu
+					);
+
+					//避免 gate == 0（否则选不出4路）
+					//Avoid gate == 0 (or we cannot pick 4 lines)
+					//
+					// 用 branchless 修复：若 gate==0，则置最低位为 1，然后用 9-bit 扩散保证 popcount>=4
+					const std::uint16_t is_zero = ct_is_zero_u16(gate);
+					gate = static_cast<std::uint16_t>(gate | is_zero);
+
+					//确保至少有 4 个 1（极小概率不够时补一下，不搞重采样）
+					//Ensure at least 4 ones (very rare; patch without rejection sampling)
+					std::uint8_t temp = static_cast<std::uint8_t>((state[0] ^ state[1] ^ state[2] ^ state[3]) & 7u);
+					gate = rotl9(gate, temp);
+
+					//从 gate 中选出 4 个多项式索引（0..8）
+					//Pick 4 polynomial indices (0..8) from gate
+					std::uint8_t i0 = 0, i1 = 1, i2 = 2, i3 = 3;
+					std::uint8_t picked = 0;
+
+					// 固定 9 次循环 + 掩码选择，替代 if/continue/break
+					for (std::uint8_t i = 0; i < 9; ++i)
+					{
+						const std::uint8_t bit = static_cast<std::uint8_t>((gate >> i) & 0x01u);
+
+						const std::uint8_t take0 = static_cast<std::uint8_t>(bit & ct_eq_u8(picked, 0));
+						const std::uint8_t take1 = static_cast<std::uint8_t>(bit & ct_eq_u8(picked, 1));
+						const std::uint8_t take2 = static_cast<std::uint8_t>(bit & ct_eq_u8(picked, 2));
+						const std::uint8_t take3 = static_cast<std::uint8_t>(bit & ct_eq_u8(picked, 3));
+
+						i0 = ct_select_u8(i0, i, take0);
+						i1 = ct_select_u8(i1, i, take1);
+						i2 = ct_select_u8(i2, i, take2);
+						i3 = ct_select_u8(i3, i, take3);
+
+						picked = static_cast<std::uint8_t>(picked + bit);
+					}
+
+					//推进四个 state：每个 state 用自己那路被选中的多项式槽位
+					//Advance 4 states: each state uses its selected polynomial slot
+					//
+					//只用 bit：输出 bit 用 MSB（你前面一直这么取）
+					//Bit-only: output bit uses MSB (consistent with your style)
+					std::uint8_t b0 = static_cast<std::uint8_t>(state[0] & 0x01);
+					std::uint8_t b1 = static_cast<std::uint8_t>(state[1] & 0x01);
+					std::uint8_t b2 = static_cast<std::uint8_t>(state[2] & 0x01);
+					std::uint8_t b3 = static_cast<std::uint8_t>(state[3] & 0x01);
+
+					state[0] = this->random_bits(state[0], static_cast<std::uint64_t>(i0), static_cast<std::uint8_t>(b0));
+					state[1] = this->random_bits(state[1], static_cast<std::uint64_t>(i1), static_cast<std::uint8_t>(b1));
+					state[2] = this->random_bits(state[2], static_cast<std::uint64_t>(i2), static_cast<std::uint8_t>(b2));
+					state[3] = this->random_bits(state[3], static_cast<std::uint64_t>(i3), static_cast<std::uint8_t>(b3));
+
+					//取四路 u_t^i
+					//Take four u_t^i
+					std::uint8_t u1 = static_cast<std::uint8_t>(state[0] & 0x01);
+					std::uint8_t u2 = static_cast<std::uint8_t>(state[1] & 0x01);
+					std::uint8_t u3 = static_cast<std::uint8_t>(state[2] & 0x01);
+					std::uint8_t u4 = static_cast<std::uint8_t>(state[3] & 0x01);
+
+					//组合函数 f -> s_t
+					std::uint8_t s_t = combining_function(u1, u2, u3, u4);
+
+					return static_cast<std::uint8_t>(s_t & 0x01);
 				}
 
 			public:
-
-				/*
-					Reference URL:
-					http://www.numberworld.org/constants.html
-					https://www.exploringbinary.com/pi-and-e-in-binary/
-					https://oeis.org/A001113
-					https://oeis.org/A001622
-					https://oeis.org/A000796
-
-					斐波那契数列的值的组合
-					Combination of the values of the Fibonacci sequence
-					123581321345589144 == 0x1B70C8E97AD5F98
-
-					PI π ≈ 3.1415926535897932384626433832795028841971693993751058209749445923078
-					圆周率是一个数学常数，为一个圆的周长和其直径的比率
-					Circumference is a mathematical constant that is the ratio of the circumference of a circle to its diameter
-					Binary format: 11.0010010000111111011010101000100010000101101000110000100011010011
-					二进制数字被剥离了浮点部分，并转换为十六进制，即 0x243F6A8885A308D3
-					The binary numbers are stripped of the floating point portion and converted to hexadecimal, i.e: 0x243F6A8885A308D3
-
-					e ≈ 2.7182818284590452353602874713526624977572470936999595749669676277240
-					欧拉数是自然对数的基数，不要与欧拉-马斯切罗尼常数混淆
-					The Euler number is the base of the natural logarithm, not to be confused with the Euler-Mascheroni constant
-					Binary format: 10.1011011111100001010100010110001010001010111011010010101001101010
-					二进制数字被剥离了浮点部分，并转换为十六进制，即 0xB7E151628AED2A6A
-					The binary numbers are stripped of the floating point portion and converted to hexadecimal, i.e: 0xB7E151628AED2A6A
-
-					phi ≈ 1.618033988749894848204586834365638618033988749894848204586834365638
-					在数学中，如果两个量的比值与这两个量中较大的一个的比值相同，那么这两个量就处于黄金比例。
-					用代数法表示，对于a和b的数量，a>b>0
-					其中希腊字母phi表示黄金比例。
-					常数phi满足二次方程 phi^2 = phi+1，是一个无理数，其值为phi =（ 1 + sqrt（5））/ 2
-					In mathematics, two quantities are in the golden ratio if their ratio is the same as the ratio of their sum to the larger of the two quantities. Expressed algebraically, for quantities.
-					Expressed algebraically, for quantities a and b with a>b>0
-					where the Greek letter phi denotes the golden ratio.
-					The constant phi satisfies the quadratic equation phi^2 = phi + 1, and is an irrational number with a value of phi = (1 + sqrt(5)) / 2
-					Binary format: 01.1001111000110111011110011011100101111111010010100111110000010101
-					二进制数字被剥离了浮点部分，并转换为十六进制，即 0x9E3779B97F4A7C15A
-					The binary numbers are stripped of the floating point portion and converted to hexadecimal, i.e: 0x9E3779B97F4A7C15
-				*/
-				result_type generate_chaotic_number(std::size_t algorithm_execute_count)
-				{
-					/*
-						Hamming weights (number of bits with 1)
-						汉明权重(比特位为1的数量)
-						std::popcount(Value);
-					*/
-
-					//32
-					constexpr std::uint64_t FibonacciSequence = 0x1B70C8E97AD5F98ULL;
-					//27
-					constexpr std::uint64_t CircumferenceSequence = 0x243F6A8885A308D3ULL;
-					//38
-					constexpr std::uint64_t GoldenRatioSequence = 0x9E3779B97F4A7C15ULL;
-					//32
-					constexpr std::uint64_t EulerNumberSequence = 0xB7E151628AED2A6AULL;
-
-					using TwilightDreamOfMagical::CustomSecurity::GaloisFiniteField256;
-					using CommonToolkit::IntegerExchangeBytes::MemoryDataFormatExchange;
-					MemoryDataFormatExchange memory_data_format_exchanger;
-					GaloisFiniteField256<std::uint8_t>& GF256_Instance = GaloisFiniteField256<std::uint8_t>::get_instance();
-
-					std::span<std::uint8_t> ByteSpan = memory_data_format_exchanger.Unpacker_8Byte(FibonacciSequence);
-					const std::vector<std::uint8_t> FibonacciSequenceBytes(ByteSpan.begin(), ByteSpan.end());
-
-					ByteSpan = memory_data_format_exchanger.Unpacker_8Byte(CircumferenceSequence);
-					const std::vector<std::uint8_t> CircumferenceSequenceBytes(ByteSpan.begin(), ByteSpan.end());
-
-					ByteSpan = memory_data_format_exchanger.Unpacker_8Byte(GoldenRatioSequence);
-					const std::vector<std::uint8_t> GoldenRatioSequenceBytes(ByteSpan.begin(), ByteSpan.end());
-
-					ByteSpan = memory_data_format_exchanger.Unpacker_8Byte(EulerNumberSequence);
-					const std::vector<std::uint8_t> EulerNumberSequenceBytes(ByteSpan.begin(), ByteSpan.end());
-
-					constexpr std::uint64_t Number2Power64Modulus = std::numeric_limits<result_type>::digits - static_cast<result_type>(1);
-
-					/*
-						Designed by: Twilight-Dream
-						设计者：Twilight-Dream
-					*/
-
-#if defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 1
-
-					/*
-					Method of random number quality test:
-					https://www.pcg-random.org/posts/how-to-test-with-practrand.html
-
-					Twilight-Dream@TWILIGHT-DREAM_HOME_COMPUTER MSYS ~/PractRand/[PRNG-TEST]
-					# g++ -std=c++20 -O3 -Wall -o my-nlfsr_test ./my-nlfsr.cpp -static
-
-					Twilight-Dream@TWILIGHT-DREAM_HOME_COMPUTER MSYS ~/PractRand/[PRNG-TEST]
-					# ./my-nlfsr_test-version1.exe | ./RNG_test.exe stdin64 -tlmin 1TB -tlmax 512TB -tf 2 -te 1 -multithreaded
-					RNG_test using PractRand version 0.95
-					RNG = RNG_stdin64, seed = unknown
-					test set = expanded, folding = extra
-
-					rng=RNG_stdin64, seed=unknown
-					length= 1 terabyte (2^40 bytes), time= 37829 seconds
-					  no anomalies in 2460 test result(s)
-
-					rng=RNG_stdin64, seed=unknown
-					length= 2 terabytes (2^41 bytes), time= 83022 seconds
-					  no anomalies in 2530 test result(s)
-				*/
-
-					if (algorithm_execute_count < 8)
-						algorithm_execute_count = 8;
-
-					result_type answer = 0;
-					for (std::size_t round_counter = 0; round_counter < algorithm_execute_count; ++round_counter)
-					{
-						std::uint8_t bit = (state[0] ^ state[1]) & 0x01;
-
-						answer <<= 1;
-						answer |= bit;
-
-						if ((std::popcount(answer) & 0x01) != 0)
-						{
-							//Equivalent to function
-							//GF256_Instance.addition_or_subtraction(reinterpret_cast<std::uint8_t*>(&answer)[index], FibonacciSequenceByteSpan);
-							answer ^= FibonacciSequence;
-						}
-						else
-						{
-							auto multiplied_number_byte_span = memory_data_format_exchanger.Unpacker_8Byte(answer);
-
-							for (std::uint8_t index = 0; index < sizeof(std::uint64_t); ++index)
-								multiplied_number_byte_span[index] = GF256_Instance.multiplication(multiplied_number_byte_span[index], CircumferenceSequenceBytes[index]);
-
-							//Equivalent to function
-							//GF256_Instance.addition_or_subtraction(multiplied_number_byte_span, reinterpret_cast<std::uint8_t*>(answer)[index]);
-							answer ^= memory_data_format_exchanger.Packer_8Byte(multiplied_number_byte_span);
-						}
-
-						if (algorithm_execute_count % 2 == 0)
-						{
-							auto& [value_0, value_1] = state;
-
-							//可引起雪崩效应的二进制Mixed线性反馈移位寄存器处理
-							//Binary Mixed linear feedback shift register processing that can cause avalanche effects
-							//该函数被频繁调用时，非常消耗CPU的计算能力
-							//When this function is called frequently, it consumes a lot of CPU computing power
-							std::uint64_t&& random_number = static_cast<std::uint64_t>((answer >> static_cast<std::uint64_t>(53) ^ answer) ^ value_0);
-
-							value_1 &= value_0;
-							if (value_1 == 0)
-								value_1 += value_0 * 2;
-
-							answer ^= this->random_bits(value_1, random_number % 9ULL, static_cast<std::uint8_t>((value_1 & 0x01) ^ bit));
-
-							value_0 &= value_1;
-							if (value_0 == 0)
-								value_0 += value_1 * 2;
-						}
-						else
-						{
-							//应用所有状态的混合数据
-							//Apply mixed data for all states
-
-							state[0] ^= result_type{ 1 } << (state[1] & Number2Power64Modulus);
-
-							std::uint64_t a = state[0] & state[1];
-							a ^= answer;
-
-							std::uint64_t b = state[1] & answer;
-							b ^= state[0];
-
-							std::uint64_t c = answer & state[0];
-							c ^= state[1];
-
-							answer = ~((a | b) & c);
-
-							state[1] ^= result_type{ 1 } << (state[0] & Number2Power64Modulus);
-
-							a = 0;
-							b = 0;
-							c = 0;
-						}
-
-						if ((std::popcount(state[1]) & 0x01) == 0)
-						{
-							auto multiplied_number_byte_span = memory_data_format_exchanger.Unpacker_8Byte(state[1]);
-
-							for (std::uint8_t index = 0; index < sizeof(std::uint64_t); ++index)
-								multiplied_number_byte_span[index] = GF256_Instance.multiplication(multiplied_number_byte_span[index], GoldenRatioSequenceBytes[index]);
-
-							//Equivalent to function
-							//GF256_Instance.addition_or_subtraction(state[1], multiplied_number_byte_span);
-							state[1] ^= memory_data_format_exchanger.Packer_8Byte(multiplied_number_byte_span);
-
-							if (state[1] == 0)
-							{
-								//Equivalent to function
-								//GF256_Instance.addition_or_subtraction(state[1], FibonacciSequenceByteSpan);
-								state[1] ^= FibonacciSequence;
-							}
-						}
-						else
-						{
-							//Equivalent to function
-							//GF256_Instance.addition_or_subtraction(state[1], EulerNumberSequenceByteSpan);
-							//GF256_Instance.addition_or_subtraction(state[1], reinterpret_cast<std::uint8_t*>(&answer)[index]);
-							state[1] ^= EulerNumberSequence ^ answer;
-						}
-					}
-
-					/*
-						重要说明:
-						这里的两个step常数17和42，可以互换位置；比特位左移（<<）和比特位右移（>>），也可以互换位置。
-						注意，这个比特数互斥的或操作不能被删除，而且操作数必须是一个变量ANSWER！
-						虽然两个step常数可以是 step ∈ [0 ，63]的任意数字，但是它们必须不相等而且需是1个奇数和1个偶数!
-
-						Important Notes:
-						The two step constants here, 17 and 42, can swap positions; bitwise left shifts (<<) and bitwise right shifts (>>), can also swap positions.
-						Note that this bitwise exclusive-or operation cannot be removed, and the operand must be a variable ANSWER!
-						Although the two step constants can be any number of step ∈ [0 , 63], they must be unequal and need to be 1 odd and 1 even!
-					*/
-					return answer ^ ((answer >> 42) | (answer << 17));
-
-					//state[0] = std::rotl(state[0], 42) >> 1;
-					//state[1] = std::rotr(state[1], 17) << 1;
-					//answer ^= ( 0x01ULL << ( ( state[0] | state[1] ) & Number2Power64Modulus) );
-					//return answer;
-
-#elif defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 2
-
-					/*
-
-					Method of random number quality test:
-					https://www.pcg-random.org/posts/how-to-test-with-practrand.html
-
-					Twilight-Dream@TWILIGHT-DREAM_HOME_COMPUTER MSYS ~/PractRand/[MY-PRNG-TEST]
-					# ./my-nlfsr_test-version3.exe | ./RNG_test.exe stdin64 -tlmin 1TB -tlmax 512TB -tf 2 -te 1 -multithreaded
-
-					*/
-
-					if (algorithm_execute_count < 8)
-						algorithm_execute_count = 8;
-
-					result_type answer = 0;
-					std::uint8_t bit = 0;
-					for (std::size_t round_counter = 0; round_counter < algorithm_execute_count; ++round_counter)
-					{
-						bit = (state[0] ^ state[1] ^ state[2] ^ state[3]) & 0x01;
-
-						answer <<= 1;
-						answer |= bit;
-
-						if ((std::popcount(answer) & 0x01) != 0)
-						{
-							//Equivalent to function
-							//GF256_Instance.addition_or_subtraction(reinterpret_cast<std::uint8_t*>(&answer)[index], CircumferenceSequenceByteSpan);
-							answer ^= CircumferenceSequence;
-						}
-						else
-						{
-							auto multiplied_number_byte_span = memory_data_format_exchanger.Unpacker_8Byte(answer);
-
-							auto& SequenceBytes = (answer ^ state[1]) & 0x01 ? FibonacciSequenceBytes : GoldenRatioSequenceBytes;
-
-							for (std::uint8_t index = 0; index < sizeof(std::uint64_t); ++index)
-								multiplied_number_byte_span[index] = GF256_Instance.multiplication(multiplied_number_byte_span[index], SequenceBytes[index]);
-
-							//Equivalent to function
-							//GF256_Instance.addition_or_subtraction(multiplied_number_byte_span, FibonacciSequenceByteSpan);
-							answer ^= memory_data_format_exchanger.Packer_8Byte(multiplied_number_byte_span);
-						}
-
-						if ((std::popcount(state[2]) & 0x01) == 0)
-						{
-							auto multiplied_number_byte_span = memory_data_format_exchanger.Unpacker_8Byte(state[2]);
-
-							auto& SequenceBytes = (answer ^ state[3]) & 0x01 ? EulerNumberSequenceBytes : CircumferenceSequenceBytes;
-
-							for (std::uint8_t index = 0; index < sizeof(std::uint64_t); ++index)
-								multiplied_number_byte_span[index] = GF256_Instance.multiplication(multiplied_number_byte_span[index], SequenceBytes[index]);
-
-							//GF256 addition_or_subtraction
-							state[2] ^= memory_data_format_exchanger.Packer_8Byte(multiplied_number_byte_span);
-
-							if ((state[2] & 0x01) == 0)
-							{
-								state[2] ^= FibonacciSequence;
-							}
-						}
-						else
-						{
-							state[2] ^= GoldenRatioSequence ^ answer;
-
-							if ((state[2] & 0x01) != 0)
-							{
-								state[2] ^= CircumferenceSequence;
-							}
-						}
-
-						if (round_counter % 2 == 0)
-						{
-							auto& [value_0, value_1, value_2, value_3] = state;
-
-							//可引起雪崩效应的二进制哈希处理
-							//Binary hash processing that can cause an avalanche effect
-							//该函数被频繁调用时，非常消耗CPU的计算能力
-							//When this function is called frequently, it consumes a lot of CPU computing power
-							std::uint64_t&& random_number = static_cast<std::uint64_t>((answer >> static_cast<std::uint64_t>(17) ^ value_1) ^ value_2);
-
-							value_0 &= value_3;
-							if (value_0 == 0)
-								value_0 += (value_2 * 2);
-
-							answer ^= this->random_bits(value_0, random_number % 9ULL, static_cast<std::uint8_t>((value_3 & 0x01) ^ bit));
-
-							value_3 &= value_0;
-							if (value_3 == 0)
-								value_3 -= value_1 * 2;
-
-							//Deprecated code:
-							//std::uint64_t&& random_number = static_cast<std::uint64_t>( ( answer >> 53 ^ state[1] ) ^ state[2] );
-							//answer ^= this->random_bits( random_number & static_cast<std::uint64_t>(8 - 1), (state[2] & 0x01) ^ bit);
-						}
-						else
-						{
-							auto& [value_0, value_1, value_2, value_3] = state;
-
-							//Bit Data Mixing Function
-							//比特数据混合函数
-							value_1 ^= std::rotr(answer ^ value_0, static_cast<result_type>(value_3 - value_2) & Number2Power64Modulus);
-							value_2 ^= value_1 << (static_cast<result_type>(value_0 + value_3) & Number2Power64Modulus);
-							value_3 ^= value_2 >> (static_cast<result_type>(value_1 + value_0) & Number2Power64Modulus);
-							value_0 ^= std::rotl(answer ^ value_3, static_cast<result_type>(value_1 - value_2) & Number2Power64Modulus);
-
-							//Pseudo-Hadamard Transform
-							//伪哈达马德变换
-
-							result_type value_a = (value_0 + value_1) == 0ULL ? bit : (value_0 + value_1);
-							result_type value_b = (value_0 + value_1 * 2ULL) == 0ULL ? bit : (value_0 + value_1 * 2ULL);
-							result_type value_c = (value_3 - value_2) == 0ULL ? bit : (value_3 - value_2);
-							result_type value_d = (value_2 * 2ULL - value_3) == 0ULL ? bit : (value_2 * 2ULL - value_3);
-
-							//Forward form
-							value_0 ^= value_a;
-							value_1 ^= value_b;
-
-							//Backward form
-							value_2 ^= value_c;
-							value_3 ^= value_d;
-
-							value_a = value_b = value_c = value_d = 0ULL;
-
-							//应用所有状态的混合数据
-							//Apply mixed data for all states
-							answer ^= state[0] ^ state[1] ^ state[2] ^ state[3];
-						}
-
-						//对于内部状态的比特位集进行(左旋转和右旋转)1位
-						//For the internal state the set of bits is performed (left rotation and right rotation) 1 bit
-						//state[0] = ( state[0] << 1 ) | ( state[1] >> 63 );
-						//state[1] = ( state[1] >> 1 ) | ( state[2] << 63 );
-						//state[2] = ( state[2] << 1 ) | ( state[3] >> 63 );
-						//state[3] = ( state[3] >> 1 ) | ( state[0] << 63 );
-
-					}
-					bit = 0ULL;
-
-					/*
-						重要说明:
-						这里的两个step常数17和42，可以互换位置；比特位左移（<<）和比特位右移（>>），也可以互换位置。
-						注意，这个比特数互斥的或操作不能被删除，而且操作数必须是一个变量ANSWER！
-						虽然两个step常数可以是 step ∈ [0 ，63]的任意数字，但是它们必须不相等而且需是1个奇数和1个偶数!
-
-						Important Notes:
-						The two step constants here, 17 and 42, can swap positions; bitwise left shifts (<<) and bitwise right shifts (>>), can also swap positions.
-						Note that this bitwise exclusive-or operation cannot be removed, and the operand must be a variable ANSWER!
-						Although the two step constants can be any number of step ∈ [0 , 63], they must be unequal and need to be 1 odd and 1 even!
-					*/
-
-					return answer ^ ((answer << 17) | (answer >> 42));
-
-					//state[0] = std::rotr(state[0], 17) << 42;
-					//state[1] = std::rotl(state[1], 42) >> 17;
-					//state[2] = std::rotr(state[2], 17) << 42;
-					//state[3] = std::rotl(state[3], 42) >> 17;
-					//result_type random_number = (state[1] & state[3]) ^ (state[0] | state[2]);
-					//answer ^= ( 0x01ULL << (random_number & Number2Power64Modulus) );
-					//return answer
-
-#endif
-				}
 
 				//产生不可预测的比特序列
 				//Generate unpredictable bit sequences
@@ -2938,156 +2710,61 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						When the sequence is in a chaotic state, it may be in between linear and non-linear states, so please record all the provided parameters and numerical seeds yourself.
 					*/
 
-					result_type answer = base_number;
-					result_type current_random_bit = 0U;
+					// 1) 仅做一次“扰动注入”：把 base_number 的少量 bit 注入 state（bit-only）
+					// One-time injection: inject a few bits of base_number into state (bit-only)
+					state[0] ^= base_number;
+					state[1] ^= std::rotr(base_number, 17);
+					state[2] ^= std::rotl(base_number, 29);
+					state[3] ^= ~base_number;
 
-					std::array<std::uint8_t, 4> current_random_bits{ 0,0,0,0 };
+					// 2) 轻量 warm-up：推进几步，避免“刚注入就输出”
+					// Light warm-up steps
+					for (std::size_t i = 0; i < 16; ++i)
+						(void)this->next_nlfsr_bit();
 
-					for (std::size_t round_counter = 0; round_counter < number_bits; ++round_counter)
+					// 3) 堆 bit 输出
+					// Accumulate bits to 64-bit result
+					result_type answer = 0;
+					const std::size_t iteration = (number_bits > 64) ? 64 : number_bits;
+
+					for (std::size_t i = 0; i < iteration; ++i)
 					{
-#if defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 1
+						// 这里是你要的：F2 用在 unpredictable_bits 里
+						// - f1 来自 F1（next_nlfsr_bit 的输出）
+						// - u1..u4 用 state 的低位做“额外观察位”（你原先就是这么写的）
+						// - extra 用 answer 的历史 bit（反馈），避免你把 64-bit answer 直接塞进 f2 的 f1 参数
+						const std::uint8_t f1    = this->next_nlfsr_bit();
+						const std::uint8_t u1_l  = static_cast<std::uint8_t>(state[0] & 0x01);
+						const std::uint8_t u2_l  = static_cast<std::uint8_t>(state[1] & 0x01);
+						const std::uint8_t u3_l  = static_cast<std::uint8_t>(state[2] & 0x01);
+						const std::uint8_t u4_l  = static_cast<std::uint8_t>(state[3] & 0x01);
+						const std::uint8_t extra = static_cast<std::uint8_t>((answer & 0x01) & (u1_l ^ u3_l));
 
-						current_random_bit = state[1] & 0x01;
-						//丢弃答案随机数的最高比特位，最低位由'0'补上
-						//Discard the highest bit of the answer random number, the lowest bit is complemented by '0'
+						const std::uint8_t out = combining_function_f2(f1, u1_l, u2_l, u3_l, u4_l, extra);
+
 						answer <<= 1;
-						//答案的随机数 BIT_OR 0ULL || 1ULL
-						//The answer random number BIT_OR 0ULL || 1ULL
-						answer |= current_random_bit;
-
-						//计算二进制的伪随机比特序列
-						//Compute pseudo-random bit sequences in binary
-						//我这里把不同程度的线性反馈移位寄存器组合在一起
-						//它们构成了一个非线性反馈移位寄存器，由这些状态混合然后生成的数字都是不能被预测的
-						//I have combined different degrees of linear feedback shift registers here
-						//They form a nonlinear feedback shift register, and the numbers generated by mixing these states are not predictable
-						state[0] = this->random_bits(state[0], state[0] % 9ULL, current_random_bit);
-
-						//只保留一个二进制的随机比特位
-						//Only one binary random bit is retained
-						current_random_bit = state[0] & 0x01;
-
-						//根据当前状态(随机数种子或者随机数)，获取比特序列的最低比特位;
-						//并且把那个比特位设置到下一个状态(随机数种子或者随机数)的最高比特位
-						//Get the lowest bit of the bit sequence according to the current state (random number seed or random number);
-						//and set that bit to the highest bit of the next state (random number seed or random number)
-
-						state[1] >>= 1;
-						state[1] |= (state[0] & 0x01ULL) << 63;
-
-						state[0] >>= 1;
-						state[0] |= current_random_bit << 63;
-
-#elif defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 2
-
-						current_random_bit = ((state[0] ^ state[1] ^ state[2] ^ state[3]) >> 63) & 0x01;
-
-						//丢弃答案随机数的最高比特位，最低位由'0'补上
-						//Discard the highest bit of the answer random number, the lowest bit is complemented by '0'
-						answer <<= 1;
-
-						//答案的随机数 BIT_OR 0ULL || 1ULL
-						//The answer random number BIT_OR 0ULL || 1ULL
-						answer ^= current_random_bit;
-
-						//计算二进制的伪随机比特序列
-						//Compute pseudo-random bit sequences in binary
-						//我这里把不同程度的线性反馈移位寄存器组合在一起
-						//它们构成了一个非线性反馈移位寄存器，由这些状态混合然后生成的数字都是不能被预测的
-						//I have combined different degrees of linear feedback shift registers here
-						//They form a nonlinear feedback shift register, and the numbers generated by mixing these states are not predictable
-						state[0] = this->random_bits(state[0], (state[3] ^ state[2]) % 9ULL, current_random_bit);
-
-						//只保留一个二进制的随机比特位
-						//Only one binary random bit is retained
-						current_random_bits[0] ^= state[0] & 0x01;
-
-						state[1] = this->random_bits(state[1], (state[2] ^ state[1]) % 9ULL, current_random_bit);
-
-						//只保留一个二进制的随机比特位
-						//Only one binary random bit is retained
-						current_random_bits[1] ^= state[1] & 0x01;
-
-						state[2] = this->random_bits(state[2], (state[1] ^ state[0]) % 9ULL, current_random_bit);
-
-						//只保留一个二进制的随机比特位
-						//Only one binary random bit is retained
-						current_random_bits[2] ^= state[2] & 0x01;
-
-						state[3] = this->random_bits(state[3], (state[0] ^ state[3]) % 9ULL, current_random_bit);
-
-						//只保留一个二进制的随机比特位
-						//Only one binary random bit is retained
-						current_random_bits[3] ^= state[3] & 0x01;
-
-						current_random_bit = (current_random_bits[0] | current_random_bits[1])
-							^ (current_random_bits[1] & current_random_bits[2])
-							^ (current_random_bits[2] | current_random_bits[3])
-							^ (current_random_bits[3] & current_random_bits[0]);
-
-						//丢弃答案随机数的最高比特位，最低位由'0'补上
-						//Discard the highest bit of the answer random number, the lowest bit is complemented by '0'
-						answer <<= 1;
-
-						answer |= current_random_bit;
-
-						std::iter_swap(current_random_bits.begin() + (state[0] % current_random_bits.size()), current_random_bits.end() - 1);
-						std::iter_swap(current_random_bits.begin() + (state[1] % current_random_bits.size()), current_random_bits.end() - 1);
-						std::iter_swap(current_random_bits.begin() + (state[2] % current_random_bits.size()), current_random_bits.end() - 1);
-						std::iter_swap(current_random_bits.begin() + (state[3] % current_random_bits.size()), current_random_bits.end() - 1);
-
-						//根据当前状态(随机数种子或者随机数)，获取比特序列的最低比特位;
-						//并且把那个比特位设置到下一个状态(随机数种子或者随机数)的最高比特位
-						//Get the lowest bit of the bit sequence according to the current state (random number seed or random number);
-						//and set that bit to the highest bit of the next state (random number seed or random number)
-
-						state[1] >>= 1;
-						state[1] |= (state[0] & 0x01ULL) << 63;
-
-						state[2] >>= 1;
-						state[2] |= (state[1] & 0x01ULL) << 63;
-
-						state[3] >>= 1;
-						state[3] |= (state[2] & 0x01ULL) << 63;
-
-						state[0] >>= 1;
-						state[0] |= (state[3] & 0x01ULL) << 63;
-
-						/*
-						current_random_bit = (state[0] ^ state[1] ^ state[2]) & 0x01;
-
-						answer ^= current_random_bit;
-						*/
-
-#endif
+						answer |= static_cast<result_type>(out & 0x01);
 					}
-
-					volatile void* CheckPointer = std::memset(current_random_bits.data(), 0, current_random_bits.size());
-					CheckPointer = nullptr;
 
 					return answer;
 				}
 
 				result_type operator() (void)
 				{
+					/*
+						我们只使用比特：每轮生成 1bit 的 s_t，然后累积成 64bit 输出
 
-#if defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 1
+						Bit-only: generate 1-bit s_t each round, accumulate to 64-bit output
+					*/
+					result_type answer = 0;
 
-					//这里的参数影响随机数生成算法的时间复杂度
-				//The parameters here affect the time complexity of the random number generate algorithm
-				//Recommended number of executions(建议执行次数): algorithm_execute_count ∈ [8, 1024]
-				//Example value is: 8,9,10,11,12,13,14,15,16 ...... 1024
-					return this->generate_chaotic_number(8);
+					for (std::size_t i = 0; i < 64; ++i)
+					{
+						answer <<= 1;
+						answer |= static_cast<result_type>(this->next_nlfsr_bit());
+					}
 
-#elif defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 2
-
-					//这里的参数影响随机数生成算法的时间复杂度
-					//The parameters here affect the time complexity of the random number generate algorithm
-					//Recommended number of executions(建议执行次数): algorithm_execute_count ∈ [8, 1024]
-					//Example value is: 8,9,10,11,12,13,14,15,16 ...... 1024
-					return this->generate_chaotic_number(8);
-
-#endif
+					return answer;
 				}
 
 				static constexpr result_type min()
@@ -3110,13 +2787,12 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					if (round_number == 0)
 						++round_number;
 
-#if defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 1
-					this->generate_chaotic_number(round_number * 4);
-
-#elif defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 2
-					this->generate_chaotic_number(round_number * 2);
-
-#endif
+					//只使用比特：丢弃若干轮输出（每轮 64bit）
+					//Bit-only: discard several outputs (64-bit per output)
+					for (std::size_t i = 0; i < round_number; ++i)
+					{
+						(void)(*this)();
+					}
 				}
 
 #ifndef BOOST_RANDOM_NO_STREAM_OPERATORS
@@ -3126,7 +2802,10 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				friend std::basic_ostream<CharT, Traits>&
 					operator<<(std::basic_ostream<CharT, Traits>& os, const NonlinearFeedbackShiftRegister& nlfsr)
 				{
-					os << nlfsr.state[0]; os << ","; os << nlfsr.state[1]; return os;
+					//保持四个状态一致输出
+					//Keep four states serialized consistently
+					os << nlfsr.state[0]; os << ","; os << nlfsr.state[1]; os << ","; os << nlfsr.state[2]; os << ","; os << nlfsr.state[3];
+					return os;
 				}
 
 				/** Reads a @c rand48 from a @c std::istream. */
@@ -3134,96 +2813,34 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				friend std::basic_istream<CharT, Traits>&
 					operator>>(std::basic_istream<CharT, Traits>& is, NonlinearFeedbackShiftRegister& nlfsr)
 				{
-					char command; is >> nlfsr.state[0]; is >> command; is >> nlfsr.state[1]; return is;
+					//保持四个状态一致读取
+					//Keep four states deserialized consistently
+					char command;
+					is >> nlfsr.state[0]; is >> command;
+					is >> nlfsr.state[1]; is >> command;
+					is >> nlfsr.state[2]; is >> command;
+					is >> nlfsr.state[3];
+					return is;
 				}
 
 #endif
-
 				explicit NonlinearFeedbackShiftRegister(result_type seed)
 				{
+					// 避免全 0 状态
 					if (seed == 0)
-						++seed;
+						seed = 1;
 
-#if defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 1
-
-					//Initial state
+					// 1) bit-only 派生 4 个初始 state（不用乘法，不用加减）
+					// Derive 4 initial states using only bit operations
 					state[0] = seed;
-					state[1] = (seed * 2) + 1;
+					state[1] = std::rotr(seed ^ 0xA5A5A5A5A5A5A5A5ULL, 17);
+					state[2] = std::rotl(seed ^ 0x3C3C3C3C3C3C3C3CULL, 29);
+					state[3] = ~seed ^ 0xC3C3C3C3C3C3C3C3ULL;
 
-					//Update state
-					for (std::size_t initial_round = 32; initial_round > 0; initial_round--)
-					{
-						//应用所有状态的混合数据
-						//Apply mixed data for all states
-
-						state[0] ^= result_type{ 1 } << (state[1] & (std::numeric_limits<result_type>::digits - result_type{ 1 }));
-
-						std::uint64_t a = state[0] & state[1];
-						a ^= seed;
-
-						std::uint64_t b = this->random_bits(state[0], a % 9ULL, state[0] ^ state[1]) & state[1];
-						b ^= state[0];
-
-						std::uint64_t c = this->random_bits(state[1], (a ^ b) % 9ULL, (state[0] | state[1]) & 0x01) & state[0];
-						c ^= state[1];
-
-						seed = a ^ b ^ c;
-
-						state[1] ^= result_type{ 1 } << (seed & (std::numeric_limits<result_type>::digits - result_type{ 1 }));
-
-						a = 0;
-						b = 0;
-						c = 0;
-					}
-
-#elif defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 2
-
-					//Initial state
-					state[0] = seed;
-					state[1] = (seed * 2) + 1;
-					state[2] = (seed * 3) + 2;
-					state[3] = (seed * 4) + 3;
-
-					//Mix state (stage 1/2)
-					state[0] += (state[1] ^ state[2]) ^ ~(state[3]);
-					state[1] -= (state[2] & state[3]) | state[0];
-					state[2] += (state[3] ^ state[0]) ^ ~(state[1]);
-					state[3] -= (state[0] | state[1]) & state[2];
-
-					//Mix state (stage 2/2)
-					state[3] *= (seed << 48) & 0xffffffff;
-					state[2] *= (seed << 32) & 0xffffffff;
-					state[1] *= (seed << 16) & 0xffffffff;
-					state[0] *= (seed) & 0xffffffff;
-
-					//Update state
-					for (std::size_t initial_round = 128; initial_round > 0; initial_round--)
-					{
-						state[2] ^= this->random_bits(state[0], static_cast<std::uint64_t>((state[0] >> 6 ^ state[1]) ^ state[3] ^ seed) % 9, state[1] & 0x01);
-						state[3] ^= this->random_bits(state[1], static_cast<std::uint64_t>((state[1] << 57 ^ state[0]) ^ state[2] ^ seed) % 9, state[0] & 0x01);
-						state[0] ^= this->random_bits(state[2], static_cast<std::uint64_t>((state[2] >> 24 ^ state[3]) ^ state[1] ^ seed) % 9, state[3] & 0x01);
-						state[1] ^= this->random_bits(state[3], static_cast<std::uint64_t>((state[3] << 37 ^ state[2]) ^ state[0] ^ seed) % 9, state[2] & 0x01);
-
-						//Current random bit
-						std::uint64_t bit = (state[0] & 0x01) ^ (state[1] & 0x01) ^ (state[2] & 0x01) ^ (state[3] & 0x01);
-
-						//Perform the nonlinear feedback function
-						std::uint64_t temporary_state = (state[0] ^ state[1]) & state[2] | state[3];
-
-						//Override seed number values
-						seed = std::rotr(seed, 49) * std::rotl(state[0], 13);
-
-						//Shift the values in the state array
-						state[0] = state[1];
-						state[1] = state[2];
-						state[2] = state[3];
-						state[3] = temporary_state;
-
-						//In the (MSB/LSB) position, set a random bit
-						seed |= (temporary_state & 0x01) ? (bit << 63) : bit & 0x01;
-					}
-
-#endif
+					// 2) 只做 warm-up：推进门控 bit 流若干步，让状态进入“工作态”
+					// Warm-up: advance some steps to enter working regime
+					for (std::size_t i = 0; i < 256; ++i)
+						(void)this->next_nlfsr_bit();
 				}
 
 				NonlinearFeedbackShiftRegister() : NonlinearFeedbackShiftRegister(1)
@@ -3233,19 +2850,10 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				NonlinearFeedbackShiftRegister(NonlinearFeedbackShiftRegister const& nlfsr)
 				{
-#if defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 1
-
-					state[0] = nlfsr.state[0];
-					state[1] = nlfsr.state[1];
-
-#elif defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 2
-
 					state[0] = nlfsr.state[0];
 					state[1] = nlfsr.state[1];
 					state[2] = nlfsr.state[2];
 					state[3] = nlfsr.state[3];
-
-#endif
 				}
 
 				NonlinearFeedbackShiftRegister(NonlinearFeedbackShiftRegister&& other_object)
@@ -3275,23 +2883,12 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				~NonlinearFeedbackShiftRegister()
 				{
-#if defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 1
-
-					state[0] = 0;
-					state[1] = 0;
-
-#elif defined(SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION) && SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION == 2
-
 					state[0] = 0;
 					state[1] = 0;
 					state[2] = 0;
 					state[3] = 0;
-
-#endif
 				}
 			};
-
-#undef SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION
 		}
 	}
 }

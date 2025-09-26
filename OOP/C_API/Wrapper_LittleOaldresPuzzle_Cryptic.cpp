@@ -1,5 +1,5 @@
 #include "Wrapper_LittleOaldresPuzzle_Cryptic.h"
-#include "LittleOaldresPuzzle_Cryptic.h"
+#include "../StreamCipher/LittleOaldresPuzzle_Cryptic.h"
 
 #include <vector>
 #include <algorithm>

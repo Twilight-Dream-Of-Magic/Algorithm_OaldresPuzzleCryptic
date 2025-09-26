@@ -40,7 +40,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						MatrixValue -= RandomValue ^ ( RandomValue & RotatedBits );
 
 						//Switch bit
-						MatrixValue ^= ( static_cast<std::uint64_t>( 1 ) << ( RandomValue & std::numeric_limits<std::uint64_t>::digits - 1 ) );
+						MatrixValue ^= ( static_cast<std::uint64_t>( 1 ) << ( RandomValue & (std::numeric_limits<std::uint64_t>::digits - 1) ));
 
 						RandomValue += MatrixValue;
 						MatrixValue += RandomValue * 2 + MatrixValue;
@@ -78,15 +78,13 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				std::vector<std::uint8_t> ByteKeys = CommonToolkit::IntegerExchangeBytes::MessageUnpacking<std::uint64_t, std::uint8_t>( Key.data(), Key.size() );
 
-				//通过材料置换框0进行字节数据置换操作
-				//Byte data substitution operation via material substitution box 0
-				std::ranges::transform( ByteKeys.begin(), ByteKeys.end(), ByteKeys.begin(), [ this ]( const std::uint8_t& byte ) -> std::uint8_t { return MixTransformationUtilObject.MaterialSubstitutionBox0[ MixTransformationUtilObject.MaterialSubstitutionBox0[ byte ] ]; } );
-
 				std::vector<std::uint32_t> Word32Bit_Key = CommonToolkit::IntegerExchangeBytes::MessagePacking<std::uint32_t, std::uint8_t>( ByteKeys.data(), ByteKeys.size() );
 
 				CheckPointer = memory_set_no_optimize_function<0x00>( ByteKeys.data(), ByteKeys.size() );
 				CheckPointer = nullptr;
 				ByteKeys.resize( 0 );
+
+				MixTransformationUtilObject.Word32Bit_Initialize();
 
 				//初始采样Word数据 (使用32Bit字 - 密钥向量)
 				//Initial sampling of Word data (Use 32Bit Word - Key Vector)
@@ -101,7 +99,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				for ( std::size_t Index = 0, OffsetIndex_WordsMemorySpan = 0; OffsetIndex_WordsMemorySpan + 4 < Word32Bit_ExpandedKeySpan.size() && Index < Word32Bit_Random.size(); OffsetIndex_WordsMemorySpan += 4, ++Index )
 				{
 					std::span<std::uint32_t> Word32Bit_ExpandedKeySubSpan = Word32Bit_ExpandedKeySpan.subspan( OffsetIndex_WordsMemorySpan, 4 );
-					std::uint32_t			 RandomWord = MixTransformationUtilObject.Word32Bit_KeyWithStreamCipherFunction( Word32Bit_ExpandedKeySubSpan ) ^ Word32Bit_ExpandedKeySubSpan[ 3 ];
+					std::uint32_t			 RandomWord = MixTransformationUtilObject.Word32Bit_KeyWithFunction( Word32Bit_ExpandedKeySubSpan ) ^ Word32Bit_ExpandedKeySubSpan[ 3 ];
 					Word32Bit_Random[ Index ] = RandomWord;
 					RandomWord = 0;
 				}
@@ -118,10 +116,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				CheckPointer = nullptr;
 				Word32Bit_Key.resize( 0 );
 
-				//通过材料置换框1进行字节数据置换操作
-				//Byte data substitution operation via material substitution box 1
-				std::ranges::transform( ByteKeys.begin(), ByteKeys.end(), ByteKeys.begin(), [ this ]( const std::uint8_t& byte ) -> std::uint8_t { return MixTransformationUtilObject.MaterialSubstitutionBox1[ MixTransformationUtilObject.MaterialSubstitutionBox1[ byte ] ]; } );
-
 				std::vector<std::uint64_t> Word64Bit_ProcessedKey = CommonToolkit::IntegerExchangeBytes::MessagePacking<std::uint64_t, std::uint8_t>( ByteKeys.data(), ByteKeys.size() );
 
 				CheckPointer = memory_set_no_optimize_function<0x00>( ByteKeys.data(), ByteKeys.size() );
@@ -130,18 +124,18 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				volatile bool												 Word64Bit_KeyUsed = false;
 				std::array<bool, std::numeric_limits<std::uint64_t>::digits> RandomBitsArray {};
-				for ( std::size_t row = 0; row < RandomQuadWordMatrix.rows(); ++row )
+				for ( std::size_t row = 0; row < (size_t)RandomQuadWordMatrix.rows(); ++row )
 				{
-					for ( std::size_t column = 0; column < RandomQuadWordMatrix.cols(); ++column )
+					for ( std::size_t column = 0; column < (size_t)RandomQuadWordMatrix.cols(); ++column )
 					{
-						if ( column + 1 == Word64Bit_ProcessedKey.size() || column + 1 == RandomQuadWordMatrix.cols() )
+						if ( column + 1 == (size_t)Word64Bit_ProcessedKey.size() || column + 1 == (size_t)RandomQuadWordMatrix.cols() )
 							Word64Bit_KeyUsed = true;
 
 						if ( Word64Bit_KeyUsed == false )
 							RandomQuadWordMatrix( row, column ) -= Word64Bit_ProcessedKey[ column ];
 						else
 						{
-							while ( column < RandomQuadWordMatrix.cols() )
+							while ( column < (size_t)RandomQuadWordMatrix.cols() )
 							{
 								volatile std::uint64_t RandomNumber = 0;
 
@@ -177,7 +171,12 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				CheckPointer = memory_set_no_optimize_function<0x00>( RandomBitsArray.data(), RandomBitsArray.size() );
 				CheckPointer = nullptr;
 
-				MixTransformationUtilObject.RegenerationRandomMaterialSubstitutionBox();
+				//Simplify the “Big / Heavy” OaldresPuzzle algorithm.
+				//Here, there is no need to rely on the cryptographic approach of Zu Chongzhi's stream cipher. 
+				//Consequently, the substitution box and its regeneration are unnecessary, so we have removed them.
+				//简化"大"奥尔德雷斯之谜。
+				//这里不需要依赖祖冲之流密码算法的思路。
+				//同时也就不需要替换盒以及重新生成替换盒，所以我们移除了它。
 			}
 
 			void Module_SubkeyMatrixOperation::UpdateState()
@@ -241,9 +240,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				std::uint64_t A = 0;
 				std::uint64_t B = 0;
-				for ( std::size_t MatrixRow = 0; MatrixRow < LeftMatrix.rows() && MatrixRow < RightMatrix.rows(); ++MatrixRow )
+				for ( std::size_t MatrixRow = 0; MatrixRow < (size_t)LeftMatrix.rows() && MatrixRow < (size_t)RightMatrix.rows(); ++MatrixRow )
 				{
-					for ( std::size_t MatrixColumn = 0; MatrixColumn < LeftMatrix.cols() && MatrixColumn < RightMatrix.cols(); ++MatrixColumn )
+					for ( std::size_t MatrixColumn = 0; MatrixColumn < (size_t)LeftMatrix.cols() && MatrixColumn < (size_t)RightMatrix.cols(); ++MatrixColumn )
 					{
 						A = LeftMatrix( MatrixRow, MatrixColumn ) ^ ( RandomQuadWordMatrix( MatrixRow, MatrixColumn ) & TransformedSubkeyMatrix( MatrixRow, MatrixColumn ) );
 						B = RightMatrix( MatrixRow, MatrixColumn ) ^ ( RandomQuadWordMatrix( MatrixRow, MatrixColumn ) | TransformedSubkeyMatrix( MatrixRow, MatrixColumn ) );

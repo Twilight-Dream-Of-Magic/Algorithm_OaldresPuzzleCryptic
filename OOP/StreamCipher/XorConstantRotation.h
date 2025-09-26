@@ -1,137 +1,162 @@
-/*
- * Copyright (C) 2023-2050 Twilight-Dream
- *
- * 本文件是 Algorithm_OaldresPuzzleCryptic 的一部分。
- *
- * Algorithm_OaldresPuzzleCryptic 是自由软件：你可以再分发之和/或依照由自由软件基金会发布的 GNU 通用公共许可证修改之，无论是版本 3 许可证，还是（按你的决定）任何以后版都可以。
- *
- * 发布 Algorithm_OaldresPuzzleCryptic 是希望它能有用，但是并无保障;甚至连可销售和符合某个特定的目的都不保证。请参看 GNU 通用公共许可证，了解详情。
- * 你应该随程序获得一份 GNU 通用公共许可证的复本。如果没有，请看 <https://www.gnu.org/licenses/>。
- */
- 
- /*
- * Copyright (C) 2023-2050 Twilight-Dream
- *
- * This file is part of Algorithm_OaldresPuzzleCryptic.
- *
- * Algorithm_OaldresPuzzleCryptic is free software: you may redistribute it and/or modify it under the GNU General Public License as published by the Free Software Foundation, either under the Version 3 license, or (at your discretion) any later version.
- *
- * TDOM-EncryptOrDecryptFile-Reborn is released in the hope that it will be useful, but there are no guarantees; not even that it will be marketable and fit a particular purpose. Please see the GNU General Public License for details.
- * You should get a copy of the GNU General Public License with your program. If not, see <https://www.gnu.org/licenses/>.
- */
+#pragma once
 
-#ifndef ALGORITHM_OALDRESPUZZLECRYPTIC_XORCONSTANTROTATION_H
-#define ALGORITHM_OALDRESPUZZLECRYPTIC_XORCONSTANTROTATION_H
-
-#include <iostream>
-#include <cstdint>
-#include <bit>
 #include <array>
+#include <cstddef>
+#include <cstdint>
+#include <bit>	  // std::rotl
 
-#if __cplusplus < 202002L
-#include "../BitRotation.hpp"
-#endif
-
-namespace TwilightDreamOfMagical::CustomSecurity
+namespace TwilightDreamOfMagical::CustomSecurity::CSPRNG
 {
-	namespace CSPRNG
+	// -------------------------------------------------------------------------
+	// XCR (Xor-Constant-Rotation) - Balanced / analysis-friendly experimental CSPRNG-ish core
+	//
+	// Goals (explicit):
+	// - Experimental: NOT a proven CSPRNG. Intended for iterative hardening + analysis.
+	// - ARX automation-friendly: keep carry events small and countable.
+	// - Engineering-friendly: integer-only, no branches, no heavy math at runtime.
+	// - Constants MUST come only from ROUND_CONSTANT[] table (no "classic constants" injected).
+	//
+	// State:
+	// - 256-bit internal state: (w, x, y, z), each uint64_t.
+	//
+	// Inputs:
+	// - key/seed: provided ONLY through Seed()/ctor and affects ONLY StateInitialize().
+	// - number_once (nonce-like, per-call input): provided ONLY to StateIteration().
+	//
+	// Iteration constraint:
+	// - Exactly 4 modular add/sub operations on 64-bit lanes:
+	//	 w += yy;  x -= zz;  y += ww;  z -= xx;
+	//   Everything else is XOR / ROTL / table lookup.
+	// Design rule: the key/seed is consumed ONLY by StateInitialize().
+	// StateIteration() must never directly mix the key/seed; it only takes `number_once`.
+	// -------------------------------------------------------------------------
+
+	class XorConstantRotation
 	{
-		static bool show_special_notice_message = true;
+	public:
+		using result_type = std::uint64_t;
 
-		class XorConstantRotation
+		XorConstantRotation();
+		explicit XorConstantRotation(std::uint64_t seed);
+
+		void Seed(std::uint64_t seed);
+
+		// White-box API: caller provides number_once per output.
+		result_type operator()(std::size_t number_once);
+
+		struct GeneratedSubKey128
 		{
-
-		public:
-			using result_type = uint64_t;
-		
-			XorConstantRotation()
-					:
-					x(0), y(0), state(1), counter(0)
-			{
-				if(show_special_notice_message)
-				{
-					std::cout << "\nSpecial Notice\n";
-					std::cout << "The symmetric encryption and decryption algorithm (Type 1 StreamCipher) of the OaldresPuzzle_Cryptic (OPC) designed by Twilight-Dream.\n";
-					std::cout << "After calling the encryption function or decryption function, the key state inside the algorithm will change; This design is to deal with any possible brute force guess (including use quantum computer attack).\n";
-					std::cout << "If you have called the encryption function or decryption function, but want to restore your 'forward' operation.\n";
-					std::cout << "Please destroy the current instance and rebuild, then you can call the 'backward' operation function.\n";
-				}
-				show_special_notice_message = false;
-
-				this->StateInitialize();
-			}
-
-			explicit XorConstantRotation(const std::uint64_t seed)
-					:
-					x(0), y(0), state(seed), counter(0)
-			{
-				if(show_special_notice_message)
-				{
-					std::cout << "\nSpecial Notice\n";
-					std::cout << "The symmetric encryption and decryption algorithm (Type 1 StreamCipher) of the OaldresPuzzle_Cryptic (OPC) designed by Twilight-Dream.\n";
-					std::cout << "After calling the encryption function or decryption function, the key state inside the algorithm will change; This design is to deal with any possible brute force guess (including use quantum computer attack).\n";
-					std::cout << "If you have called the encryption function or decryption function, but want to restore your 'forward' operation.\n";
-					std::cout << "Please destroy the current instance and rebuild, then you can call the 'backward' operation function.\n";
-				}
-				show_special_notice_message = false;
-
-				this->StateInitialize();
-			}
-
-			XorConstantRotation(const XorConstantRotation& other)
-				: x(other.x), y(other.y), state(other.state), counter(other.counter)
-			{
-				
-			};
-			XorConstantRotation(XorConstantRotation&& other) = default;
-
-			void Seed(const std::uint64_t seed)
-			{
-				x = 0;
-				y = 0;
-				state = seed;
-
-				this->StateInitialize();
-			}
-
-			void ChangeCondition(const std::uint64_t value)
-			{
-				x = value;
-				y = 0;
-
-				this->StateInitialize();
-			}
-
-			result_type operator()(std::size_t number_once)
-			{
-				return this->StateIteration(number_once);
-			}
-
-			//std::uniform_random_bit_generator
-			//The concept must meet the following requirements
-			//1.Have `static constexpr` min and max function
-			//2.constexpr bool isPRNG = (min() < max());
-			//https://en.cppreference.com/w/cpp/numeric/random/uniform_random_bit_generator
-			static constexpr result_type min()
-			{
-				return 0ULL;
-			}
-
-			static constexpr result_type max()
-			{
-				return 0xFFFFFFFFFFFFFFFFULL;
-			}
-
-		private:
-			std::uint64_t x = 0;
-			std::uint64_t y = 0;
-			std::uint64_t state = 0;
-			std::uint64_t counter = 0;
-
-			void StateInitialize();
-			result_type StateIteration(std::size_t round);
+			uint64_t a,b;
 		};
-	} // TwilightDreamOfMagical
-} // CustomSecurity
 
-#endif //ALGORITHM_OALDRESPUZZLECRYPTIC_XORCONSTANTROTATION_H
+		GeneratedSubKey128 GenerateSubKey128(std::uint64_t number_once);
+		
+	private:
+		void StateInitialize();
+		result_type StateIteration(std::size_t number_once);
+
+		// 256-bit state
+		std::uint64_t w = 0;
+		std::uint64_t x = 0;
+		std::uint64_t y = 0;
+		std::uint64_t z = 0;
+		
+		// public counter 
+		std::uint64_t counter = 0;
+
+		// NOTE:
+		// - First 4 constants are "manually mixed anchors"
+		// - The rest are generated by your high-order continuous function discretization.
+		// - This code never introduces any other constants.
+		// GenerateAndDisplay_XorConstantRotation_RoundConstant.py generate this
+		static constexpr std::array<std::uint64_t, 300> ROUND_CONSTANTS =
+		{
+			// [0..3] manual anchors: Fibonacci-bit concat, pi/phi-style, etc.
+			0x01B70C8E97AD5F98ULL, 0x243F6A8885A308D3ULL, 0x9E3779B97F4A7C15ULL, 0xB7E151628AED2A6AULL,
+
+			// [4..299] generated stream (truncated here in this snippet).
+			//x ∈ [1, 150]
+			// V2 polynomial Weyl with all high-precision constants
+			// f(x) = frac( frac( frac( frac( frac( frac( frac( frac(0 + e·x)
+			//              + π·x²) + φ·x³) + √2·x⁴) + √3·x⁵) + γ·x⁶) + δ·x⁷) + ρ·x⁸ )
+			//
+			// where frac(t) = t − ⌊t⌋,  x ∈ ℕ (e.g., [1, 150])
+			0xd4867a55ae8a05bd, 0x521521740cb1af84, 0xa701cf13e3ba0ec4, 0x26e81ee9720bb24f,
+			0x6f9f8860acde6fcb, 0xf24f608164e66afe, 0xcdff28683bc679bc, 0x424c12091bdcd71d,
+			0xc94aeb0cb2cb6a8b, 0x0509c047dc847a26, 0xb35c23a996b2ec7d, 0x3eb7dd183f38c683,
+			0x6e60a17675ee430e, 0x7d52517d7d45ada2, 0x0c61b861c2c26191, 0x8adc560afc4f7281,
+			0xfee950adbb92998f, 0x3586cf24b8256feb, 0x7b9ad4efffaa4f8a, 0x0c85b693ed26e071,
+			0xfb5e171e5b788f6a, 0x0ff0b79d432958c1, 0xbcdb483f164dad09, 0x4ce60a4c72e1fc2b,
+			0x7aa3c4f3f1806942, 0xc73638d4c3433feb, 0x389b270204911e4e, 0xd4e9d72a1e862af9,
+			0x9a53ed1ca526544b, 0x4c044286d749d282, 0x1ee4ef6f5be88836, 0x5373cc399b9dcb5a,
+			0x065cae2fd4082628, 0x47eb43b4ea35c4ef, 0x282c66aece76d394, 0x801c816d01f77248,
+			0xfa9d867f28cec900, 0x468087f74c4216ca, 0x9f3535112cd068b8, 0xbd93a986edee078c,
+			0x06463b44792b4a11, 0x63a351f2ee32ae94, 0x46859b730ba41467, 0x0d83f918ddc5998d,
+			0x0ab70e983984a2e4, 0x568a69e9b97e172e, 0x6aa210a9efb27fd1, 0x1361678f7c90b3fc,
+			0x9e1584375266bce1, 0x9f06e226726fd93c, 0xcd4f00a43aca4d43, 0x30ffe74576d5e9c3,
+			0x5a704177fcd72369, 0xcacc73aa5d60ae21, 0x8b23a2573d8d52e3, 0xd97c7896d773267c,
+			0x404fa6df8d3a5b3b, 0x29876ed97e027bc4, 0x0c80af06438ec525, 0x7c1af421ccd7f508,
+			0xb3997e35411917fe, 0xfeb0fa61f460fbd1, 0x0a274f4d9d287f4f, 0xb6d72de29733696e,
+			0x5dbb6d0bb6973b4f, 0x954a2998aae7531c, 0xbb5e17deefc31e47, 0xa23d0f448d6f434b,
+			0xbaef65a66d78e1d3, 0x439deae264681e8c, 0xc6c7005fcb5809e3, 0xcd32a478fd7636d2,
+			0x39b5b0c43012aacb, 0x38b39536fde452e3, 0x3e94b0c903e3c7ff, 0x32b8e2fbae1c64ac,
+			0x59bce4795401b6e7, 0x3fc623e0a348c718, 0x6f7a55755fc5caed, 0x6fc5e11c63b0243d,
+			0x1d6bbf9fb58817a1, 0x0eddd2e124073882, 0x67a223afbd3a57d6, 0x1bd33dc85bb88b48,
+			0x246d145cc388c5ba, 0x7070674f7bb5e623, 0xe21a9121105f25fe, 0x3ff1b67c28163ff2,
+			0xc9a5aac6dd9854f4, 0xcd99cd9bf0c6e38a, 0xc0cdb19ca940afb1, 0x0b64582e0ebfb044,
+			0x2db74c7eecc953d5, 0xd953e7b4160b7f92, 0x3bef108d2b0c3a2c, 0x1166c1eaf0f90c0f,
+			0x3a8871c6de0c83d6, 0x768c004fd4f8a3be, 0xa19531fb8566982d, 0x5ec474aa219013b3,
+			0xceec3a7b138eda22, 0xaf67f4a643d7e492, 0x20661f8a5a3fa2fb, 0x06c9a004ca9e4778,
+			0x74a6a0952b65c480, 0x13c2ee5d45cd7a20, 0xb32029fed3eea234, 0xcf6f50bc1b245d1c,
+			0xac3d35717486f484, 0x63d7f4de405745d1, 0x8c62a0fcc2063750, 0x97b2c5ef3f420f97,
+			0xf572ea0152189576, 0x56289288cb278ed3, 0xee8e2881ff7cbcc8, 0x7a8aa1bf13da4f21,
+			0x6bc7b917815a3e14, 0x9183c7995ac1cbd7, 0x68c17613d5e3ab0c, 0xbe4c33a674914df7,
+			0x1def48af967d763b, 0x7c6e78b2c486a847, 0x2e0b079d67b40103, 0xd556b733aca3f2b3,
+			0xe74e5019ece5826b, 0x95662df02a027b9e, 0x98fa073159401095, 0x3080d6715d4575c6,
+			0xba845410861bb784, 0xd45a09eb86d60d1e, 0xc5d8ae6c58f44fed, 0x9f8222ba8753500b,
+			0x4b058e3f389a925e, 0xc4af777d1715daa2, 0x7771a5b4066b0bef, 0xe598cfcc465e1d7c,
+			0x37d6958c6f066d36, 0xb12407188af0b6d1, 0x0ab8cc8cd343b14b, 0xd46fbc86d1a1f936,
+			0x582f59cbb01d5341, 0xd43fa7799f51b742, 0x090223feed5bb065, 0x084d64c024b99285,
+			0xb1b71489174be47f, 0x6e82dbebcff30503, 0xa7da562022bff244, 0x804fc437d0335f0b,
+			0xad51a83da8b62965, 0x28ba6be44d770190, 0xce9568600eb40f95, 0x76fc7fc511211c12,
+			0x313a8538320ac468, 0xd7ffa01c90cf3214, 0xc8ce8073ef656b32, 0x5cc77b705c75f88b,
+			0xcfef5b3ddc0fdc85, 0x0cceed4c822785ef, 0x4cb7bac38963a0b6, 0x88b8204eb0f039cd,
+			0xcc711df4b2bf7192, 0xc5a93cf10248b9b5, 0xf092b95f52e14204, 0x7cd86ace4a6872c4,
+			0xfda816fec8f0c2a9, 0x0606d15b7b0b6e09, 0xedc3fa4f5c79ac22, 0x85c75941913654e9,
+			0x8fea215c665a5978, 0x3b7c48321cff9544, 0xaaebc2ab966cf42c, 0x998dbb71b61c89c0,
+			0xcb540bba81695f0c, 0xef389d7ad362257a, 0x3b896c3a00fffe57, 0x002b4d83e203dda4,
+			0x5f487f9a69cfce1d, 0x1bd72a9b93b962b8, 0x0029d3a28efd0919, 0xcdd16906f981d297,
+			0x0703887960ad1c8f, 0xe2babb335e020881, 0x13675fd259b780e2, 0x0055c1e1249d1d9d,
+			0x6fc807bf19a00add, 0x10b6bd7d413f8458, 0x265799fa41c58291, 0xf514b10a1ed7df4a,
+			0xa2811afe30255cad, 0x4a21773f118fd69c, 0x58a752d13449a611, 0x61a749d19e0334ee,
+			0xf0ddac0eb9606abd, 0xc17da804114dff1d, 0x9a7d4d184330c8a2, 0xba27975b6378ca9a,
+			0x265c6a87539b741b, 0xb2c96054cb67856c, 0x9bf447a93a87cd37, 0x61bea6aa7975b197,
+			0xdba2c7004b4f1cc6, 0x74e6bba061970d34, 0xb8f9a09390b7cf9e, 0x80c374a1e7165488,
+			0x165ac12d100a25f7, 0xb9a2d7eecba3dd9f, 0x6027ee042872cebd, 0x80ae8e3f69b996d1,
+			0x84eb11653cdb2e1c, 0xc439a3e16500bb64, 0xddf29331e8a7eff6, 0xd5804032c48bb381,
+			0xd740cb597e961fdc, 0xf828c69f3d1b154b, 0xa1b114d91427a79e, 0xdeafd036b98516e3,
+			0x3def0563cc6d15e5, 0xbecb27b87cd4b80a, 0xe4caae8b8ff27103, 0x82f0693a20266a8b,
+			0x2d35881608eb5977, 0x18e8a6d35a6ae1f2, 0x286a5b546fa69058, 0x0e5868170a29789e,
+			0xda770bf082600615, 0x9379045129b8d469, 0x2e59af01774736f8, 0xe5b81b32559fc8d4,
+			0xad6ce17a3b11a802, 0xf93eeb5fa002dc10, 0xf48ff93d9badea2f, 0x9e6c82d71cbbea7a,
+			0xe04b4ac3700a76f2, 0x7d80f2401748e7cf, 0x962732a227104e7e, 0xda439611ca039b6b,
+			0x9561b403589677c1, 0x1bbcf0cf92b8a2db, 0x41e41d8a310ab6e6, 0xea17e782a8e1b2af,
+			0xeaaf7bad2922f4fa, 0x08676f17c4f0fed4, 0xe36c5a680801d31f, 0x4f4e03460d6222f0,
+			0x3bf9258709864a47, 0x4ce07d7e9d311f57, 0xa77095b92928a4e3, 0x74fe3c208b843f4e,
+			0xf7027b1df0e16368, 0xf756f0efc0c103ca, 0x777a2e87f1b89a41, 0x632fca0b8ed9870b,
+			0x0b4a6c7981166cb0, 0x22455adcaa4358cc, 0x3f338cd453f02899, 0xa7d0ed2a341c3f20,
+			0xd67779f357807444, 0x88faef1bcc85ac03, 0x1ca77f34e6daccde, 0xfcf69dd2ffacf1df,
+			0xe130d90240d0a1c2, 0xc48ce199912f0684, 0x97e4f87260b83226, 0xe7d1c6ab732ae3bf,
+			0xb4b5d744e1dd53df, 0xdb057bec0926dec3, 0x16d1c9d356975923, 0x7f7a87c7f5c480dc,
+			0x48d6408a9b6596a5, 0x5caf8a55152f5ac1, 0x452e16781b69a263, 0x07a93182ac3f4574,
+			0x7f4e301365a8527e, 0x20600a8ad0a2e943, 0x5aa14901ac9104a2, 0xa0754a6b54e71964,
+			0x3b39d563a82210ae, 0x6b19277f00590bc8, 0x8f17bb8e2fad36c6, 0xb41d83c6804f7b0e,
+			0xd1337eb00fe6f966, 0x324cebc2806e44de, 0x15e4b7467aeac0d3, 0x52f9a2a00076dd3c,
+			0x056604ab764f5423, 0x67feb700020fd391, 0xad6020b396b4ccbf, 0x347d9f48c300ce4e,
+			0x27ad235f3c03f40e, 0xa528d00003c9e6cb, 0x8fcff3b33918174e, 0x856400000383efc9,
+			0x66b73b67d449c8e8, 0x2e7ed80002d2ca43, 0x15df3e9a3db99cc2, 0x9b1f0000091f2b92
+		};
+
+		static constexpr std::size_t ROUND_CONSTANT_SIZE = ROUND_CONSTANTS.size();
+	};
+} // namespace TwilightDreamOfMagical::CustomSecurity::CSPRNG
