@@ -94,6 +94,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				default:
 					my_cpp2020_assert( false, "Invalid cipher base work mode !", std::source_location::current() );
 			}
+
+			return WordData;
 		}
 
 		void OaldresPuzzle_Cryptic::ByteSubstitution( std::span<std::uint8_t> EachRoundDatas, TwilightDreamOfMagical::CustomSecurity::CryptionMode2MCAC4_FDW ThisExecuteMode )

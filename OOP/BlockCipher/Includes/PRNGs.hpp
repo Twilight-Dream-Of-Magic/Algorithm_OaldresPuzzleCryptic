@@ -197,8 +197,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
 				}
 
 				/*
@@ -228,8 +228,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
 
 				}
 
@@ -633,9 +633,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				constexpr result_type operator()() noexcept
 				{
-					const std::size_t this_state_position = this->state_position;
-					this->state_position = (this->state_position + 1) & 15;
-				
 					// xorshiro512+:
 					// const auto result = s[0] + s[2];
 					// xorshiro512++:
@@ -705,14 +702,14 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
-					temporary_state[ 2 ] = state[ 2 ];
-					temporary_state[ 3 ] = state[ 3 ];
-					temporary_state[ 4 ] = state[ 4 ];
-					temporary_state[ 5 ] = state[ 5 ];
-					temporary_state[ 6 ] = state[ 6 ];
-					temporary_state[ 7 ] = state[ 7 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
+					state[ 4 ] = temporary_state[ 4 ];
+					state[ 5 ] = temporary_state[ 5 ];
+					state[ 6 ] = temporary_state[ 6 ];
+					state[ 7 ] = temporary_state[ 7 ];
 				}
 
 				/*
@@ -751,14 +748,14 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
-					temporary_state[ 2 ] = state[ 2 ];
-					temporary_state[ 3 ] = state[ 3 ];
-					temporary_state[ 4 ] = state[ 4 ];
-					temporary_state[ 5 ] = state[ 5 ];
-					temporary_state[ 6 ] = state[ 6 ];
-					temporary_state[ 7 ] = state[ 7 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
+					state[ 4 ] = temporary_state[ 4 ];
+					state[ 5 ] = temporary_state[ 5 ];
+					state[ 6 ] = temporary_state[ 6 ];
+					state[ 7 ] = temporary_state[ 7 ];
 				}
 
 			private:
@@ -956,22 +953,22 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
-					temporary_state[ 2 ] = state[ 2 ];
-					temporary_state[ 3 ] = state[ 3 ];
-					temporary_state[ 4 ] = state[ 4 ];
-					temporary_state[ 5 ] = state[ 5 ];
-					temporary_state[ 6 ] = state[ 6 ];
-					temporary_state[ 7 ] = state[ 7 ];
-					temporary_state[ 8 ] = state[ 8 ];
-					temporary_state[ 9 ] = state[ 9 ];
-					temporary_state[ 10 ] = state[ 10 ];
-					temporary_state[ 11 ] = state[ 11 ];
-					temporary_state[ 12 ] = state[ 12 ];
-					temporary_state[ 13 ] = state[ 13 ];
-					temporary_state[ 14 ] = state[ 14 ];
-					temporary_state[ 15 ] = state[ 15 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
+					state[ 4 ] = temporary_state[ 4 ];
+					state[ 5 ] = temporary_state[ 5 ];
+					state[ 6 ] = temporary_state[ 6 ];
+					state[ 7 ] = temporary_state[ 7 ];
+					state[ 8 ] = temporary_state[ 8 ];
+					state[ 9 ] = temporary_state[ 9 ];
+					state[ 10 ] = temporary_state[ 10 ];
+					state[ 11 ] = temporary_state[ 11 ];
+					state[ 12 ] = temporary_state[ 12 ];
+					state[ 13 ] = temporary_state[ 13 ];
+					state[ 14 ] = temporary_state[ 14 ];
+					state[ 15 ] = temporary_state[ 15 ];
 				}
 
 				/*
@@ -1022,22 +1019,22 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						}
 					}
 
-					temporary_state[ 0 ] = state[ 0 ];
-					temporary_state[ 1 ] = state[ 1 ];
-					temporary_state[ 2 ] = state[ 2 ];
-					temporary_state[ 3 ] = state[ 3 ];
-					temporary_state[ 4 ] = state[ 4 ];
-					temporary_state[ 5 ] = state[ 5 ];
-					temporary_state[ 6 ] = state[ 6 ];
-					temporary_state[ 7 ] = state[ 7 ];
-					temporary_state[ 8 ] = state[ 8 ];
-					temporary_state[ 9 ] = state[ 9 ];
-					temporary_state[ 10 ] = state[ 10 ];
-					temporary_state[ 11 ] = state[ 11 ];
-					temporary_state[ 12 ] = state[ 12 ];
-					temporary_state[ 13 ] = state[ 13 ];
-					temporary_state[ 14 ] = state[ 14 ];
-					temporary_state[ 15 ] = state[ 15 ];
+					state[ 0 ] = temporary_state[ 0 ];
+					state[ 1 ] = temporary_state[ 1 ];
+					state[ 2 ] = temporary_state[ 2 ];
+					state[ 3 ] = temporary_state[ 3 ];
+					state[ 4 ] = temporary_state[ 4 ];
+					state[ 5 ] = temporary_state[ 5 ];
+					state[ 6 ] = temporary_state[ 6 ];
+					state[ 7 ] = temporary_state[ 7 ];
+					state[ 8 ] = temporary_state[ 8 ];
+					state[ 9 ] = temporary_state[ 9 ];
+					state[ 10 ] = temporary_state[ 10 ];
+					state[ 11 ] = temporary_state[ 11 ];
+					state[ 12 ] = temporary_state[ 12 ];
+					state[ 13 ] = temporary_state[ 13 ];
+					state[ 14 ] = temporary_state[ 14 ];
+					state[ 15 ] = temporary_state[ 15 ];
 				}
 
 			private:
@@ -1137,7 +1134,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 		Reference paper:
 		http://eprint.iacr.org/2006/438.pdf
-	*/
+		*/
 		namespace ISAAC
 		{
 
@@ -2109,17 +2106,18 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				//Interleaved concatenate one-by-one bits
 				std::int64_t concat(std::int32_t a, std::int32_t b)
 				{
-					std::string result_binary_string;
-					for (int i = 0; i < 32; i++)
-					{
-						result_binary_string.push_back((b % 2) == 1 ? '1' : '0');
-						b /= 2;
-						result_binary_string.push_back((a % 2) == 1 ? '1' : '0');
-						a /= 2;
-					}
-					std::bitset<64> concate_bitset(result_binary_string);
-					std::int64_t c = static_cast<std::int64_t>(concate_bitset.to_ullong());
-					return c;
+					std::uint64_t x = a, y = b;
+					x = (x | (x << 16)) & 0x0000FFFF0000FFFFULL;
+					x = (x | (x << 8))  & 0x00FF00FF00FF00FFULL;
+					x = (x | (x << 4))  & 0x0F0F0F0F0F0F0F0FULL;
+					x = (x | (x << 2))  & 0x3333333333333333ULL;
+					x = (x | (x << 1))  & 0x5555555555555555ULL;
+					y = (y | (y << 16)) & 0x0000FFFF0000FFFFULL;
+					y = (y | (y << 8))  & 0x00FF00FF00FF00FFULL;
+					y = (y | (y << 4))  & 0x0F0F0F0F0F0F0F0FULL;
+					y = (y | (y << 2))  & 0x3333333333333333ULL;
+					y = (y | (y << 1))  & 0x5555555555555555ULL;
+					return (y << 1) | x;
 				}
 
 				std::int64_t generate()
@@ -2135,8 +2133,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					temporary_floating_a = this->SystemData[0] * ::sin(this->SystemData[4]) + this->SystemData[1] * ::sin(this->SystemData[5]);
 					temporary_floating_b = -(this->SystemData[0]) * ::sin(this->SystemData[4]) - this->SystemData[1] * ::sin(this->SystemData[5]);
 
-					left_number = ::floor(::fmod(temporary_floating_a * 1000, 1.0) * 4294967296);
-					right_number = ::floor(::fmod(temporary_floating_b * 1000, 1.0) * 4294967296);
+					left_number = static_cast<int64_t>( ::floor( ::fmod( temporary_floating_a * 1000, 1.0 ) * 4294967296 ) );
+					right_number = static_cast<int64_t>( ::floor( ::fmod( temporary_floating_b * 1000, 1.0 ) * 4294967296 ) );
 
 					return this->concat(static_cast<std::int32_t>(left_number), static_cast<std::int32_t>(right_number));
 				}
@@ -2365,6 +2363,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				LinearFeedbackShiftRegister(result_type seed)
 				{
+					if (seed == 0) 
+						++seed;
+
 					state[0] = 0;
 					state[1] = seed;
 					this->generate_bits(64);
@@ -2388,6 +2389,42 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					state[1] = 0;
 				}
 			};
+
+			
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <intrin.h>
+#endif
+
+			// 无偏映射 [0,9) —— Lemire multiply-high + 阈值拒绝；
+			// 参考：
+			// Lemire
+			// Fast Random Integer Generation in an Interval
+			// https://arxiv.org/abs/1805.10941
+			// MSVC _umul128 文档。
+			// 注意：拒绝概率为 (2^64 mod 9) / 2^64 = 7 / 2^64，几乎不会循环。
+			inline std::uint64_t map_u64_to_0_9( std::uint64_t x ) noexcept
+			{
+				constexpr std::uint64_t m = 9;
+				constexpr std::uint64_t t = ( std::uint64_t(0ull - m) ) % m;  // 2^64 mod 9 == 7
+#if defined( _MSC_VER ) && !defined( __clang__ )
+				std::uint64_t hi, lo;
+				for ( ;; )
+				{
+					lo = _umul128( x, m, &hi );	 // lo = (x*m).low64, hi = (x*m).high64
+					if ( lo >= t )
+						return hi;				 // hi ∈ [0,8]
+					x += 0x9E3779B97F4A7C15ULL;	 // Weyl 序列/黄金比例步长 奇常数推进；加法是模2^64的双射
+				}
+#else
+				for ( ;; )
+				{
+					__uint128_t p = ( ( __uint128_t )x ) * m;
+					if ( ( std::uint64_t )p >= t )	// 低64位 ≥ 阈值则接受
+						return ( std::uint64_t )( p >> 64 );
+					x += 0x9E3779B97F4A7C15ULL;	 // 避免依赖外部 next64()
+				}
+#endif
+			}
 
 #define SELECT_TWILIGHT_DREAM_NLFSR_RANDOMIZER_VERSION 2
 
@@ -2423,9 +2460,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				std::array<result_type, 4> state{};
 
 #endif
-
-				//应用不可约的本源多项式的复杂性质生成非线性的随机比特流的数字
-				//Apply complex properties of irreducible primitive polynomials to generate nonlinear random bit streams of numbers
 				//应用不可约的本源多项式的复杂性质生成非线性的随机比特流的数字
 				//Apply complex properties of irreducible primitive polynomials to generate nonlinear random bit streams of numbers
 				result_type random_bits(std::uint64_t& state_number, std::uint64_t irreducible_polynomial_count, const std::uint8_t bit)
@@ -2830,7 +2864,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 							if (value_0 == 0)
 								value_0 += (value_2 * 2);
 
-							answer ^= this->random_bits(value_0, random_number % 9ULL, static_cast<std::uint8_t>((value_3 & 0x01) ^ bit));
+							answer ^= this->random_bits(value_0, map_u64_to_0_9(random_number), static_cast<std::uint8_t>((value_3 & 0x01) ^ bit));
 
 							value_3 &= value_0;
 							if (value_3 == 0)
@@ -2996,25 +3030,25 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						//它们构成了一个非线性反馈移位寄存器，由这些状态混合然后生成的数字都是不能被预测的
 						//I have combined different degrees of linear feedback shift registers here
 						//They form a nonlinear feedback shift register, and the numbers generated by mixing these states are not predictable
-						state[0] = this->random_bits(state[0], (state[3] ^ state[2]) % 9ULL, current_random_bit);
+						state[0] = this->random_bits(state[0], map_u64_to_0_9((state[3] ^ state[2])), static_cast<uint8_t>(current_random_bit));
 
 						//只保留一个二进制的随机比特位
 						//Only one binary random bit is retained
 						current_random_bits[0] ^= state[0] & 0x01;
 
-						state[1] = this->random_bits(state[1], (state[2] ^ state[1]) % 9ULL, current_random_bit);
+						state[1] = this->random_bits(state[1], map_u64_to_0_9((state[2] ^ state[1])), static_cast<uint8_t>(current_random_bit));
 
 						//只保留一个二进制的随机比特位
 						//Only one binary random bit is retained
 						current_random_bits[1] ^= state[1] & 0x01;
 
-						state[2] = this->random_bits(state[2], (state[1] ^ state[0]) % 9ULL, current_random_bit);
+						state[2] = this->random_bits(state[2], map_u64_to_0_9((state[1] ^ state[0])), static_cast<uint8_t>(current_random_bit));
 
 						//只保留一个二进制的随机比特位
 						//Only one binary random bit is retained
 						current_random_bits[2] ^= state[2] & 0x01;
 
-						state[3] = this->random_bits(state[3], (state[0] ^ state[3]) % 9ULL, current_random_bit);
+						state[3] = this->random_bits(state[3], map_u64_to_0_9((state[0] ^ state[3])), static_cast<uint8_t>(current_random_bit));
 
 						//只保留一个二进制的随机比特位
 						//Only one binary random bit is retained
@@ -3191,10 +3225,11 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					state[3] -= (state[0] | state[1]) & state[2];
 
 					//Mix state (stage 2/2)
-					state[3] *= (seed << 48) & 0xffffffff;
-					state[2] *= (seed << 32) & 0xffffffff;
-					state[1] *= (seed << 16) & 0xffffffff;
-					state[0] *= (seed) & 0xffffffff;
+					auto BitIsZero = [](uint64_t x){ return x | static_cast<uint64_t>(x==0); }; // 0→1，其它不变
+					state[3] *= BitIsZero(seed<<48);
+					state[2] *= BitIsZero(seed<<32);
+					state[1] *= BitIsZero(seed<<16);
+					state[0] *= BitIsZero(seed    );
 
 					//Update state
 					for (std::size_t initial_round = 128; initial_round > 0; initial_round--)

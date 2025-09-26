@@ -14,12 +14,31 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				auto& RandomQuadWordMatrix = StateDataPointer->RandomQuadWordMatrix;
 				auto& TransformedSubkeyMatrix = StateDataPointer->TransformedSubkeyMatrix;
 
+				#if 1
+				//先把“和/差”各自 materialize，避免在乘法里重复遍历/转置
+				const auto TransformedSubkeyMatrixTranspose = TransformedSubkeyMatrix.transpose();
+				const auto RandomQuadWordMatrixTranspose    = RandomQuadWordMatrix.transpose();
+
+				Eigen::Matrix<std::uint64_t, Eigen::Dynamic, Eigen::Dynamic> LHS =
+					(RandomQuadWordMatrix + TransformedSubkeyMatrixTranspose).eval();
+				Eigen::Matrix<std::uint64_t, Eigen::Dynamic, Eigen::Dynamic> RHS =
+					(TransformedSubkeyMatrix - RandomQuadWordMatrixTranspose).eval();
+
+				Eigen::Matrix<std::uint64_t, Eigen::Dynamic, Eigen::Dynamic> TemporaryIntegerMartix;
+				// 避免 (X*Y).adjoint() 产生“巨大临时” —— 用 (Y^T * X^T)
+				TemporaryIntegerMartix.noalias() = RHS.transpose() * LHS.transpose();
+				// 注：整数域里 adjoint == transpose；这么写能直接让 Eigen 走两次 GEMM，而不是先乘后整体转置。
+
+				// 链式乘：把更可复用的右侧先做出来，再一次性与 Temporary 相乘并累加
+				const auto RightOnce = (RandomQuadWordMatrix * TransformedSubkeyMatrix).eval();
+				this->GeneratedRoundSubkeyMatrix.noalias() += TemporaryIntegerMartix * RightOnce;
+				#else
 				Eigen::Matrix<std::uint64_t, Eigen::Dynamic, Eigen::Dynamic> TemporaryIntegerMartix = Eigen::Matrix<std::uint64_t, Eigen::Dynamic, Eigen::Dynamic>::Zero( StateDataPointer->OPC_KeyMatrix_Rows, StateDataPointer->OPC_KeyMatrix_Columns );
 
 				//TemporaryIntegerMartix = ( RandomQuadWordMatrix + transpose(TransformedSubkeyMatrix) ) * ( TransformedSubkeyMatrix - transpose(RandomQuadWordMatrix) ) -> adjoint()
 				TemporaryIntegerMartix.noalias() = ( ( RandomQuadWordMatrix + TransformedSubkeyMatrix.transpose() ) * ( TransformedSubkeyMatrix - RandomQuadWordMatrix.transpose() ) ).adjoint();
-				GeneratedRoundSubkeyMatrix.noalias() += TemporaryIntegerMartix * RandomQuadWordMatrix * TransformedSubkeyMatrix;
-
+				this->GeneratedRoundSubkeyMatrix.noalias() += TemporaryIntegerMartix * RandomQuadWordMatrix * TransformedSubkeyMatrix;
+				#endif
 				/*
 					注意，如果这段代码被注释掉，虽然可以显著提高OaldresPuzzle-Cryptic算法的运行速度。
 					但是，它有可能被外部破解者用汇编调试器分析出来，所以为了安全起见，请仔细考虑之后再选择修改！!
@@ -31,14 +50,131 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				TemporaryIntegerMartix.setZero();
 			}
 
+			#if 0
+
+			void GenerateDiffusionLayerPermuteIndices()
+			{
+				std::array<std::unordered_set<std::uint32_t>, 16> DiffusionLayerMatrixIndex
+				{
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+					std::unordered_set<std::uint32_t>{},
+				};
+
+				std::array<std::uint32_t, 32> ArrayIndexData
+				{
+					//0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+					25,9,27,18,11,2,26,7,12,24,5,17,6,1,10,3,21,30,8,20,0,29,4,13,19,14,23,16,22,31,28,15
+				};
+
+				std::vector<std::uint32_t> VectorIndexData(ArrayIndexData.begin(), ArrayIndexData.end());
+
+				CommonSecurity::RNG_ISAAC::isaac64<8> CSPRNG;
+				CommonSecurity::RND::UniformIntegerDistribution<std::uint32_t> UniformDistribution;
+
+				for(std::size_t Round = 0; Round < 10223; ++Round)
+				{
+					for(std::size_t X = 0; X < DiffusionLayerMatrixIndex.size(); ++X )
+					{
+						std::unordered_set<std::uint32_t> HashSet;
+						while(HashSet.size() != 16)
+						{
+							std::uint32_t RandomIndex = UniformDistribution(CSPRNG) % 32;
+							while (RandomIndex >= VectorIndexData.size())
+							{
+								RandomIndex = UniformDistribution(CSPRNG) % 32;
+							}
+							HashSet.insert(VectorIndexData[RandomIndex]);
+							VectorIndexData.erase(VectorIndexData.begin() + RandomIndex);
+
+							if(VectorIndexData.empty())
+							{
+								CommonSecurity::ShuffleRangeData(ArrayIndexData.begin(), ArrayIndexData.end(), CSPRNG);
+								VectorIndexData = std::vector<std::uint32_t>(ArrayIndexData.begin(), ArrayIndexData.end());
+							}
+						}
+						DiffusionLayerMatrixIndex[X] = HashSet;
+
+						if(VectorIndexData.empty())
+						{
+							CommonSecurity::ShuffleRangeData(ArrayIndexData.begin(), ArrayIndexData.end(), CSPRNG);
+							VectorIndexData = std::vector<std::uint32_t>(ArrayIndexData.begin(), ArrayIndexData.end());
+						}
+					}
+				}
+
+				for( std::size_t X = DiffusionLayerMatrixIndex.size(); X > 0; --X )
+				{
+					for(const auto& Value : DiffusionLayerMatrixIndex[X - 1] )
+						std::cout << "KeyStateX" << "[" << Value << "]" << ", ";
+
+					std::cout << "\n";
+				}
+
+				std::cout << std::endl;
+
+				for(std::size_t Round = 0; Round < 10223; ++Round)
+				{
+					for(std::size_t X = DiffusionLayerMatrixIndex.size(); X > 0; --X )
+					{
+						std::unordered_set<std::uint32_t> HashSet;
+						while(HashSet.size() != 16)
+						{
+							std::uint32_t RandomIndex = UniformDistribution(CSPRNG) % 32;
+							while (RandomIndex >= VectorIndexData.size())
+							{
+								RandomIndex = UniformDistribution(CSPRNG) % 32;
+							}
+							HashSet.insert(VectorIndexData[RandomIndex]);
+							VectorIndexData.erase(VectorIndexData.begin() + RandomIndex);
+
+							if(VectorIndexData.empty())
+							{
+								CommonSecurity::ShuffleRangeData(ArrayIndexData.begin(), ArrayIndexData.end(), CSPRNG);
+								VectorIndexData = std::vector<std::uint32_t>(ArrayIndexData.begin(), ArrayIndexData.end());
+							}
+						}
+						DiffusionLayerMatrixIndex[X - 1] = HashSet;
+
+						if(VectorIndexData.empty())
+						{
+							CommonSecurity::ShuffleRangeData(ArrayIndexData.begin(), ArrayIndexData.end(), CSPRNG);
+							VectorIndexData = std::vector<std::uint32_t>(ArrayIndexData.begin(), ArrayIndexData.end());
+						}
+					}
+				}
+
+				for( std::size_t X = 0; X < DiffusionLayerMatrixIndex.size(); ++X )
+				{
+					for(const auto& Value : DiffusionLayerMatrixIndex[X] )
+						std::cout << "KeyStateX" << "[" << Value << "]" << ", ";
+
+					std::cout << "\n";
+				}
+
+				std::cout << std::endl;
+			}
+
+			#endif
+
 			void Module_SecureRoundSubkeyGeneratation::GenerationRoundSubkeys()
 			{
 				volatile void* CheckPointer = nullptr;
 
 				if ( this->MatrixTransformationCounter == 0 )
 				{
-					volatile void* CheckPointer = nullptr;
-
 					CheckPointer = memory_set_no_optimize_function<0x00>( GeneratedRoundSubkeyVector.data(), GeneratedRoundSubkeyVector.size() * sizeof( std::uint64_t ) );
 					CheckPointer = nullptr;
 
@@ -191,8 +327,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				//对伪随机值进行位移操作，生成两个32位无符号整数(WordC, WordD)
 				//Perform bit shifts on the pseudo-random value to generate two 32-bit unsigned integers(WordC, WordD)
-				std::uint32_t WordC = PseudoRandomValue << ( WordKeyMaterial % 64 ) >> 32;
-				std::uint32_t WordD = PseudoRandomValue >> ( WordKeyMaterial % 64 );
+				const unsigned s = static_cast<unsigned>(WordKeyMaterial & 63u);
+				std::uint32_t WordC = static_cast<std::uint32_t>((PseudoRandomValue << s) >> 32);
+				std::uint32_t WordD = static_cast<std::uint32_t>( PseudoRandomValue >> s);
 
 				//混合AssociatedWordData, LeftWordKey, RightWordKey的数据给WordC, WordD
 				//Mix the data of AssociatedWordData, LeftWordKey, RightWordKey to WordC, WordD

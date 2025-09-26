@@ -181,72 +181,17 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 					this->WordKeyDataVector = std::vector<std::uint64_t>(OPC_QuadWord_KeyBlockSize, 0);
 					this->MatrixOffsetWithRandomIndices = std::vector<std::uint32_t>(OPC_QuadWord_KeyBlockSize * 2, 0);
-					for(std::size_t index = 0, value = 0; index < OPC_QuadWord_KeyBlockSize * 2; ++index)
+					
+					std::uint32_t value = 0;
+					for(std::size_t index = 0; index < OPC_QuadWord_KeyBlockSize * 2; ++index)
 					{
 						this->MatrixOffsetWithRandomIndices[index] = value;
 						++value;
 					}
+					value = 0;
 
 					RandomQuadWordMatrix = Eigen::Matrix<std::uint64_t, Eigen::Dynamic, Eigen::Dynamic>::Zero(OPC_KeyMatrix_Rows, OPC_KeyMatrix_Columns);
 					TransformedSubkeyMatrix = Eigen::Matrix<std::uint64_t, Eigen::Dynamic, Eigen::Dynamic>::Zero(OPC_KeyMatrix_Rows, OPC_KeyMatrix_Columns);
-#if 0
-
-					//OPC - Quadword Cyclone Mixer (Experimental)
-					for(std::size_t index = 0; index < RandomQuadWordMatrix.size(); index += 4)
-					{
-						auto& A = RandomQuadWordMatrix.array()(index);
-						auto& B = RandomQuadWordMatrix.array()(index + 1);
-						auto& C = RandomQuadWordMatrix.array()(index + 2);
-						auto& D = RandomQuadWordMatrix.array()(index + 3);
-
-						A = (*LFSR_Pointer)();
-						B = (*NLFSR_Pointer)();
-						C = (*LFSR_Pointer)();
-						D = (*NLFSR_Pointer)();
-
-						// Mixing operations
-						for ( size_t round = 0; round < 20; round++ )
-						{
-							D += B;
-							A += C;
-
-							//GCD(17, 42) = 1
-							B = std::rotl(B, 17);
-							C = std::rotl(C, 24);
-
-							//GCD(12, 19) = 1
-							D ^= A;
-							A = std::rotr(A, 12);
-							D = std::rotr(D, 19);
-							A ^= D;
-
-							C = A;
-							B = D;
-							A = B;
-							D = C;
-
-							A -= C;
-							B -= D;
-
-							//GCD(37, 45) = 1
-							B = std::rotl(B, 37);
-							D = std::rotl(D, 45);
-
-							C += D;
-							B ^= (~C);
-							A += B;
-
-							//GCD(9, 2) = 1
-							A = std::rotr(A, 9);
-							C = std::rotr(C, 2);
-
-							B -= A;
-							C ^= (~B);
-							D -= C;
-						}
-					}
-
-#endif
 				}
 
 				~CommonStateData()

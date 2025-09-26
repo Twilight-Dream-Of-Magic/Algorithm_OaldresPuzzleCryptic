@@ -2,17 +2,48 @@ import numpy as np
 from mpmath import mp
 
 # Set the desired decimal precision
+# Precision (must stay 100)
 mp.dps = 100
 
-# Define the mathematical constants
+def plastic_number(dps=100):
+    """
+    Compute the Plastic number (real root of x^3 = x + 1)
+    with dps digits of precision.
+    Returns the high-precision value as an mp.mpf.
+    """
+    mp.dps = dps
+    # Use the closed-form algebraic expression
+    num = ( (9 - mp.sqrt(69))**(1/mp.mpf(3)) +
+            (9 + mp.sqrt(69))**(1/mp.mpf(3)) )
+    den = (2**(1/mp.mpf(3))) * (3**(2/mp.mpf(3)))
+    return num / den
+
+# Constants (high precision)
 e = mp.e
 pi = mp.pi
 phi = (1 + mp.sqrt(5)) / 2
 sqrt_2 = mp.sqrt(2)
 sqrt_3 = mp.sqrt(3)
-gamma = mp.mpf("0.5772156649") # Euler–Mascheroni constant
-delta = mp.mpf("4.6692016091") # Feigenbaum constant
-rho = mp.mpf("1.3247179572") # Plastic number
+gamma = mp.euler
+delta = mp.mpf("4.6692016091029906718532038204662016172581855774757686327456513430041343134300413413343302113134731373868974402393480138")
+rho = plastic_number(100)
+
+def frac(x):
+    return x - mp.floor(x)
+
+# V2 polynomial Weyl with all high-precision constants
+def f(n):
+    n = mp.mpf(n)
+    x = mp.mpf("0")
+    x = frac(x + e      *  n      )  # n^1
+    x = frac(x + pi     *  n**2   )  # n^2
+    x = frac(x + phi    *  n**3   )  # n^3
+    x = frac(x + sqrt_2 *  n**4   )  # n^4
+    x = frac(x + sqrt_3 *  n**5   )  # n^5
+    x = frac(x + gamma  *  n**6   )  # n^6
+    x = frac(x + delta  *  n**7   )  # n^7
+    x = frac(x + rho    *  n**8   )  # n^8
+    return x
 
 '''
 e = mp.e
