@@ -212,12 +212,15 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				std::uint64_t choice_function = 0;
 				std::uint64_t bit_rotation_amount_a = 0;
 				std::uint64_t bit_rotation_amount_b = 0;
-				std::uint32_t round_constant_index = 0;
+				//std::uint32_t round_constant_index = 0;
 			};
 
 			std::vector<KeyState> KeyStates;
 			
 			void GenerateAndStoreKeyStates(const Key128 key_128bit, const std::uint64_t number_once);
+
+			void MixLinearTransform_Forward(uint64_t& lane0, uint64_t& lane1, const KeyState& current_key_state);
+			void MixLinearTransform_Backward(uint64_t& lane0, uint64_t& lane1, const KeyState& current_key_state);
 
 			Block128 EncryptionCoreFunction(const Block128 data, const Key128 key_128bit, const std::uint64_t round);
 			Block128 DecryptionCoreFunction(const Block128 data, const Key128 key_128bit, const std::uint64_t round);

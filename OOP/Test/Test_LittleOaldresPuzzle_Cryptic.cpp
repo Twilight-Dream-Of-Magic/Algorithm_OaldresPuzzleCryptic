@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2023-2050 Twilight-Dream
  *
- * ±¾ÎÄ¼þÊÇ Algorithm_OaldresPuzzleCryptic µÄÒ»²¿·Ö¡£
+ * æœ¬æ–‡ä»¶æ˜¯ Algorithm_OaldresPuzzleCryptic çš„ä¸€éƒ¨åˆ†ã€‚
  *
- * Algorithm_OaldresPuzzleCryptic ÊÇ×ÔÓÉÈí¼þ£ºÄã¿ÉÒÔÔÙ·Ö·¢Ö®ºÍ/»òÒÀÕÕÓÉ×ÔÓÉÈí¼þ»ù½ð»á·¢²¼µÄ GNU Í¨ÓÃ¹«¹²Ðí¿ÉÖ¤ÐÞ¸ÄÖ®£¬ÎÞÂÛÊÇ°æ±¾ 3 Ðí¿ÉÖ¤£¬»¹ÊÇ£¨°´ÄãµÄ¾ö¶¨£©ÈÎºÎÒÔºó°æ¶¼¿ÉÒÔ¡£
+ * Algorithm_OaldresPuzzleCryptic æ˜¯è‡ªç”±è½¯ä»¶ï¼šä½ å¯ä»¥å†åˆ†å‘ä¹‹å’Œ/æˆ–ä¾ç…§ç”±è‡ªç”±è½¯ä»¶åŸºé‡‘ä¼šå‘å¸ƒçš„ GNU é€šç”¨å…¬å…±è®¸å¯è¯ä¿®æ”¹ä¹‹ï¼Œæ— è®ºæ˜¯ç‰ˆæœ¬ 3 è®¸å¯è¯ï¼Œè¿˜æ˜¯ï¼ˆæŒ‰ä½ çš„å†³å®šï¼‰ä»»ä½•ä»¥åŽç‰ˆéƒ½å¯ä»¥ã€‚
  *
- * ·¢²¼ Algorithm_OaldresPuzzleCryptic ÊÇÏ£ÍûËüÄÜÓÐÓÃ£¬µ«ÊÇ²¢ÎÞ±£ÕÏ;ÉõÖÁÁ¬¿ÉÏúÊÛºÍ·ûºÏÄ³¸öÌØ¶¨µÄÄ¿µÄ¶¼²»±£Ö¤¡£Çë²Î¿´ GNU Í¨ÓÃ¹«¹²Ðí¿ÉÖ¤£¬ÁË½âÏêÇé¡£
- * ÄãÓ¦¸ÃËæ³ÌÐò»ñµÃÒ»·Ý GNU Í¨ÓÃ¹«¹²Ðí¿ÉÖ¤µÄ¸´±¾¡£Èç¹ûÃ»ÓÐ£¬Çë¿´ <https://www.gnu.org/licenses/>¡£
+ * å‘å¸ƒ Algorithm_OaldresPuzzleCryptic æ˜¯å¸Œæœ›å®ƒèƒ½æœ‰ç”¨ï¼Œä½†æ˜¯å¹¶æ— ä¿éšœ;ç”šè‡³è¿žå¯é”€å”®å’Œç¬¦åˆæŸä¸ªç‰¹å®šçš„ç›®çš„éƒ½ä¸ä¿è¯ã€‚è¯·å‚çœ‹ GNU é€šç”¨å…¬å…±è®¸å¯è¯ï¼Œäº†è§£è¯¦æƒ…ã€‚
+ * ä½ åº”è¯¥éšç¨‹åºèŽ·å¾—ä¸€ä»½ GNU é€šç”¨å…¬å…±è®¸å¯è¯çš„å¤æœ¬ã€‚å¦‚æžœæ²¡æœ‰ï¼Œè¯·çœ‹ <https://www.gnu.org/licenses/>ã€‚
  */
  
  /*
@@ -20,7 +20,7 @@
  * You should get a copy of the GNU General Public License with your program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "LittleOaldresPuzzle_Cryptic.h"
+#include "../StreamCipher/LittleOaldresPuzzle_Cryptic.h"
 #include <iostream>
 #include <vector>
 #include <random>
