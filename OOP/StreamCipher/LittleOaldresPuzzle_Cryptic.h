@@ -202,6 +202,23 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				return subkeys;
 			}
 
+			// Reset both internal XCR instances back to their deterministic seeded states.
+			//
+			// Why this exists:
+			// - Encryption / decryption / subkey generation consume persistent member PRNGs.
+			// - Without reset, successive top-level calls on the same
+			//   LittleOaldresPuzzle_Cryptic object would continue from the previously
+			//   mutated internal XCR states.
+			//
+			// Reset policy:
+			// - `prng`        is reset with the original constructor seed.
+			// - `prng_second` is reset with the paired derived seed: ~seed ^ std::rotl(seed, 32)
+			//
+			// Result:
+			// - Each top-level encryption / decryption session starts from the same
+			//   reproducible pair of seeded XCR states.
+			// - Inside one session, however, round material is still generated from
+			//   continuously evolving member states.
 			void ResetPRNG()
 			{
 				prng.Seed(seed);
