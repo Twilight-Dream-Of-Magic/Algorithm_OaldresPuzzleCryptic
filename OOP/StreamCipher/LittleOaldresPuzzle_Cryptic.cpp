@@ -1,5 +1,92 @@
 #include "LittleOaldresPuzzle_Cryptic.h"
 
+/*
+
+Linear layer box attribute:
+
+	find_linear_box.exe --bits 32 --efficient-implementation --quality-threshold-branch-number 12 --max-xor 6 --seed 4 --need-found-result 2 --no-progress
+	M(rotl)_hex = 0xd05a0889  M(rotl)^{-1}_hex = 0x5fc08ef4
+	M(rotr)_hex = 0x2220b417  M(rotr)^{-1}_hex = 0x5ee207f4
+	minimum weight found (pair) = 12
+	rotl: diff=12 lin=12 combined=12
+	rotr: diff=12 lin=12 combined=12
+	Operations(rotl): start_bit=0 steps=6
+	v0 = (1 << 0)  [0x00000001]
+	v1 = v0 ^ rotl(v0,2)  [0x00000005]
+	v2 = v0 ^ rotl(v1,17)  [0x000a0001]
+	v3 = v0 ^ rotl(v2,4)  [0x00a00011]
+	v4 = v3 ^ rotl(v3,24)  [0x11a0a011]
+	v5 = v2 ^ rotl(v4,7)  [0xd05a0889]
+	Operations(rotr): start_bit=0 steps=6
+	v0 = (1 << 0)  [0x00000001]
+	v1 = v0 ^ rotr(v0,2)  [0x40000001]
+	v2 = v0 ^ rotr(v1,17)  [0x0000a001]
+	v3 = v0 ^ rotr(v2,4)  [0x10000a01]
+	v4 = v3 ^ rotr(v3,24)  [0x100a0b11]
+	v5 = v2 ^ rotr(v4,7)  [0x2220b417]
+
+	M(rotl)_hex = 0x29082a87  M(rotl)^{-1}_hex = 0x7868ab73
+	M(rotr)_hex = 0xc2a82129  M(rotr)^{-1}_hex = 0x9daa2c3d
+	minimum weight found (pair) = 12
+	rotl: diff=12 lin=12 combined=12
+	rotr: diff=12 lin=12 combined=12
+	Operations(rotl): start_bit=0 steps=6
+	v0 = (1 << 0)  [0x00000001]
+	v1 = v0 ^ rotl(v0,2)  [0x00000005]
+	v2 = v1 ^ rotl(v0,24)  [0x01000005]
+	v3 = v2 ^ rotl(v1,4)  [0x01000055]
+	v4 = v2 ^ rotl(v3,27)  [0xa9080007]
+	v5 = v4 ^ rotl(v3,7)  [0x29082a87]
+	Operations(rotr): start_bit=0 steps=6
+	v0 = (1 << 0)  [0x00000001]
+	v1 = v0 ^ rotr(v0,2)  [0x40000001]
+	v2 = v1 ^ rotr(v0,24)  [0x40000101]
+	v3 = v2 ^ rotr(v1,4)  [0x54000101]
+	v4 = v2 ^ rotr(v3,27)  [0xc000212b]
+	v5 = v4 ^ rotr(v3,7)  [0xc2a82129]
+
+	DONE.
+	Tested candidates = 5736
+	Accepted candidates (printed) = 2
+	Accepted candidates (total)   = 2
+	Elapsed seconds = 1.35393
+	Random ISD iterations executed (Prange screen) = 8896
+	Random ISD iterations executed (Quality gate)  = 32768
+	Random ISD iterations executed (Final confirm) = 16384
+	quality_threshold_branch_number(B) = 12
+	Quality gate = ON  (quality_trials=4096 exhaustive_input_weight_max=2 full_unit_scan=yes)
+
+	--- Best candidate (post-search confirmation) ---
+	M(rotl)_hex = 0x29082a87  M(rotl)^{-1}_hex = 0x7868ab73
+	M(rotr)_hex = 0xc2a82129  M(rotr)^{-1}_hex = 0x9daa2c3d
+	minimum weight found = 12
+
+
+	--- Search-phase upper bounds (before final confirmation) ---
+	Best(rotl) differential branch upper bound = 12
+	Best(rotl) linear branch upper bound       = 12
+	Best(rotl) combined branch upper bound     = 12
+	Best(rotr) differential branch upper bound = 12
+	Best(rotr) linear branch upper bound       = 12
+	Best(rotr) combined branch upper bound     = 12
+	Best(pair) combined branch upper bound     = 12
+
+	--- Post-search confirmed upper bounds ---
+	Confirmed(rotl) differential upper bound   = 12
+	Confirmed(rotl) linear upper bound         = 12
+	Confirmed(rotl) combined upper bound       = 12
+	Confirmed(rotr) differential upper bound   = 12
+	Confirmed(rotr) linear upper bound         = 12
+	Confirmed(rotr) combined upper bound       = 12
+	Confirmed(pair) combined upper bound       = 12
+
+	Threshold check (confirmed combined >= 12) = PASS
+
+	Quality: ACCEPTED (safe to forward to heuristic decomposer)
+	Next step: run linear_box_heuristic_decomposer --verify <hex> for strict validation (do this for BOTH matrices).
+
+*/
+
 namespace TwilightDreamOfMagical::CustomSecurity
 {
 	//SymmetricEncryptionDecryption
@@ -24,7 +111,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			{
 				using std::rotl;
 				using std::rotr;
-				const auto&	  RC = ROUND_CONSTANT;
+				const auto&	  RC = ROUND_CONSTANTS;
 				std::uint32_t A = a, B = b;
 
 				// ── Subround 0 : NL → Diffuse → CD  (CD ← B) / 第 0 子轮：非线性→扩散→注入（CD ← B）
@@ -37,7 +124,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				{
 					auto [ C0, D0 ] = cd_injection_from_B( B, ( RC[ 2 ] | RC[ 3 ] ), RC[ 3 ] );
 					A ^= ( rotl( C0, 24 ) ^ rotl( D0, 16 ) ^ RC[ 4 ] );
-					B = l1_backward( B );
 				}
 
 				// ── Subround 1 : NL → Diffuse → CD  (CD ← A) / 第 1 子轮：非线性→扩散→注入（CD ← A）
@@ -50,7 +136,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				{
 					auto [ C1, D1 ] = cd_injection_from_A( A, ( RC[ 7 ] & RC[ 8 ] ), RC[ 8 ] );
 					B ^= ( rotl( C1, 24 ) ^ rotl( D1, 16 ) ^ RC[ 9 ] );
-					A = l2_backward( A );
 				}
 
 				// Light whitening (reversible) / 轻度白化（可逆）
@@ -64,7 +149,7 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			{
 				using std::rotl;
 				using std::rotr;
-				const auto&	  RC = ROUND_CONSTANT;
+				const auto&	  RC = ROUND_CONSTANTS;
 				std::uint32_t A = a, B = b;
 
 				// Undo whitening / 撤白化
@@ -73,7 +158,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				// Undo Subround 1 (reverse order) / 撤第 1 子轮（逆序）
 				{
-					A = l2_forward( A );
 					auto [ C1, D1 ] = cd_injection_from_A( A, ( RC[ 7 ] & RC[ 8 ] ), RC[ 8 ] );
 					B ^= ( rotl( C1, 24 ) ^ rotl( D1, 16 ) ^ RC[ 9 ] );
 				}  // Undo CD injection (XOR is involutive) / 撤 CD 注入（XOR 自反）
@@ -84,7 +168,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				// Undo Subround 0 (reverse order) / 撤第 0 子轮（逆序）
 				{
-					B = l1_forward( B );
 					auto [ C0, D0 ] = cd_injection_from_B( B, ( RC[ 2 ] | RC[ 3 ] ), RC[ 3 ] );
 					A ^= ( rotl( C0, 24 ) ^ rotl( D0, 16 ) ^ RC[ 4 ] );
 				}
@@ -119,17 +202,29 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			inline std::uint32_t generate_dynamic_diffusion_mask0( std::uint32_t x ) const noexcept
 			{
 				using std::rotl;
-				return rotl( x, 2 ) ^ rotl( x, 3 ) ^ rotl( x, 6 ) ^ rotl( x, 9 )
-					^ rotl( x, 10 ) ^ rotl( x, 13 ) ^ rotl( x, 16 ) ^ rotl( x, 17 )
-					^ rotl( x, 20 ) ^ rotl( x, 24 ) ^ rotl( x, 27 ) ^ rotl( x, 31 );
+				std::uint32_t Y = 0;
+				std::uint32_t v0 = X;
+
+				std::uint32_t v1 = v0 ^ rotl(v0,2);
+				std::uint32_t v2 = v0 ^ rotl(v1,17);
+				std::uint32_t v3 = v0 ^ rotl(v2,4);
+				std::uint32_t v4 = v3 ^ rotl(v3,24);
+				Y = v2 ^ rotl(v4,7);
+				return Y;
 			}
 
 			inline std::uint32_t generate_dynamic_diffusion_mask1( std::uint32_t x ) const noexcept
 			{
 				using std::rotr;
-				return rotr( x, 2 ) ^ rotr( x, 3 ) ^ rotr( x, 6 ) ^ rotr( x, 9 )
-					^ rotr( x, 10 ) ^ rotr( x, 13 ) ^ rotr( x, 16 ) ^ rotr( x, 17 )
-					^ rotr( x, 20 ) ^ rotr( x, 24 ) ^ rotr( x, 27 ) ^ rotr( x, 31 );
+				std::uint32_t Y = 0;
+				std::uint32_t v0 = X;
+
+				std::uint32_t v1 = v0 ^ rotr(v0,2);
+				std::uint32_t v2 = v0 ^ rotr(v1,17);
+				std::uint32_t v3 = v0 ^ rotr(v2,4);
+				std::uint32_t v4 = v3 ^ rotr(v3,24);
+				Y = v2 ^ rotr(v4,7);
+				return Y;
 			}
 
 			// —— CD(B)：依赖 B 与常量，简化结构并引入布尔二次项 / depends on B+constants, simplified with quadratic term
@@ -137,12 +232,13 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			{
 				using std::rotl;
 				using std::rotr;
-				const auto&	  RC = ROUND_CONSTANT;
+				const auto&	  RC = ROUND_CONSTANTS;
+				const std::uint32_t mask0 = generate_dynamic_diffusion_mask0( B );
 				// Quadratic Boolean term (NOT-AND) for nonlinearity / 布尔二次项（非与）增加非线性
-				std::uint32_t s_box_in_B = ( B ^ RC[ 2 ] ) ^ ( ~( B & generate_dynamic_diffusion_mask0( B ) ) );
+				std::uint32_t s_box_in_B = ( B ^ RC[ 2 ] ) ^ ( ~( B & mask0 ) );
 
-				std::uint32_t c = l2_forward( B );
-				std::uint32_t d = l1_forward( B ) ^ rc0;
+				std::uint32_t c = B;
+				std::uint32_t d = mask0 ^ rc0;
 				std::uint32_t t = c ^ d;
 				c ^= d ^ s_box_in_B;
 				d ^= rotr( t, 16 ) ^ rc1;
@@ -154,42 +250,21 @@ namespace TwilightDreamOfMagical::CustomSecurity
 			{
 				using std::rotl;
 				using std::rotr;
-				const auto&	  RC = ROUND_CONSTANT;
+				const auto&	  RC = ROUND_CONSTANTS;
+				const std::uint32_t mask1 = generate_dynamic_diffusion_mask1( A );
 				// Quadratic Boolean term (NOT-OR) for nonlinearity / 布尔二次项（非或）增加非线性
-				std::uint32_t s_box_in_A = ( A ^ RC[ 7 ] ) ^ ( ~( A | generate_dynamic_diffusion_mask1( A ) ) );
+				std::uint32_t s_box_in_A = ( A ^ RC[ 7 ] ) ^ ( ~( A | mask1 ) );
 
-				std::uint32_t c = l1_forward( A );
-				std::uint32_t d = l2_forward( A ) ^ rc0;
+				std::uint32_t c = A;
+				std::uint32_t d = mask1 ^ rc0;
 				std::uint32_t t = c ^ d;
 				c ^= d ^ s_box_in_A;
 				d ^= rotl( t, 16 ) ^ rc1;
 				return { c, d };
 			}
 
-			// ==== L1/L2 linear layers / 你给的 L1/L2 线性层 ====
-			constexpr std::uint32_t l1_forward(std::uint32_t in) const noexcept {
-				using std::rotl;
-				return in ^ rotl(in, 2) ^ rotl(in, 10) ^ rotl(in, 18) ^ rotl(in, 24);
-			}
-			constexpr std::uint32_t l1_backward(std::uint32_t out) const noexcept {
-				using std::rotr;
-				return out ^ rotr(out, 2) ^ rotr(out, 8) ^ rotr(out, 10) ^ rotr(out, 14)
-						   ^ rotr(out,16) ^ rotr(out,18) ^ rotr(out,20) ^ rotr(out,24)
-						   ^ rotr(out,28) ^ rotr(out,30);
-			}
-			constexpr std::uint32_t l2_forward(std::uint32_t in) const noexcept {
-				using std::rotl;
-				return in ^ rotl(in, 8) ^ rotl(in, 14) ^ rotl(in, 22) ^ rotl(in, 30);
-			}
-			constexpr std::uint32_t l2_backward(std::uint32_t out) const noexcept {
-				using std::rotr;
-				return out ^ rotr(out, 2) ^ rotr(out, 4) ^ rotr(out, 8) ^ rotr(out, 12)
-						   ^ rotr(out,14) ^ rotr(out,16) ^ rotr(out,18) ^ rotr(out,22)
-						   ^ rotr(out,24) ^ rotr(out,30);
-			}
-
 			// ==== NeoAlzette ARX-box constants / NeoAlzette ARX-box 常量 ====
-			static constexpr std::array<std::uint32_t, 16> ROUND_CONSTANT
+			static constexpr std::array<std::uint32_t, 16> ROUND_CONSTANTS
 			{ 
 				//1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181 (Fibonacci numbers)
 				//Concatenation of Fibonacci numbers : 123581321345589144233377610987159725844181
