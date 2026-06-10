@@ -308,9 +308,9 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 			std::uint32_t Module_SecureRoundSubkeyGeneratation::CrazyTransformAssociatedWord( std::uint32_t AssociatedWordData, const std::uint64_t WordKeyMaterial )
 			{
-				std::array<std::uint32_t, 2> BitReorganizationWord { 0, 0 };
+				std::array<std::uint32_t, 4> BitReorganizationWord { 0, 0, 0, 0 };
 
-				auto& [ WordA, WordB ] = BitReorganizationWord;
+				auto& [ WordA, WordB, WordC, WordD ] = BitReorganizationWord;
 
 				//将64位（字）的密钥材料的左右两半应用于2个32位（字）的数据
 				//Apply the left and right halves of the 64-bit (word) key material to the 2 32-bit (word) data
@@ -327,30 +327,31 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				//对伪随机值进行位移操作，生成两个32位无符号整数(WordC, WordD)
 				//Perform bit shifts on the pseudo-random value to generate two 32-bit unsigned integers(WordC, WordD)
-				const unsigned s = static_cast<unsigned>(WordKeyMaterial & 63u);
-				std::uint32_t WordC = static_cast<std::uint32_t>((PseudoRandomValue << s) >> 32);
-				std::uint32_t WordD = static_cast<std::uint32_t>( PseudoRandomValue >> s);
+				const std::uint32_t ShiftBitCount = static_cast<unsigned>(WordKeyMaterial & 63u);
+				WordC = static_cast<std::uint32_t>((PseudoRandomValue << ShiftBitCount) >> 32);
+				WordD = static_cast<std::uint32_t>( PseudoRandomValue >> ShiftBitCount);
 
 				//混合AssociatedWordData, LeftWordKey, RightWordKey的数据给WordC, WordD
 				//Mix the data of AssociatedWordData, LeftWordKey, RightWordKey to WordC, WordD
-				WordC = ( AssociatedWordData | LeftWordKey ) & WordC;
-				WordD = ( AssociatedWordData & RightWordKey ) | WordD;
+				WordC ^= ( AssociatedWordData | LeftWordKey );
+				WordD ^= ( ~AssociatedWordData | RightWordKey );
 
 				WordA ^= WordC;
 				WordB ^= WordD;
 
 				//使用比特旋转和伪随机值，做混合WordA, WordB, LeftWordKey, RightWordKey的数据给WordA, WordB
 				//Use bit rotation and pseudo-random values to do mix WordA, WordB, LeftWordKey, RightWordKey data to WordA, WordB
-				WordA = std::rotl( WordA + LeftWordKey, PseudoRandomValue % 32 );
-				WordB = std::rotr( WordB + RightWordKey, PseudoRandomValue % 32 );
+				WordA = std::rotl( WordA ^ (LeftWordKey | RightWordKey), PseudoRandomValue % 32 );
+				WordB = std::rotr( WordB ^ (LeftWordKey & RightWordKey), PseudoRandomValue % 32 );
 
 				//混合WordA, WordB, LeftWordKey, RightWordKey, WordC, WordD, AssociatedWordData的数据给WordC, WordD
 				//Mix the data of WordA, WordB, LeftWordKey, RightWordKey, WordC, WordD, AssociatedWordData to WordC, WordD
-				WordC = ( WordB & ~LeftWordKey ) ^ ( WordD | AssociatedWordData );
-				WordD = ( WordA & ~RightWordKey ) ^ ( WordC | AssociatedWordData );
 
-				WordA ^= WordC;
-				WordB ^= WordD;
+				WordD ^= ( ~AssociatedWordData & LeftWordKey );
+				WordC ^= ( AssociatedWordData & RightWordKey );
+				
+				WordB ^= WordC ^ ~LeftWordKey;
+				WordA ^= WordD ^ ~RightWordKey;
 
 				//访问一个引用在共同密钥状态数据中，被洗牌的表示矩阵Rows和Columns的元素的数组
 				//Accesses an array that references the elements of the representation matrix Rows and Columns that are shuffled in the common key state data.
@@ -361,42 +362,39 @@ namespace TwilightDreamOfMagical::CustomSecurity
 				//Obtain row and column indices into the round subkey matrix using the transformed WordA and WordB values
 				const std::uint32_t& Row = MatrixOffsetWithRandomIndices[ WordA % MatrixOffsetWithRandomIndices.size() ];
 				const std::uint32_t& Column = MatrixOffsetWithRandomIndices[ WordB % MatrixOffsetWithRandomIndices.size() ];
-
-				//const std::uint32_t& Row = WordA % TransformedRoundSubkeyMatrix.rows();
-				//const std::uint32_t& Column = WordB % TransformedRoundSubkeyMatrix.cols();
-
+				
 				//计算移位和旋转量以提取轮密钥位
 				//Compute shift and rotate amounts to extract the round subkey bit
-				std::uint32_t ShiftAmount = ( WordA + WordB ), ShiftAmount2 = ( WordA + WordB * 2 );
-				std::uint32_t RotateAmount = ( Column - Row ), RotateAmount2 = ( 2 * Row - Column );
-
+				std::uint32_t ShiftAmount = ( WordA + WordB ), ShiftAmount2 = ( WordA + (WordB << 1) );
+				std::uint32_t RotateAmount = ( Column - Row ), RotateAmount2 = ( (Row << 1) - Column );
+				
 				std::uint64_t RoundSubkey = TransformedRoundSubkeyMatrix.coeff( Row, Column );
-
+				
 				//在RoundSubkey中均匀地选择两个比特，无论那是0还是1
 				//In RoundSubkey evenly select two bits, whether that is 0 or 1.
 				std::uint64_t RoundSubkeyBit = ( RoundSubkey >> ShiftAmount % 64 ) & 1;
 				std::uint64_t RoundSubkeyBit2 = ( RoundSubkey >> ShiftAmount2 % 64 ) & 1;
-
+				
 				//把选中的两个比特位用比特旋转左或者右，然后变成一个比特掩码
 				//Take the two selected bits and rotate them left or right with bits and turn them into a bit mask.
 				std::uint64_t LeftRotatedMask = std::rotl( RoundSubkeyBit, RotateAmount % 64 );
 				std::uint64_t RightRotatedMask = std::rotr( RoundSubkeyBit2, RotateAmount2 % 64 );
-
-				//计算合并的比特掩码，如果它是0，就需要重新生成比特掩码
-				//Compute the merged bitmask, if it is 0, you need to regenerate the bitmask
-				std::uint64_t BitMask = LeftRotatedMask ^ RightRotatedMask;
-				if ( BitMask == 0 )
-				{
-					BitMask |= ( 1ULL << ( ( Row + Column ) * 2 % 64 ) );
-				}
-				RoundSubkey &= ~BitMask;
-
+				
+				//计算合并的比特掩码轮密钥
+				//Compute the merged bitmask for roundkey
+				std::uint64_t RoundSubkeyMasked = RoundSubkey & ~(LeftRotatedMask ^ RightRotatedMask);
+				
 				//将64位（字）的密钥材料的左右两半应用于2个32位（字）的数据
 				//Apply the left and right halves of the 64-bit (word) key material to the 2 32-bit (word) data
-				WordA ^= static_cast<std::uint32_t>( static_cast<std::uint64_t>( RoundSubkey & 0xFFFFFFFF00000000ULL ) >> static_cast<std::uint64_t>( 32 ) );
-				WordB ^= static_cast<std::uint32_t>( static_cast<std::uint64_t>( RoundSubkey & 0x00000000FFFFFFFFULL ) );
+				std::uint32_t RoundSubkeyMaskedLeft = static_cast<std::uint32_t>( static_cast<std::uint64_t>( RoundSubkeyMasked & 0xFFFFFFFF00000000ULL ) >> static_cast<std::uint64_t>( 32 ) );
+				std::uint32_t RoundSubkeyMaskedRight = static_cast<std::uint32_t>( static_cast<std::uint64_t>( RoundSubkeyMasked & 0x00000000FFFFFFFFULL ) );
 
-				AssociatedWordData ^= ( WordA ^ WordB );
+				std::uint32_t RoundSubkeyLeft = static_cast<std::uint32_t>( static_cast<std::uint64_t>( RoundSubkey & 0xFFFFFFFF00000000ULL ) >> static_cast<std::uint64_t>( 32 ) );
+				std::uint32_t RoundSubkeyRight = static_cast<std::uint32_t>( static_cast<std::uint64_t>( RoundSubkey & 0x00000000FFFFFFFFULL ) );
+				
+				std::uint32_t FunctionResult = std::rotl( WordA ^ RoundSubkeyMaskedRight, 16 ) ^ std::rotr( WordB ^ RoundSubkeyMaskedLeft, 16 );
+				std::uint32_t FunctionResult2 = RoundSubkeyLeft - std::rotl( WordC ^ RoundSubkeyRight, 8 ) ^ std::rotr( WordD, 8 );
+				AssociatedWordData += FunctionResult ^ FunctionResult2;
 
 				return AssociatedWordData;
 			}

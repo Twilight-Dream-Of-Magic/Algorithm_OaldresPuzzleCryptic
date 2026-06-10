@@ -119,7 +119,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						ConditionControlFlag = false;
 
 						++(this->RoundSubkeysCounter);
-						continue;
 					}
 
 					if((this->RoundSubkeysCounter % 2048ULL) == 0)
@@ -191,9 +190,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				this->AlgorithmCorePointer->RoundFunction(DataByteSpan, CryptionMode2MCAC4_FDW::MCA_ENCRYPTER);
 			}
-
-			if(PlainText.size() == DataBlockSize)
-				this->AlgorithmCorePointer->RoundFunction(PlainText, CryptionMode2MCAC4_FDW::MCA_ENCRYPTER);
 
 			this->RoundSubkeysCounter = 0;
 			CheckPointer = memory_set_no_optimize_function<0x00>(RandomWordKeyDataVector.data(), RandomWordKeyDataVector.size() * sizeof(std::uint64_t));
@@ -314,7 +310,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 						ConditionControlFlag = false;
 
 						++(this->RoundSubkeysCounter);
-						continue;
 					}
 
 					if((this->RoundSubkeysCounter % 2048ULL) == 0)
@@ -386,9 +381,6 @@ namespace TwilightDreamOfMagical::CustomSecurity
 
 				this->AlgorithmCorePointer->RoundFunction(DataByteSpan, CryptionMode2MCAC4_FDW::MCA_DECRYPTER);
 			}
-
-			if(CipherText.size() == DataBlockSize)
-				this->AlgorithmCorePointer->RoundFunction(CipherText, CryptionMode2MCAC4_FDW::MCA_DECRYPTER);
 
 			this->RoundSubkeysCounter = 0;
 			CheckPointer = memory_set_no_optimize_function<0x00>(RandomWordKeyDataVector.data(), RandomWordKeyDataVector.size() * sizeof(std::uint64_t));

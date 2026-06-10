@@ -196,6 +196,8 @@ namespace TwilightDreamOfMagical::CustomSecurity
 					//敏感临时数据清零，降低被分析风险 / Zero out sensitive temporaries
 					a = b = c = d = e = f = 0;
 					RestructedWordKey = UpPartWord = DownPartWord = LeftPartWord = RightPartWord = 0;
+					
+					++NeedHashDataIndex;
 
 				}
 

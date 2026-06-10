@@ -133,10 +133,10 @@ inline IntegerType Binary_RightRotateMove( IntegerType NumberValue, int Rotation
 namespace CommonToolkit
 {
 	// false value attached to a dependent name (for static_assert)
-	template<auto>
+	template<typename>
 	inline constexpr bool Dependent_Always_Failed = false;
 	// true value attached to a dependent name (for static_assert)
-	template<auto>
+	template<typename>
 	inline constexpr bool Dependent_Always_Succeed = true;
 
 	template<class T>
